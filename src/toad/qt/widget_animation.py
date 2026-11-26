@@ -11,13 +11,10 @@ gone is never touched.
 
 from __future__ import annotations
 
-from weakref import WeakSet
-
 import shiboken6
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QWidget
 from ui_theme.clock import AnimationClock
-
 
 
 def frame_interval(screen: QScreen | None) -> float:
@@ -26,31 +23,6 @@ def frame_interval(screen: QScreen | None) -> float:
     (`ui_theme.effects.DisplayRate`); the window's clock and the activity sweep both read it here."""
     rate = screen.refreshRate() if screen is not None else 0.0
     return 1 / (rate if rate >= 20 else 60)
-
-
-class QtAnimationClock(AnimationClock):
-    """The Qt app's animation clock: suspends decorative ambient animations (tab waves,
-    sidebar waves, activity sweeps) while a history view's QScroller is actively dragging
-    or flinging, so distant paints cannot expand the frame's dirty bounding box to the
-    whole 1080x2400 screen mid-scroll, and resumes them at true wall-clock phase the
-    instant motion stops."""
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._scrolling: WeakSet[object] = WeakSet()
-
-    @property
-    def ambient_paused(self) -> bool:
-        return bool(self._scrolling)
-
-    def set_scrolling(self, owner: object, scrolling: bool) -> None:
-        was = bool(self._scrolling)
-        if scrolling:
-            self._scrolling.add(owner)
-        else:
-            self._scrolling.discard(owner)
-        if bool(self._scrolling) != was:
-            self.refresh()
 
 
 class WidgetAnimation:

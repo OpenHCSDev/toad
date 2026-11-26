@@ -350,7 +350,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.editor_row = editor_row = QHBoxLayout(self.frame)
         editor_row.setSpacing(UiGap.tight)
         editor_row.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
-        editor_row.addWidget(self.editor, 1)
+        editor_row.addWidget(self.editor, 1, Qt.AlignmentFlag.AlignVCenter)
+        self.button_box = QWidget(self.frame)
+        self.button_row = QHBoxLayout(self.button_box)
+        self.button_row.setContentsMargins(0, 0, 0, 0)
+        self.button_row.setSpacing(UiGap.tight)
+        editor_row.addWidget(self.button_box, 0, Qt.AlignmentFlag.AlignBottom)
         self.info_bar = QtInfoBar(host, renderer, self)
         renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
@@ -365,11 +370,22 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.held = QtQueueHint(self)
         self.info_bar.layout().insertWidget(self.info_bar.layout().indexOf(self.info_bar.status), self.held)
         self.failure = self.line(FailureRole)
-        self.send_button = QPushButton("➤", self.frame)
+        self.send_button = QPushButton("➤", self.button_box)
         self.send_button.setToolTip(SubmitAction.title)
         self.send_button.setAccessibleName(SubmitAction.title)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
         self.send_button.clicked.connect(self.submit)
+        # Reusable single-shot timers avoid per-call PySide QMetaObject::normalizedSignature
+        # allocations from QTimer.singleShot(0, self, slot).
+        self._fit_height_timer = QTimer(self)
+        self._fit_height_timer.setSingleShot(True)
+        self._fit_height_timer.setInterval(0)
+        self._fit_height_timer.timeout.connect(self._run_scheduled_fit_height)
+        self._sync_queue_timer = QTimer(self)
+        self._sync_queue_timer.setSingleShot(True)
+        self._sync_queue_timer.setInterval(0)
+        self._sync_queue_timer.timeout.connect(self._sync_queue)
+        self._last_queue_state: tuple[str, bool, str] | None = None
         # The top-level window is the shared layout viewport. Android can keep that native
         # window at the physical screen size while occluding its bottom with the IME, even
         # under ADJUST_RESIZE, so the input method's own rectangle is the authority for the
@@ -385,8 +401,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self._input_method.visibleChanged.connect(
             self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
         )
-        # Compact symbol buttons float at the bottom-right of `self.frame`,
-        # so multiline prose flows full-width above them and Android's keyboard never clips them.
+        # Compact symbol buttons dock bottom-right beside `self.editor` in `editor_row`,
+        # so the editor grows strictly by wrapped line count with zero blank line and zero
+        # expand/collapse bounce when adding or removing characters.
         self.frame_row = frame_row = QHBoxLayout()
         frame_row.setSpacing(0)
         frame_row.addWidget(self.frame, 1)
@@ -440,77 +457,28 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.fit_height()
 
     def one_line_box_height(self) -> int:
-        """The input box's height holding one line: the editor's one-line height, the box's
-        padding, and its border where it draws one."""
+        """The input box's height holding one line: the taller of one editor line or the docked
+        buttons, plus the box's padding and border."""
         padding = self.frame.layout().contentsMargins()
         border = self.settings.ui.input.box.qt_border_pixels
-        _, btn_h = self._buttons_band_size()
+        btn_h = max((button.height() for button in self.box_buttons if not button.isHidden()), default=0)
         return max(self.editor_height(1), btn_h) + padding.top() + padding.bottom() + border
 
     def add_box_button(self, button: QPushButton) -> None:
-        """Float a compact symbol button at the bottom-right of `self.frame` (Send last, Attach
-        before it) so wrapped prose flows full-width above the buttons instead of losing a
-        right-hand column on every line."""
-        button.setParent(self.frame)
+        """Dock a compact symbol button at the bottom-right beside `self.editor` (Send last,
+        Attach before it)."""
+        button.setParent(self.button_box)
         # Send is added first and stays last; every later button goes before it.
-        self.box_buttons = (*self.box_buttons[:-1], button, *self.box_buttons[-1:]) \
-            if self.box_buttons else (button,)
-        button.raise_()
+        if self.box_buttons:
+            self.box_buttons = (*self.box_buttons[:-1], button, *self.box_buttons[-1:])
+            self.button_row.insertWidget(self.button_row.count() - 1, button, 0, Qt.AlignmentFlag.AlignBottom)
+        else:
+            self.box_buttons = (button,)
+            self.button_row.addWidget(button, 0, Qt.AlignmentFlag.AlignBottom)
         self.fit_buttons()
         self.fit_height()
 
     box_buttons: tuple[QPushButton, ...] = ()
-
-    def _visible_box_buttons(self) -> tuple[QPushButton, ...]:
-        return tuple(button for button in self.box_buttons if not button.isHidden())
-
-    def _buttons_band_size(self) -> tuple[int, int]:
-        visible = self._visible_box_buttons()
-        if not visible:
-            return 0, 0
-        width = sum(button.width() for button in visible) + UiGap.tight * (len(visible) - 1)
-        height = max(button.height() for button in visible)
-        return width, height
-
-    def _place_box_buttons(self) -> None:
-        """Anchor visible box buttons to the bottom-right inside `self.frame`'s padding."""
-        visible = self._visible_box_buttons()
-        if not visible:
-            return
-        margins = self.frame.layout().contentsMargins()
-        inner = self.frame.contentsRect()
-        x = inner.right() - margins.right() + 1
-        bottom = inner.bottom() - margins.bottom() + 1
-        for button in reversed(visible):
-            x -= button.width()
-            button.move(x, max(inner.top() + margins.top(), bottom - button.height()))
-            button.raise_()
-            x -= UiGap.tight
-
-    def _needs_button_clearance(self, typed: int, lines: int) -> bool:
-        """Whether the floating buttons belong in a dedicated bottom row beneath the text.
-
-        Keep the composer compact whenever the last visual line fits to the left of `+` / `➤`;
-        add a clearance band only when the last line actually reaches the buttons or the editor
-        is scrolling internally."""
-        btn_w, _ = self._buttons_band_size()
-        if btn_w <= 0:
-            return False
-        if typed > lines:
-            return True
-        if not self.text:
-            return False
-        viewport_w = self.editor.viewport().width()
-        if viewport_w <= 0:
-            return False
-        block = self.editor.document().lastBlock()
-        layout = block.layout()
-        if layout is not None and layout.lineCount() > 0:
-            used_width = layout.lineAt(layout.lineCount() - 1).naturalTextWidth() + self.document_margin()
-        else:
-            used_width = self.editor.fontMetrics().horizontalAdvance(block.text()) + self.document_margin()
-        available = viewport_w - btn_w - UiGap.tight * 2
-        return used_width > available
 
     def fit_buttons(self) -> None:
         """Compact square symbol buttons matching one line of the editor."""
@@ -522,7 +490,6 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             button.setFont(font)
             button.setStyleSheet("QPushButton { padding: 0px 4px; border-radius: 6px; }")
             button.setFixedSize(width, height)
-        self._place_box_buttons()
 
     def update_prompt(self) -> None:
         """A leading symbol or the placeholder setting changed: draw both again."""
@@ -586,11 +553,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return label
 
     def fit_height(self) -> None:
-        """Grow under the shared viewport limit, then scroll inside the editor.
-
-        Text wraps across the full width of the frame above the floating bottom-right buttons;
-        a bottom clearance band is added only when the last visual line reaches the buttons
-        (or while scrolling inside the editor)."""
+        """Grow strictly by visual line count under the shared viewport limit, then scroll inside
+        the editor. Because `+` / `➤` sit beside the editor in `editor_row`, text never collides
+        with them and adding/removing characters never bounces composer height."""
         # QPlainTextDocumentLayout's height is the visual line count.  ``blockCount`` is
         # only the number of explicit newlines, so one long phone-width paragraph stayed a
         # one-line editor while Qt wrapped five lines of text underneath it.
@@ -598,20 +563,14 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         line_spacing = self.editor.fontMetrics().lineSpacing()
         doc_margin = self.document_margin()
         viewport_h = self.visible_viewport_height()
-        _, btn_h = self._buttons_band_size()
         lines = self.visible_editor_lines(typed, viewport_h, line_spacing, 2 * doc_margin)
-        reserve = (btn_h + UiGap.tight) if self._needs_button_clearance(typed, lines) else 0
-        if reserve:
-            lines = self.visible_editor_lines(typed, viewport_h, line_spacing, 2 * doc_margin + reserve)
-        self.editor.setViewportMargins(0, 0, 0, reserve)
         self.editor.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > lines else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.editor.setFixedHeight(max(btn_h, self.editor_height(lines) + reserve))
+        self.editor.setFixedHeight(self.editor_height(lines))
         if typed <= lines:
             # QPlainTextEdit scrolls down to line 1 while wrapping at 1-line height before
             # `fit_height` grows it; resetting to 0 brings line 0 back into view.
             self.editor.verticalScrollBar().setValue(0)
-        self._place_box_buttons()
 
     def visible_viewport_height(self) -> int:
         """The window height not hidden by safe-area margins or the platform input method.
@@ -646,7 +605,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """
         if not self._fit_height_pending:
             self._fit_height_pending = True
-            QTimer.singleShot(0, self, self._run_scheduled_fit_height)
+            self._fit_height_timer.start()
 
     def _run_scheduled_fit_height(self) -> None:
         self._fit_height_pending = False
@@ -654,7 +613,6 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
         if watched is self.frame and event.type() == QEvent.Type.Resize:
-            self._place_box_buttons()
             width = self.frame.width()
             if width != self._last_frame_width:
                 self._last_frame_width = width
@@ -807,13 +765,18 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         notification read reports the queue again)."""
         if not self.queue_sync_pending:
             self.queue_sync_pending = True
-            QTimer.singleShot(0, self, self._sync_queue)
+            self._sync_queue_timer.start()
 
     def _sync_queue(self) -> None:
         self.queue_sync_pending = False
-        self.submitting.refresh(self.queue_summary)
-        RowReveal.toggle(self.delivery_controls, self.shows_delivery_controls, self)
-        self.held.refresh(self.queue_hint)
+        state = (self.queue_summary, self.shows_delivery_controls, self.queue_hint)
+        if state == self._last_queue_state:
+            return
+        self._last_queue_state = state
+        summary, controls, hint = state
+        self.submitting.refresh(summary)
+        RowReveal.toggle(self.delivery_controls, controls, self)
+        self.held.refresh(hint)
         self.info_bar.sync_visibility()
 
     def open_queue_menu(self) -> None:
@@ -857,6 +820,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.info_bar.configuration_scope = host
         self.info_bar.status.configuration_scope = host
         self.kept_delivery_preview = None
+        self._last_queue_state = None
         self.given_placeholder = draft.placeholder or host.composer_placeholder
         self.mention_candidates = draft.mention_candidates
         self.commands = list(draft.commands)
@@ -910,7 +874,7 @@ class QtMessageComposer(MessagePromptComposer, Composer):
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__(host, renderer, placeholder)
-        self.attach_button = QPushButton("+", self.frame)
+        self.attach_button = QPushButton("+", self.button_box)
         self.attach_button.setToolTip(AttachFileAction.title)
         self.attach_button.setAccessibleName(AttachFileAction.title)
         self.attach_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up

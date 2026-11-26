@@ -99,9 +99,12 @@ class HistoryNotifications(NotificationSubscriber):
         self.run_notification_work(self._show_notifications(results))
 
     async def _show_notifications(self, results):
+        changed = False
         for target in self.notification_targets():
-            await target.show_notifications(results)
-        self.report_queue_evidence()
+            if await target.show_notifications(results):
+                changed = True
+        if changed:
+            self.report_queue_evidence()
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
@@ -180,10 +183,17 @@ class SourceNotifications:
         return tuple(dict.fromkeys(reference for fragment in self.visible_fragments()
                                    for reference in fragment.notification_references))
 
-    async def show_notifications(self, results):
-        await self._show([(fragment, replace(fragment.shown, status=status))
+    async def show_notifications(self, results) -> bool:
+        changes = [
+            (fragment, replace(fragment.shown, status=status))
             for fragment in self.visible_fragments()
-            for status in CheckedNotifications.for_references(fragment.notification_references, results)])
+            for status in CheckedNotifications.for_references(fragment.notification_references, results)
+            if fragment.shown.status != status
+        ]
+        if not changes:
+            return False
+        await self._show(changes)
+        return True
 
     async def show_notification_status(self, status):
         await self._show([(fragment, replace(fragment.shown, status=fragment.shown.status.failed(status)))

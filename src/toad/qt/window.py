@@ -47,13 +47,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
-from pyqt_reactive.services.application_shortcuts import ShortcutLifecycle
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from toad.keymap import KeyInvocationId
+from toad.qt.finger_press import FingerPress
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
+from ui_theme.clock import AnimationClock
 from ui_theme.scheme import AccentColour, ColourScheme, MutedColour, PrimaryColour, SurfaceHoverColour
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
@@ -62,7 +63,7 @@ from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ACTIVE_PRESENCE, ApplicationPresence, ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
-from toad.qt.widget_animation import QtAnimationClock, frame_interval
+from toad.qt.widget_animation import frame_interval
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
@@ -169,14 +170,6 @@ from toad.sidebar_placement import (
 from toad.status_thread import StatusThread
 from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
-
-
-@dataclass(frozen=True)
-class ApplicationKeys:
-    """The keys the Qt window answers anywhere: Android's back key and Escape both go back."""
-
-    android_back: str = "Back"
-    escape: str = "Esc"
 
 
 @dataclass(frozen=True)
@@ -1574,7 +1567,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animation_timer.timeout.connect(self._tick_animation)
         self._layout_pending = False
         self._presence: ApplicationPresence = ACTIVE_PRESENCE
-        self.animation_clock = QtAnimationClock(self._schedule_animation, enabled=animations_enabled())
+        self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(
             self.theme.color_scheme, self.renderer, self.animation_clock, self)
@@ -1738,11 +1731,13 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             ExternalTranscriptChanged, self.external_transcript_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
-        self.shortcuts = ShortcutLifecycle[ApplicationKeys](QApplication.instance())
-        self.shortcuts.bind_command(lambda keys: keys.android_back, "Back", self.go_back)
-        self.shortcuts.bind_command(lambda keys: keys.escape, "Back", self.go_back)
-        self.shortcuts.apply(ApplicationKeys())
+        # Android Back via native C++ QShortcut (zero per-event Python filter overhead);
+        # unhandled Escape bubbles from child widgets into QtToadApp.keyPressEvent.
+        self._back_shortcut = QShortcut(QKeySequence("Back"), self)
+        self._back_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        self._back_shortcut.activated.connect(self._handle_back_shortcut)
         self.winId()
+        FingerPress.install(QApplication.instance()).watch(self.windowHandle())
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self._safe_area_resync_pending = False
         self._ime_watcher = self._watch_android_ime_inset()
@@ -2173,7 +2168,6 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     async def close_native_views(self) -> None:
         self.sidebar.retire_all()
         self.input_attention.close()
-        self.shortcuts.close()
         await self.session_navigation.close_views()
 
     async def open_keymap_browser(self) -> None:
@@ -2428,6 +2422,18 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         moved, displaced = tabs[start], tabs[end].identity
         self.session_navigation.events.publish(session_requests.SessionMove(
             moved.mode_name, order.index(displaced) - order.index(moved.identity)))
+
+    def _handle_back_shortcut(self) -> None:
+        if QApplication.activePopupWidget() is None:
+            self.go_back()
+
+    def keyPressEvent(self, event) -> None:  # type: ignore[override]
+        if (event.key() in (Qt.Key.Key_Escape, Qt.Key.Key_Back)
+                and QApplication.activePopupWidget() is None):
+            event.accept()
+            self.go_back()
+            return
+        super().keyPressEvent(event)
 
     def go_back(self) -> None:
         """Android back: an open sidebar goes down first; then the visit history's previous

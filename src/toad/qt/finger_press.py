@@ -23,6 +23,8 @@ a right-click, because a mouse has one.
 
 from __future__ import annotations
 
+from weakref import WeakSet
+
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer, Signal
 from PySide6.QtGui import QContextMenuEvent, QInputDevice, QInputMethodQueryEvent, QMouseEvent, QWindow
 from PySide6.QtWidgets import QApplication, QWidget
@@ -76,10 +78,15 @@ class FingerPress(QObject, GestureControl):
 
     def __init__(self, application: QApplication) -> None:
         QObject.__init__(self, application)
+        self._application = application
+        self._windows: WeakSet[QWindow] = WeakSet()
+        self._app_filtered = False
         hints = application.styleHints()
         self.drag_threshold = hints.startDragDistance()
         self.hold = QTimer(self, singleShot=True, interval=hints.mousePressAndHoldInterval())
         self.hold.timeout.connect(self._held_still)
+        self._withhold_cleanup = QTimer(self, singleShot=True, interval=0)
+        self._withhold_cleanup.timeout.connect(self._stop_withholding)
         self.gesture: Gesture = NO_GESTURE
         self.press: Press | None = None
         self.window: QWindow | None = None
@@ -87,15 +94,42 @@ class FingerPress(QObject, GestureControl):
         # (`_withheld`): the press was held, or its tap claimed.
         self.withholding = False
 
+    def watch(self, window: QWindow | None) -> None:
+        """Install this press classifier on ``window`` alone, keeping timer, paint and
+        child-widget events out of Python."""
+        if window is not None and window not in self._windows:
+            self._windows.add(window)
+            window.installEventFilter(self)
+
+    def _set_app_filter(self, active: bool) -> None:
+        """Install on QApplication only for the brief span a held press or claimed tap needs
+        widget-level mouse events withheld; removed immediately once the release is absorbed."""
+        if active == self._app_filtered:
+            return
+        self._app_filtered = active
+        if active:
+            self._application.installEventFilter(self)
+        else:
+            self._application.removeEventFilter(self)
+
+    def _stop_withholding(self) -> None:
+        self.withholding = False
+        if self.press is None or not self.gesture.takes_pointer:
+            self._set_app_filter(False)
+
     @classmethod
     def install(cls, application: QApplication) -> FingerPress:
         """The application's classifier; installing again (a consumer asking for it) returns
         the one already held."""
         held = application.findChild(cls)
         if held is not None:
+            for window in application.topLevelWindows():
+                held.watch(window)
             return held
         classifier = cls(application)
-        application.installEventFilter(classifier)
+        for window in application.topLevelWindows():
+            classifier.watch(window)
+        application.focusWindowChanged.connect(classifier.watch)
         return classifier
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
@@ -131,6 +165,11 @@ class FingerPress(QObject, GestureControl):
             # The window keeps the release, so Qt's own record of the pointer stays true; only
             # the widget it reaches doesn't take it as a click.
             self.withholding = gesture.takes_pointer or press.claimed
+            if self.withholding:
+                self._set_app_filter(True)
+                self._withhold_cleanup.start()
+            else:
+                self._set_app_filter(False)
         return False
 
     def clicked(self) -> None:
@@ -165,6 +204,8 @@ class FingerPress(QObject, GestureControl):
     def _held_still(self) -> None:
         if self.press is not None:
             self.gesture = self.gesture.held(self)
+            if self.gesture.takes_pointer:
+                self._set_app_filter(True)
 
     def _ended(self) -> None:
         self.hold.stop()
@@ -178,6 +219,8 @@ class FingerPress(QObject, GestureControl):
         point just off a row's overlay would be on the row). (Replacing the window's release
         instead leaves Qt routing the next right-click to the window itself.)"""
         self.withholding = False
+        self._withhold_cleanup.stop()
+        self._set_app_filter(False)
         off = _FAR_OFF
         QApplication.sendEvent(widget, QMouseEvent(
             QEvent.Type.MouseButtonRelease, off, widget.mapToGlobal(off), Qt.MouseButton.LeftButton,

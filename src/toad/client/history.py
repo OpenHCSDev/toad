@@ -91,6 +91,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
     def __init__(self, *args, **kwargs) -> None:
         self._painted_reads: dict[FragmentKey, EvidencedFragment] = {}
         self._last_sent_references: tuple[MessageReference, ...] = ()
+        self._read_mark_scheduled: bool = False
         super().__init__(*args, **kwargs)
 
     @property
@@ -179,8 +180,15 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
         await self.page_source.restyle_to(self, style)
 
     def mark_visible_after_paint(self) -> None:
-        """Try marking read again once the frontend has painted its next frame."""
-        self.call_after_refresh(self.mark_visible)
+        """Try marking read again once the frontend has painted its next frame, coalesced so
+        painting many rows in one scroll frame schedules one callback instead of N."""
+        if not self._read_mark_scheduled:
+            self._read_mark_scheduled = True
+            self.call_after_refresh(self._run_scheduled_mark_visible)
+
+    def _run_scheduled_mark_visible(self) -> None:
+        self._read_mark_scheduled = False
+        self.mark_visible()
 
     @abstractmethod
     def withdraw_view(self) -> None:

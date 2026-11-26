@@ -11,11 +11,10 @@ polishes it, so a scroll area added later scrolls by finger without opting in.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import ClassVar
 
-from PySide6.QtCore import QEvent, QObject
+from PySide6.QtCore import QObject
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QScroller, QWidget
+from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QProxyStyle, QScroller, QWidget
 
 
 class FingerScrollGesture(ABC):
@@ -26,10 +25,12 @@ class FingerScrollGesture(ABC):
         """Make a drag on ``viewport`` scroll it, if this platform's drags should."""
 
     def attach(self, application: QApplication, granted: FingerScrolling) -> None:
-        """Install the application-wide polish filter when this gesture grabs viewports."""
+        """Install the proxy style so Qt's C++ polish hook grabs every new scroll area once
+        at creation, with zero per-event Python filter overhead."""
         for widget in application.allWidgets():
             granted.held(widget)
-        application.installEventFilter(granted)
+        granted.setBaseStyle(application.style())
+        application.setStyle(granted)
 
     @staticmethod
     def of_platform() -> FingerScrollGesture:
@@ -58,18 +59,22 @@ class MouseAndWheel(FingerScrollGesture):
         pass
 
 
-class FingerScrolling(QObject):
+class FingerScrolling(QProxyStyle):
     """The application's one grant of finger scrolling: every `QAbstractScrollArea` (item
-    views, text edits, scroll areas, a dropdown's popup list) is held as Qt polishes it."""
+    views, text edits, scroll areas, a dropdown's popup list) is held once as Qt's style
+    polishes it — zero application-wide `eventFilter` calls on timers, paints or scrolls."""
 
     def __init__(self, gesture: FingerScrollGesture, application: QApplication) -> None:
-        super().__init__(application)
+        super().__init__()
+        self.setParent(application)
         self.gesture = gesture
 
     @classmethod
     def install(cls, application: QApplication, gesture: FingerScrollGesture) -> FingerScrolling:
         """The application's grant; the first install's gesture holds for the process, so a
         drive can choose the phone's gesture before the client opens."""
+        if isinstance(application.style(), cls):
+            return application.style()
         held = application.findChild(cls)
         if held is not None:
             return held
@@ -81,11 +86,7 @@ class FingerScrolling(QObject):
         if isinstance(widget, QAbstractScrollArea):
             self.gesture.grab(widget.viewport())
 
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        # Every event of the application passes here and only a scroll area's polish is
-        # ever acted on. What is watched is asked first: that is answered in C, where reading
-        # an event's type builds a Python enum member, and this ran three Python calls for
-        # each event of every widget (48 a frame in a window where nothing was polished).
-        if isinstance(watched, QAbstractScrollArea) and event.type() == QEvent.Type.Polish:
-            self.gesture.grab(watched.viewport())
-        return False
+    def polish(self, arg) -> None:  # type: ignore[override]
+        if isinstance(arg, QAbstractScrollArea):
+            self.gesture.grab(arg.viewport())
+        super().polish(arg)

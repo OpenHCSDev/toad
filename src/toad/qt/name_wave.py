@@ -142,7 +142,7 @@ class QtClockedWave(NameWave):
 
     @property
     def animation_visible(self) -> bool:
-        return self.wave_visible() and not self.wave_clock().ambient_paused
+        return self.wave_visible()
 
     def wave_running(self) -> bool:
         return self.animation is not None

@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 import qasync
 from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
-from PySide6.QtCore import QEvent, QObject
 from PySide6.QtWidgets import QApplication
 from ui_theme.scheme import ColourScheme
 
@@ -54,46 +53,27 @@ async def open_app(connection: CoreConnection, project: Checkout, scheme: Colour
     return app
 
 
-class EndRequest(QObject):
-    """Qt was asked to end the application: its last window closed, or something called
-    QCoreApplication.quit() (a desktop session ending; on Android, QtActivityBase.onDestroy
-    when the app is swiped from recents, which then blocks Android's main thread until
-    Python's main returns).
-
-    Qt 6 answers a quit by closing every window and leaving its event loop within that one
-    event. The loop is the client's asyncio loop, so the shared client shutdown had no loop
-    left to run on: the wakeup the closed window queued ran after qasync stopped
-    (`Task.task_wakeup ... is not the running loop`), asyncio.run's cancellation then waited
-    on a task that could no longer wake, and Android killed the app for not answering. The
-    request is taken here instead: it completes ``asked``, and the client ends itself.
-    """
-
-    def __init__(self, asked: asyncio.Future[None]) -> None:
-        super().__init__()
-        self.asked = asked
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.Quit:
-            self.ask()
-            return True
-        return False
-
-    def ask(self) -> None:
-        if not self.asked.done():
-            self.asked.set_result(None)
-
-
 async def serve(connection: CoreConnection, project: Checkout, scheme: ColourScheme,
                 agent: str = "", opening: LaunchOpening = NoLaunchOpening()) -> None:
     """Show the bus behind ``connection`` until Qt is asked to end, then end the way every
     end does: the window closes while its client still serves its views, then the shared
-    client shutdown, and qasync stops the loop when this returns."""
+    client shutdown, and qasync stops the loop when this returns.
+
+    Qt 6 answers QCoreApplication.quit() (desktop session end; Android QtActivityBase.onDestroy)
+    by closing every window and exiting the event loop within one QEvent.Quit, before the shared
+    asyncio client shutdown can run. `ToadApplication.on_quit` intercepts QEvent.Quit directly on
+    QApplication.event (zero application-wide event filter overhead) and completes `asked`."""
     app = await open_app(connection, project, scheme, agent, opening)
     application = QApplication.instance()
-    request = EndRequest(asyncio.get_running_loop().create_future())
-    application.installEventFilter(request)
-    application.lastWindowClosed.connect(request.ask)
-    await request.asked
+    asked: asyncio.Future[None] = asyncio.get_running_loop().create_future()
+
+    def ask() -> None:
+        if not asked.done():
+            asked.set_result(None)
+
+    application.on_quit(ask)
+    application.lastWindowClosed.connect(ask)
+    await asked
     app.close()
     await app.close_client()
 
