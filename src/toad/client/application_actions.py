@@ -336,26 +336,39 @@ class SettingsAction(OpensWindow, ApplicationAction):
         await app.edit_settings()
 
 
+class TextSizeAction(ApplicationAction):
+    """Open the nested message text size control (50-200%, 5% steps or exact value)."""
+
+    title = "Text size"
+    show = True
+
+    def label(self, app: ClientApplication) -> str:
+        return f"Text size · {app.settings.ui.message_font_scale}%"
+
+    async def apply(self, app: ClientApplication) -> None:
+        app.open_text_size_control()
+
+
 class ZoomInAction(ApplicationAction):
-    """Increase message text size by 10%."""
+    """Increase message text size by 5%."""
 
     title = "Zoom in text"
     keys = {TextEntryMode: ("ctrl+=", "ctrl+plus")}
-    show = True
+    show = False
 
     async def apply(self, app: ClientApplication) -> None:
-        app.adjust_message_font_scale(10)
+        app.adjust_message_font_scale(5)
 
 
 class ZoomOutAction(ApplicationAction):
-    """Decrease message text size by 10%."""
+    """Decrease message text size by 5%."""
 
     title = "Zoom out text"
     keys = {TextEntryMode: ("ctrl+-",)}
-    show = True
+    show = False
 
     async def apply(self, app: ClientApplication) -> None:
-        app.adjust_message_font_scale(-10)
+        app.adjust_message_font_scale(-5)
 
 
 class ResetZoomAction(ApplicationAction):
@@ -363,7 +376,7 @@ class ResetZoomAction(ApplicationAction):
 
     title = "Reset text size"
     keys = {TextEntryMode: ("ctrl+0",)}
-    show = True
+    show = False
 
     async def apply(self, app: ClientApplication) -> None:
         app.reset_message_font_scale()

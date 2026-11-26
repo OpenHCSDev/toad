@@ -415,6 +415,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         # The declared prompt-action keys as QShortcuts: Enter, Ctrl+Enter, Shift+Enter, Escape.
         self._shortcuts = _bind_composer_shortcuts(self)
         self.place_input_box()
+        self._frame_ready = True
         self.refresh_glyph()
         self.fit_height()
         self.sync_queue()
@@ -497,12 +498,15 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             x -= UiGap.tight
 
     def _needs_button_clearance(self, typed: int, lines: int) -> bool:
-        """Whether the last visual line reaches the floating buttons (or the editor is scrolled),
-        requiring a bottom band beneath the text so lines never collide with `+` / `➤`."""
+        """Whether the floating buttons belong in a dedicated bottom row beneath the text.
+
+        Keep the single-line composer compact while line 1 fits to the left of `+` / `➤`; once
+        text reaches the buttons or wraps onto 2+ lines, keep the buttons docked underneath so
+        all lines flow full-width without bouncing up and down on every line wrap."""
         btn_w, _ = self._buttons_band_size()
         if btn_w <= 0:
             return False
-        if typed > lines:
+        if typed >= 2 or typed > lines:
             return True
         if not self.text:
             return False
@@ -612,8 +616,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.editor.setViewportMargins(0, 0, 0, reserve)
         self.editor.setVerticalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAsNeeded if typed > lines else Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        clear_penultimate = (doc_margin + (lines - 1) * line_spacing + btn_h) if (btn_h and lines >= 2 and not reserve) else 0
-        self.editor.setFixedHeight(max(btn_h, self.editor_height(lines) + reserve, clear_penultimate))
+        self.editor.setFixedHeight(max(btn_h, self.editor_height(lines) + reserve))
         if typed <= lines:
             # QPlainTextEdit scrolls down to line 1 while wrapping at 1-line height before
             # `fit_height` grows it; resetting to 0 brings line 0 back into view.
@@ -673,6 +676,14 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             # Run after Qt has propagated the new top-level geometry or safe-area margins.
             self._schedule_fit_height()
         return super().eventFilter(watched, event)
+
+    _frame_ready: bool = False
+
+    def changeEvent(self, event: QEvent) -> None:  # type: ignore[override]
+        """Refit box margins, floating buttons and height when the app text scale changes."""
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.FontChange and self._frame_ready:
+            self.place_input_box()
 
     TOUCH_ROOM: ClassVar[int] = 16
     """Room the box adds around its text for a finger, split evenly above and below."""

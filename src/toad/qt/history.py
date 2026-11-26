@@ -36,7 +36,7 @@ from pyqt_reactive.widgets.virtual_rows import (
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
-from toad.client.fragments import FragmentCollapse, FragmentDetails, HistoryFragment, Shown
+from toad.client.fragments import BusMessageHistoryFragment, FragmentCollapse, FragmentDetails, HistoryFragment, Shown
 from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
@@ -1424,6 +1424,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
     _paint_region: QRegion | None = None
+    _tap_flash_rect: QRect | None = None
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1442,8 +1443,6 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
                  parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer, pictures, scope.app.render_processes), parent)
-        self._base_font_point_size: float = self.font().pointSizeF()
-        self._font_scale_percent: int = 100
         self._last_viewport_width: int = 0
         self._viewport_resize_pending: bool = False
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -1467,6 +1466,10 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self._settle_timer = QTimer(self)
         self._settle_timer.setSingleShot(True)
         self._settle_timer.timeout.connect(self._settle)
+        self._tap_flash_timer = QTimer(self)
+        self._tap_flash_timer.setSingleShot(True)
+        self._tap_flash_timer.setInterval(140)
+        self._tap_flash_timer.timeout.connect(self._clear_tap_flash)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
         for changed in (self.model_rows.rowsInserted, self.model_rows.rowsRemoved,
                         self.model_rows.dataChanged, self.model_rows.modelReset):
@@ -1654,10 +1657,11 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         return super().eventFilter(obj, event)
 
     def _row_tapped(self, press: Press) -> None:
-        """A tap on a row: a link drawn there opens; otherwise a message whose head is above
-        the viewport glides its head to the top (`reveal_head_at`). Either way the row
-        doesn't also take the tap. A tap on rows still moving (a fling, a reveal) only stops
-        them, as Android's lists do: the reader was catching the rows, not choosing one."""
+        """A tap on a row: a link drawn there opens; tapping anywhere on a bus message's
+        header divider (rules, timestamp, arrows) collapses/expands it; otherwise a message
+        whose head is above the viewport glides its head to the top (`reveal_head_at`). Either
+        way the row doesn't also take the tap. A tap on rows still moving (a fling, a reveal)
+        only stops them, as Android's lists do: the reader was catching the rows, not choosing one."""
         viewport = self.viewport()
         if not press.within(viewport):
             return
@@ -1670,10 +1674,61 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         point = press.at(viewport)
         href = self.anchor_at(point)
         if href:
+            self._flash_tap_at(point)
             press.claim()
             self.open_link(href)
+        elif (collapse := self._header_collapse_at(point)) is not None:
+            link, header_rect = collapse
+            self._flash_tap_rect(header_rect)
+            press.claim()
+            self.toggle_collapse(link)
         elif self.reveal_head_at(point):
             press.claim()
+
+    def _header_collapse_at(self, point: QPoint) -> tuple[FragmentCollapse, QRect] | None:
+        """If ``point`` (viewport coordinates) landed on a bus message's header divider lines
+        or timestamp (outside an explicit `@sender`/`#target` anchor), return its collapse
+        link and the header band's viewport rect."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return None
+        fragment = index.data(HistoryRows.FRAGMENT)
+        if not isinstance(fragment, BusMessageHistoryFragment) or fragment.part_position.index > 0:
+            return None
+        rect = self.visualRect(index)
+        y_in_row = point.y() - rect.top()
+        width = self.rows.layout_width(rect.width())
+        block_index, _line = self.rows.block_row(fragment, self.font(), width, y_in_row)
+        blocks = fragment.line_blocks
+        if block_index < len(blocks) and isinstance(blocks[block_index], Divider):
+            band_top = max(rect.top(), point.y() - self._font_line_spacing())
+            band_h = min(rect.height(), self._font_line_spacing() * 3)
+            return fragment.collapse_link, QRect(rect.left(), band_top, rect.width(), band_h)
+        return None
+
+    def _flash_tap_at(self, point: QPoint) -> None:
+        """Briefly highlight the tapped line so clickable text gives immediate visual feedback."""
+        index = self.indexAt(point)
+        if not index.isValid():
+            return
+        rect = self.visualRect(index)
+        line_h = max(18, self._font_line_spacing())
+        top = max(rect.top(), point.y() - line_h // 2)
+        self._flash_tap_rect(QRect(rect.left(), top, rect.width(), line_h))
+
+    def _flash_tap_rect(self, rect: QRect) -> None:
+        previous = self._tap_flash_rect
+        self._tap_flash_rect = rect.intersected(self.viewport().rect())
+        if previous is not None:
+            self.viewport().update(previous)
+        if not self._tap_flash_rect.isEmpty():
+            self.viewport().update(self._tap_flash_rect)
+            self._tap_flash_timer.start()
+
+    def _clear_tap_flash(self) -> None:
+        previous, self._tap_flash_rect = self._tap_flash_rect, None
+        if previous is not None and not self.widget_gone:
+            self.viewport().update(previous)
 
     def anchor_at(self, point: QPoint) -> str:
         """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""
@@ -1711,27 +1766,30 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
             self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
-        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`."""
+        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`, and
+        draw the brief tap-feedback highlight over clickable text / header disclosures."""
         self._paint_region = event.region()
         try:
             super().paintEvent(event)
+            if self._tap_flash_rect is not None and not self._tap_flash_rect.isEmpty():
+                painter = QPainter(self.viewport())
+                colour = QColor(PrimaryColour.rgb(self.rows.renderer.scheme).hex)
+                colour.setAlpha(64)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(colour)
+                painter.drawRoundedRect(self._tap_flash_rect, 4, 4)
+                painter.end()
         finally:
             self._paint_region = None
 
-    def apply_font_scale(self, percent: int) -> None:
-        """Scale the history's text font by ``percent`` (50-200%), relayout rows and clear cached pictures."""
-        clamped = max(50, min(200, int(percent)))
-        if clamped == self._font_scale_percent:
-            return
-        self._font_scale_percent = clamped
-        font = QFont(self.font())
-        base = self._base_font_point_size if self._base_font_point_size > 0 else 10.0
-        font.setPointSizeF(round(base * clamped / 100.0, 2))
-        self.setFont(font)
-        self._cached_font_line_spacing = None
-        self.rows.release_documents()
-        self.rows_changed()
-        self.repin_header()
+    def changeEvent(self, event: QEvent) -> None:  # type: ignore[override]
+        """Follow the application-wide text scale (`QApplication.setFont`) automatically."""
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.FontChange and not self.widget_gone:
+            self._cached_font_line_spacing = None
+            self.rows.release_documents()
+            self.rows_changed()
+            self.repin_header()
 
     @handles(FragmentDetails)
     def toggle_details(self, link: FragmentDetails) -> None:

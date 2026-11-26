@@ -197,18 +197,19 @@ class QtLineRenderer(LineBlockPainter[str]):
     @handles(Divider)
     def divider(self, block: Divider) -> str:
         """Every row of the title flanked by rules filling the width, as Textual's divider does.
-        A terminal can only draw its rule in whole `─` cells; Qt draws each side as a real line
-        reaching the edge, so every rule spans the full width whatever the title's length.
-        The title's cell takes its content's width and the side cells share the rest."""
+        Each row gets its own full-width table so multi-line headers center every row
+        independently and extend the side rules right up to each row's text."""
         room = CellRoom(self.width)
         groups = [row for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
                   for row in room.wrapped(group)]
         colour = self.theme(RuleColour)
         rule = f'<td valign="middle"><hr style="background-color:{colour};color:{colour}"/></td>'
-        rows = "".join(f'<tr>{rule}<td width="1" valign="middle" style="white-space:pre">'
-                       f'&nbsp;<b>{self.title(group, block)}</b>&nbsp;</td>{rule}</tr>'
-                       for group in groups)
-        return f'<table width="100%" cellspacing="0" cellpadding="0">{rows}</table>'
+        return "".join(
+            f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'
+            f'{rule}<td width="1" align="center" valign="middle" style="white-space:pre">'
+            f'&nbsp;<b>{self.title(group, block)}</b>&nbsp;</td>{rule}</tr></table>'
+            for group in groups
+        )
 
     def title(self, spans: tuple[Span, ...], block: Divider) -> str:
         return "".join(self.span(span, span.link.heading_role(span.role, block.role)) for span in spans)

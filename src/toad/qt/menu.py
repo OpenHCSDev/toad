@@ -177,6 +177,28 @@ class QtMenu(BlockMenu, QFrame):
         self.raise_()
         QApplication.instance().installEventFilter(self)
 
+    def show_panel(
+        self,
+        title: str,
+        content: QWidget,
+        *,
+        back: Callable[[], None] | None = None,
+        anchor: QRect | None = None,
+    ) -> None:
+        """Show a nested inline control panel inside this same floating menu surface (with an
+        optional Back row returning to the parent menu)."""
+        delete_layout_widgets(self._layout)
+        if back is not None:
+            back_entry = MenuEntry(label=f"← {title}", run=back, description="Back to menu")
+            self._layout.addWidget(QtMenuRow(back_entry, self, lambda e: e.run(), parent=self._rows))
+        content.setParent(self._rows)
+        self._layout.addWidget(content)
+        self._anchor = anchor if anchor is not None else QRect()
+        self.place()
+        self.show()
+        self.raise_()
+        QApplication.instance().installEventFilter(self)
+
     def place(self) -> None:
         """Under the anchor (or above it, where there is more room there and too little
         below), inside the window by a frame gap, WIDEST wide or the window's width, as

@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QKeySequence, QPainter, QPalette, QPen, QScreen, QShortcut
+from PySide6.QtGui import QColor, QFont, QKeySequence, QPalette, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -38,6 +38,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QScroller,
     QSizePolicy,
+    QSpinBox,
     QStackedWidget,
     QToolButton,
     QTreeWidget,
@@ -1531,22 +1532,6 @@ PRESENCE_TRANSITIONS: dict[Qt.ApplicationState, Callable[[ApplicationPresence, Q
 }
 
 
-class _NavSeparator(QWidget):
-    """Thin 1 px vertical divider in the navigation bar, matching `QtSideBarToggle`'s splitter."""
-
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self.setFixedWidth(1)
-        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
-
-    def paintEvent(self, event) -> None:  # type: ignore[override]
-        painter = QPainter(self)
-        painter.setPen(QPen(self.palette().color(QPalette.ColorRole.Mid), 1))
-        margin = 4
-        painter.drawLine(0, margin, 0, max(margin, self.height() - margin))
-        painter.end()
-
-
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
@@ -1689,12 +1674,13 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
         bar.setContentsMargins(0, 0, 0, 0)
-        self._nav_separators = (_NavSeparator(self), _NavSeparator(self))
+        self._nav_separators = tuple(self._nav_separator() for _ in range(3))
         bar.addWidget(self.menu)
         bar.addWidget(self._nav_separators[0])
         bar.addWidget(self.back)
-        bar.addWidget(self.forward)
         bar.addWidget(self._nav_separators[1])
+        bar.addWidget(self.forward)
+        bar.addWidget(self._nav_separators[2])
         bar.addWidget(self.tab_strip, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
@@ -1726,6 +1712,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.renderer.themed(self, self.paint_chrome_colours)
         self._rest_bottom_margin: int | None = None
         self._keyboard_open: bool = False
+        self._base_app_font_pt: float = QApplication.font().pointSizeF()
+        self._applied_font_scale: int = 100
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
         self.apply_layout_preferences()
@@ -1760,6 +1748,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """The connection a chosen bus names, read by the connection this window runs on
         (`CoreConnection.chosen`)."""
         return self.coordination_access.connection.chosen(list(choice.arguments(())))
+
+    def _nav_separator(self) -> QFrame:
+        """Thin 1 px vertical divider in the navigation bar, matching `QtSideBarToggle`'s splitter."""
+        separator = QFrame(self)
+        separator.setObjectName("toad-nav-separator")
+        separator.setFixedWidth(1)
+        separator.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        return separator
 
     def bar_button(self, text: str, tip: str, action) -> QToolButton:
         button = QToolButton(self)
@@ -1930,24 +1926,43 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         )
         self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
         self.tabs.update()
+        sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         self.navigation.setStyleSheet(
             scheme.styles.generate_frame_style()
             + "QFrame { padding: 2px 4px; }"
+            + f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
         )
-        for separator in self._nav_separators:
-            separator.update()
         self.float_layer.follow_scheme(scheme)
 
     def settings_widgets(self, widget_type: type) -> list:
         return capability_widgets(self, widget_type)
 
+    def apply_text_scale(self, percent: int) -> None:
+        """Single hoisted text-size owner: scales `QApplication`'s font uniformly from the
+        platform base so history rows, composers, sidebars, tabs and menus scale together."""
+        clamped = max(50, min(200, int(percent)))
+        if clamped == self._applied_font_scale:
+            return
+        self._applied_font_scale = clamped
+        base = self._base_app_font_pt if self._base_app_font_pt > 0 else 10.0
+        font = QFont(QApplication.font())
+        font.setPointSizeF(round(base * clamped / 100.0, 2))
+        QApplication.setFont(font)
+        for button in (self.menu, self.back, self.forward):
+            btn_font = QFont(font)
+            btn_font.setPointSizeF(round(font.pointSizeF() * 1.2, 2))
+            button.setFont(btn_font)
+        self.show_current_tab(scroll_to_current=False)
+
     def apply_layout_preferences(self) -> None:
         """The navigation bar sits above or below the conversation row as `ui.navigation_bar`
-        places it, the setting Textual's `WorkspaceHeader` follows."""
+        places it, the setting Textual's `WorkspaceHeader` follows, and the unified text scale
+        applies across the application."""
         layout = self.layout()
         for index, widget in enumerate(self.settings.ui.navigation_bar.around(self.navigation, self.chrome)):
             layout.removeWidget(widget)
             layout.insertWidget(index, widget, 1 if widget is self.chrome else 0)
+        self.apply_text_scale(self.settings.ui.message_font_scale)
         self._sync_keyboard_chrome()
 
     def follow_theme(self) -> None:
@@ -1988,7 +2003,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def show_session_tabs(self, shown: bool) -> None:
         self.paint_tabs()
         self.tab_strip.setVisible(shown)
-        self._nav_separators[1].setVisible(shown)
+        self._nav_separators[2].setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed
@@ -2183,6 +2198,45 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             self.menu_panel.hide()
             return
         self.menu_panel.show_entries(self._application_menu_entries(), QtMenu.anchor_of(self.menu))
+
+    def _reopen_menu(self) -> None:
+        self.menu_panel.show_entries(self._application_menu_entries(), QtMenu.anchor_of(self.menu))
+
+    def open_text_size_control(self) -> None:
+        """Open the nested message text-size control inside `self.menu_panel` with 5% steps
+        and direct numeric percentage entry (50-200%)."""
+        panel = QWidget(self.menu_panel)
+        row = QHBoxLayout(panel)
+        row.setContentsMargins(UiGap.dialog, UiGap.normal, UiGap.dialog, UiGap.normal)
+        row.setSpacing(UiGap.normal)
+
+        spin = QSpinBox(panel)
+        spin.setRange(50, 200)
+        spin.setSingleStep(5)
+        spin.setSuffix("%")
+        spin.setValue(self.settings.ui.message_font_scale)
+        spin.setMinimumHeight(40)
+        spin.valueChanged.connect(self.set_message_font_scale)
+
+        minus = QPushButton("−", panel)
+        minus.setMinimumSize(44, 40)
+        minus.clicked.connect(lambda: spin.setValue(max(50, spin.value() - 5)))
+
+        plus = QPushButton("+", panel)
+        plus.setMinimumSize(44, 40)
+        plus.clicked.connect(lambda: spin.setValue(min(200, spin.value() + 5)))
+
+        reset = QPushButton("100%", panel)
+        reset.setMinimumSize(56, 40)
+        reset.clicked.connect(lambda: spin.setValue(100))
+
+        row.addWidget(minus)
+        row.addWidget(spin, 1)
+        row.addWidget(plus)
+        row.addWidget(reset)
+        self.menu_panel.show_panel(
+            "Text size", panel, back=self._reopen_menu, anchor=QtMenu.anchor_of(self.menu)
+        )
 
     def _application_menu_entries(self) -> tuple[MenuEntry, ...]:
         """Project ApplicationAction.menu(self) into MenuEntry rows. The key_display
