@@ -1328,7 +1328,7 @@ class MessagePrompt(MessagePromptComposer, Prompt):
     def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         self.simple_placeholder = draft.placeholder or host.composer_placeholder or None
         super().rebind_conversation(host, draft)
-        self.attached_files = list(draft.attached_files)
+        self.attached_files = tuple(draft.attached_files)
         self.takes_files = draft.takes_files
         self.show_files_offered()
         self.show_attached()

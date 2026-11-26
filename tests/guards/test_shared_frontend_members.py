@@ -400,6 +400,7 @@ def test_composer_pool_is_shared_by_both_frontends():
         RebindableComposer,
         WorkspaceComposerPool,
     )
+    from toad.client.message_files import MessagePromptComposer
     from toad.client.prompt_composer import PromptComposer
     from toad.delivery_failure_view import DeliveryFailureView
     from toad.qt.composer import Composer
@@ -425,6 +426,9 @@ def test_composer_pool_is_shared_by_both_frontends():
     assert issubclass(PromptComposer, RebindableComposer)
     assert issubclass(Prompt, RebindableComposer)
     assert issubclass(Composer, RebindableComposer)
+    # A fresh tab checking out a pooled message composer keeps MessagePromptComposer's
+    # open default (`takes_files=True`) until Core's ComposeAccess answers otherwise.
+    assert ComposerDraft().takes_files is MessagePromptComposer.takes_files
 
     # Behavioural check: two tabs share one live composer instance, preserving per-tab
     # drafts, queuing background updates, and rescuing the composer on tab close.

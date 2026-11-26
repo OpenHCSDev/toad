@@ -29,7 +29,7 @@ class ComposerDraft:
     text: str = ""
     cursor_offset: int = 0
     attached_files: tuple[object, ...] = ()
-    takes_files: bool = False
+    takes_files: bool = True
     label: str = ""
     placeholder: str = ""
     read_only_reason: str = ""
