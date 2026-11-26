@@ -17,16 +17,16 @@ import shiboken6
 from collections import OrderedDict, deque
 from collections.abc import Awaitable, Callable, Iterator, Hashable
 from contextlib import asynccontextmanager, contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cached_property, partial
-from math import copysign
+from math import ceil, copysign
 from pathlib import Path
 from typing import ClassVar
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPen, QPixmap, QScrollEvent, QTextDocument
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QPainter, QPen, QPixmap, QRegion, QScrollEvent, QTextDocument
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
 )
@@ -36,7 +36,7 @@ from pyqt_reactive.widgets.virtual_rows import (
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
-from toad.client.fragments import FragmentDetails, HistoryFragment, Shown
+from toad.client.fragments import FragmentCollapse, FragmentDetails, HistoryFragment, Shown
 from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.link_opening import OpensLineLinks
@@ -412,7 +412,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         return header, None, 0
 
     def drawn_key(self, shown: tuple, font: QFont, width: int):
-        return shown, self.links_revision, font.family(), font.pointSize(), width
+        return shown, self.links_revision, font.family(), round(font.pointSizeF(), 2), width
 
     def row_preparation(self, fragment: HistoryFragment, font: QFont, width: int) -> QtRowPreparation:
         """Data-only row work: Qt measures its monospace cell once; the worker owns HTML, of
@@ -487,10 +487,63 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         """How tall a fragment's row is at this width, before the model holds it. The shared
         row measurement caches this by key and width, so a pager summing its rows' pixels
         every scrolled frame lays each row out once, not afresh on every frame."""
+        if not fragment.has_blocks:
+            return 0
         key = self.fragment_key(fragment, font, width)
         # The formatting is asked for only when the height is not yet measured at this width.
         formatting = PreparedOnFill(lambda: self.styled_formatting(key, fragment, font, width))
         return self.measured_height(key, font, width, formatting)
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:  # type: ignore[override]
+        fragment = index.data(HistoryRows.FRAGMENT)
+        if fragment is not None and not fragment.has_blocks:
+            return QSize(0, 0)
+        return super().sizeHint(option, index)
+
+    def final_document(self, index: QModelIndex, font: QFont, width: int) -> QTextDocument | None:
+        """Laid-out document for `index` at `width`. While a new look of a previously drawn row
+        is still being prepared on the worker, returns the previous look's document cached under
+        its own key so the new key's document and height caches are never polluted by stale HTML."""
+        key = self.preparation_key(index, font, width)
+        cache_key = (key, width)
+        document = self._documents.get(cache_key)
+        if document is not None:
+            self._documents.move_to_end(cache_key)
+            return document
+        fragment = index.data(HistoryRows.FRAGMENT)
+        if key in self._prepared:
+            self._prepared.move_to_end(key)
+            return self.laid_out(key, font, width, self._prepared[key])
+        formatting = self.keyed_formatting(key, fragment.clipboard_text, self.row_preparation(fragment, font, width))
+        if formatting.final:
+            return self.laid_out(key, font, width, formatting)
+        shown = self.last_shown.get(self.row_identity(key))
+        if shown in self._prepared:
+            return self.laid_out(shown, font, width, self._prepared[shown])
+        return None
+
+    def measured_size(self, index: QModelIndex, font: QFont, width: int) -> QSize:
+        """Measure row height with `ceil` (avoiding 1 px truncation on fractional DPI fonts),
+        and never record a fallback `last_shown` document's height as the permanent measured
+        size of a pending key so `_row_prepared` always triggers relayout when the new look lands."""
+        fragment = index.data(HistoryRows.FRAGMENT)
+        if fragment is not None and not fragment.has_blocks:
+            return QSize(0, 0)
+        if (kept := self.kept_size(index.row(), measured=True)) is not None:
+            return kept
+        key = self.preparation_key(index, font, width)
+        size = self.measured_size_for(key, width)
+        if size is None:
+            document = self.final_document(index, font, width)
+            if document is None:
+                return self.estimated_size(index, font, width)
+            height = ceil(document.size().height()) + self.ROW_PADDING
+            size = QSize(width, height)
+            if key not in self._prepared:
+                return size
+            self._record_measured_size(key, width, size)
+        self.keep_row_size(index.row(), key, size, font)
+        return size
 
     def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
         """Which of `fragment`'s line blocks its row draws at pixel `y`, and which line of that
@@ -582,12 +635,19 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
     (3.3 MB at 3x DPR instead of 13.2 MB at 1024px), the cache holds ~19 tiles across rows
     instead of 4 and each tile rasterizes only its own clipped band."""
 
+    TILE_X = 512
+    """Pixels of a row's width one picture holds. Normal portrait rows fit in one column
+    (zero extra tiles); wide unwrapped code/diff rows rasterize only visible columns instead
+    of allocating multi-megabyte full-width slabs."""
+
     def paint(self, painter, option, index) -> None:  # type: ignore[override]
         """A row is painted from pictures of it (`paint_pictures`): a scroll moves the same
         rows a few pixels a frame, and laying a row's rich text out and drawing every glyph
         again each frame was most of the phone's work while scrolling. A rising row's fade
         paints the same pictures at that frame's opacity."""
         fragment = index.data(HistoryRows.FRAGMENT)
+        if fragment is None or not fragment.has_blocks:
+            return
         opacity = self.view.arrival_opacity(fragment.key) if self.view.arrivals else None
         if not self.paint_pictures(painter, option, index, fragment.key, opacity):
             super().paint(painter, option, index)
@@ -601,9 +661,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
 
     def _paint_tile_document(
         self, drawing: QPainter, local: QStyleOptionViewItem, index: QModelIndex,
-        document: QTextDocument, top: int, height: int,
+        document: QTextDocument, left: int, top: int, width: int, height: int,
     ) -> None:
-        """Draw only the `[top, top + height]` band of `document` into a tile pixmap.
+        """Draw only the `[left, left + width] x [top, top + height]` tile of `document`
+        into a tile pixmap.
 
         `RowDocumentDelegate.paint` leaves `PaintContext.clip` empty, forcing Qt to walk
         every block of a tall message (e.g. a 6,356px installer receipt) on every tile miss.
@@ -615,7 +676,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         drawing.restore()
         drawing.save()
         drawing.translate(opt.rect.topLeft())
-        clip = QRectF(0, top, opt.rect.width(), height)
+        clip = QRectF(left, top, width, height)
         drawing.setClipRect(clip)
         context = QAbstractTextDocumentLayout.PaintContext()
         context.palette = opt.palette
@@ -633,9 +694,22 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         document = self.painted_document(index, option)
         if document is None and opacity is None:
             return False
-        has_clip = painter.hasClipping()
-        clip_region = painter.clipRegion() if has_clip else None
-        shown = painter.clipBoundingRect().toAlignedRect().intersected(rect) if has_clip else rect
+        # Inside `QListView::paintEvent`, Qt sets only the paint engine's system clip and
+        # leaves `painter.hasClipping()` False. Combine `view._paint_region` (captured by
+        # `QtHistoryWindow.paintEvent`), the viewport rect, and any explicit user clip so
+        # off-screen tiles of tall or wide rows are never rasterized.
+        paint_region = self.view._paint_region if self.view is not None else None
+        clip_region: QRegion | None = paint_region
+        if painter.hasClipping():
+            painter_clip = painter.clipRegion()
+            clip_region = painter_clip if clip_region is None else clip_region.intersected(painter_clip)
+        if paint_region is not None:
+            viewport_rect = self.view.viewport().rect()
+            shown = clip_region.boundingRect().intersected(viewport_rect).intersected(rect)
+        elif clip_region is not None:
+            shown = clip_region.boundingRect().intersected(rect)
+        else:
+            shown = rect
         if shown.isEmpty():
             return True
         ratio = painter.device().devicePixelRatioF()
@@ -647,31 +721,39 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         if opacity is not None:
             painter.setOpacity(opacity)
         local: QStyleOptionViewItem | None = None
-        for tile in range((shown.top() - rect.top()) // self.TILE, (shown.bottom() - rect.top()) // self.TILE + 1):
-            top = tile * self.TILE
+        y_start = (shown.top() - rect.top()) // self.TILE
+        y_end = (shown.bottom() - rect.top()) // self.TILE
+        x_start = (shown.left() - rect.left()) // self.TILE_X
+        x_end = (shown.right() - rect.left()) // self.TILE_X
+        for tile_y in range(y_start, y_end + 1):
+            top = tile_y * self.TILE
             height = min(self.TILE, rect.height() - top)
-            if clip_region is not None and not clip_region.intersects(
-                QRect(rect.left(), rect.top() + top, rect.width(), height)
-            ):
-                continue
-            picture = self.pictures.kept((row, tile), look, document)
-            if picture is None:
-                picture = QPixmap(max(1, round(rect.width() * ratio)), max(1, round(height * ratio)))
-                picture.setDevicePixelRatio(ratio)
-                # Opaque background fill yields an RGB32 pixmap (no alpha channel), turning
-                # every scroll tile blit into a raw memcpy instead of SourceOver alpha blending.
-                picture.fill(bg_color)
-                if local is None:
-                    local = QStyleOptionViewItem(option)
-                drawing = QPainter(picture)
-                local.rect = QRect(0, -top, rect.width(), rect.height())
-                if document is not None:
-                    self._paint_tile_document(drawing, local, index, document, top, height)
-                else:
-                    super().paint(drawing, local, index)
-                drawing.end()
-                self.pictures.keep((row, tile), look, document, picture)
-            painter.drawPixmap(QPoint(rect.left(), rect.top() + top), picture)
+            for tile_x in range(x_start, x_end + 1):
+                left = tile_x * self.TILE_X
+                width = min(self.TILE_X, rect.width() - left)
+                if clip_region is not None and not clip_region.intersects(
+                    QRect(rect.left() + left, rect.top() + top, width, height)
+                ):
+                    continue
+                tile_key = (row, tile_y, tile_x)
+                picture = self.pictures.kept(tile_key, look, document)
+                if picture is None:
+                    picture = QPixmap(max(1, round(width * ratio)), max(1, round(height * ratio)))
+                    picture.setDevicePixelRatio(ratio)
+                    # Opaque background fill yields an RGB32 pixmap (no alpha channel), turning
+                    # every scroll tile blit into a raw memcpy instead of SourceOver alpha blending.
+                    picture.fill(bg_color)
+                    if local is None:
+                        local = QStyleOptionViewItem(option)
+                    drawing = QPainter(picture)
+                    local.rect = QRect(-left, -top, rect.width(), rect.height())
+                    if document is not None:
+                        self._paint_tile_document(drawing, local, index, document, left, top, width, height)
+                    else:
+                        super().paint(drawing, local, index)
+                    drawing.end()
+                    self.pictures.keep(tile_key, look, document, picture)
+                painter.drawPixmap(QPoint(rect.left() + left, rect.top() + top), picture)
         painter.restore()
         return True
 
@@ -923,15 +1005,23 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self.window.rows.hold_row(waiting, row)
 
     async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
-        """A status change repaints only the rows it changed. A row's cache key carries how
-        its fragment is shown, so the repaint asks the delegate for the new look, which keeps
-        drawing the last one until it is prepared, and that arrival lays the rows out
-        (`RowDocumentDelegate._row_prepared`). Laying every row out here on each receipt
-        update cost the whole history's measurement while the new looks were not even ready."""
+        """A status or collapse/expand change repaints only the rows it changed. If a new look
+        is not yet prepared, painting asks the delegate for it and its arrival lays out rows
+        (`_row_prepared`); if a changed row now has empty blocks or its new look is already
+        cached in `_prepared` (e.g. re-expanding a collapsed block), relayout runs immediately."""
         changed = tuple(fragment for fragment, shown in changes if fragment.request_show(shown))
         if changed:
             self.window.model_rows.changed(changed)
-            self.repaint(continuing=changed)
+            font, width = self.window.font(), self.window.viewport_width()
+            needs_layout = any(
+                not fragment.has_blocks
+                or (width > 0 and self.window.rows.is_prepared(self.window.rows.fragment_key(fragment, font, width)))
+                for fragment in changed
+            )
+            if needs_layout:
+                self.window.rows_changed()
+            else:
+                self.repaint(continuing=changed)
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
         """Repaint only the rows the pager named. The shared contract already says which
@@ -1333,6 +1423,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
 
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
+    _paint_region: QRegion | None = None
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1351,6 +1442,9 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, scope,
                  parent: QWidget | None = None) -> None:
         super().__init__(HistoryRowDelegate(renderer, pictures, scope.app.render_processes), parent)
+        self._base_font_point_size: float = self.font().pointSizeF()
+        self._font_scale_percent: int = 100
+        self._last_viewport_width: int = 0
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1531,6 +1625,13 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
         if obj is self.viewport():
             if event.type() == QEvent.Type.Resize:
+                width = self.viewport().width()
+                if width > 0 and width != self._last_viewport_width:
+                    previous = self._last_viewport_width
+                    self._last_viewport_width = width
+                    if previous > 0:
+                        self.rows.width_changed()
+                        self.rows_changed()
                 if self.jump_bar.isVisible():
                     self._place_jump_bar()
                 self.repin_header()
@@ -1595,13 +1696,57 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
             self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
 
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`."""
+        self._paint_region = event.region()
+        try:
+            super().paintEvent(event)
+        finally:
+            self._paint_region = None
+
+    def apply_font_scale(self, percent: int) -> None:
+        """Scale the history's text font by ``percent`` (50-200%), relayout rows and clear cached pictures."""
+        clamped = max(50, min(200, int(percent)))
+        if clamped == self._font_scale_percent:
+            return
+        self._font_scale_percent = clamped
+        font = QFont(self.font())
+        base = self._base_font_point_size if self._base_font_point_size > 0 else 10.0
+        font.setPointSizeF(round(base * clamped / 100.0, 2))
+        self.setFont(font)
+        self._cached_font_line_spacing = None
+        self.rows.release_documents()
+        self.rows_changed()
+        self.repin_header()
+
     @handles(FragmentDetails)
     def toggle_details(self, link: FragmentDetails) -> None:
-        """A tap on a ▶ row opens or closes that fragment's details, as Textual's page does."""
-        for fragment in self.model_rows.fragments:
-            if fragment.key == link.key:
-                self.history.run_worker(lambda: self.history._show([(fragment, fragment.shown.toggled())]))
-                return
+        """A tap on a ▶ row opens or closes that fragment's details (and any split parts sharing
+        its source identity, such as a long thinking block), as Textual's page does."""
+        target = next((fragment for fragment in self.model_rows.fragments if fragment.key == link.key), None)
+        if target is None:
+            return
+        opened = not target.shown.details_open
+        changes = [
+            (fragment, replace(fragment.shown, details_open=opened))
+            for fragment in self.model_rows.fragments
+            if fragment.source_identity == target.source_identity
+        ]
+        self.history.run_worker(lambda: self.history._show(changes))
+
+    @handles(FragmentCollapse)
+    def toggle_collapse(self, link: FragmentCollapse) -> None:
+        """A tap on a message header's ▼/▶ disclosure collapses or expands all parts of that message."""
+        target = next((fragment for fragment in self.model_rows.fragments if fragment.key == link.key), None)
+        if target is None:
+            return
+        collapsed = not target.shown.collapsed
+        changes = [
+            (fragment, replace(fragment.shown, collapsed=collapsed))
+            for fragment in self.model_rows.fragments
+            if fragment.source_identity == target.source_identity
+        ]
+        self.history.run_worker(lambda: self.history._show(changes))
 
     def _emit_block_menu_at(self, point: QPoint) -> None:
         """Right-click or long-press at ``point`` (viewport coordinates): emit the

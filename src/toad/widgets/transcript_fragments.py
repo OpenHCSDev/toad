@@ -24,6 +24,7 @@ from toad.client.transcript_fragments import (
     FragmentPlan,
     RenderBudget,
     SentMessageFragment as _SentMessageFragment,
+    ThinkingTranscriptFragment as _ThinkingTranscriptFragment,
     ToolTranscriptFragment as _ToolTranscriptFragment,
     TranscriptFragment as _TranscriptFragment,
 )
@@ -171,12 +172,17 @@ class ContextTranscriptFragment(_ContextTranscriptFragment, TranscriptFragment):
     """The coordination context an agent was given, drawn by Textual."""
 
 
+class ThinkingTranscriptFragment(_ThinkingTranscriptFragment, TranscriptFragment):
+    """An agent's collapsible thinking block drawn by Textual."""
+
+
 TEXTUAL_FRAGMENT_CLASSES = FragmentClasses(
     transcript=TranscriptFragment,
     context=ContextTranscriptFragment,
     bus_message=BusMessageFragment,
     sent_message=SentMessageFragment,
     tool=ToolTranscriptFragment,
+    thinking=ThinkingTranscriptFragment,
 )
 
 

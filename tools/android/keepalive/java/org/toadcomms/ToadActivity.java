@@ -47,6 +47,22 @@ public class ToadActivity extends PythonActivity {
         super.setEnvironmentVariable(key, "PYTHONOPTIMIZE".equals(key) ? PYTHON_OPTIMIZE : value);
     }
 
+    /** Keep-alive / IME bottom inset handoff file read by QtToadApp.fit_safe_area so
+     *  QtWindow's OnLayoutChangeListener (which queries raw getRootWindowInsets() and ignores
+     *  the folded IME inset below) can never drop the bottom margin while the keyboard is up. */
+    private int lastReportedImeBottomPx = -1;
+
+    private void writeImeBottomPx(java.io.File file, int px) {
+        if (px == lastReportedImeBottomPx) {
+            return;
+        }
+        lastReportedImeBottomPx = px;
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+            out.write(Integer.toString(px).getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        } catch (java.io.IOException ignored) {
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         // Keep Android's window and decor background black so opening the soft keyboard or
@@ -67,10 +83,13 @@ public class ToadActivity extends PythonActivity {
         // QT_ANDROID_DISABLE_ACCESSIBILITY in QtAccessibilityDelegate's state listener, which
         // runs when super.onCreate builds Qt's layout - before Python starts - so the variable
         // is set here, first. The cost: a screen reader cannot read Toad.
+        final java.io.File imeFile = new java.io.File(getCacheDir(), "ime_bottom_px");
+        writeImeBottomPx(imeFile, 0);
         try {
             Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);
+            Os.setenv("TOAD_IME_INSET_FILE", imeFile.getAbsolutePath(), true);
         } catch (ErrnoException failure) {
-            android.util.Log.e("toadcomms", "could not disable Qt's accessibility bridge", failure);
+            android.util.Log.e("toadcomms", "could not set Toad Android environment variables", failure);
         }
         super.onCreate(savedInstanceState);
         // Android 15 (targetSdk 35) enforces edge-to-edge and stops resizing the activity
@@ -79,21 +98,25 @@ public class ToadActivity extends PythonActivity {
         // uses deprecated Display.getMetrics() which under-counts the keyboard by ~290 px.
         // Resizing android.R.id.content with setPadding() resizes QtRootLayout's SurfaceView
         // and flashes white on EGL reallocation. Instead, fold WindowInsets.Type.ime().bottom
-        // into systemBars().bottom via WindowInsets.Builder: QtWindow receives the exact IME
-        // bottom inset through safeAreaMarginsChanged with zero SurfaceView resize or flash.
+        // into systemBars().bottom via WindowInsets.Builder AND record the real IME bottom
+        // in TOAD_IME_INSET_FILE: QtWindow receives the exact IME inset through
+        // safeAreaMarginsChanged with zero SurfaceView resize, and QtToadApp.fit_safe_area
+        // ignores stale getRootWindowInsets() reads fired by QtWindow.onLayoutChange.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             final View content = findViewById(android.R.id.content);
             if (content != null) {
                 content.setOnApplyWindowInsetsListener((view, insets) -> {
                     Insets nav = insets.getInsets(WindowInsets.Type.navigationBars());
                     int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
-                    if (imeBottom <= nav.bottom) {
+                    int reportedIme = imeBottom > nav.bottom ? imeBottom : 0;
+                    writeImeBottomPx(imeFile, reportedIme);
+                    if (reportedIme == 0) {
                         return insets;
                     }
                     return new WindowInsets.Builder(insets)
                             .setInsets(
                                     WindowInsets.Type.navigationBars(),
-                                    Insets.of(nav.left, nav.top, nav.right, imeBottom))
+                                    Insets.of(nav.left, nav.top, nav.right, reportedIme))
                             .build();
                 });
                 content.requestApplyInsets();

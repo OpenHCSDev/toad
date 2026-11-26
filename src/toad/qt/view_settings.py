@@ -41,6 +41,7 @@ class QtViewSettings(LayoutFollower, ConversationColumn):
         bar.setFixedWidth(self.scrollbar_cells(ui) * cell)
         OverlayScrollBar.follow(self.messages, self.messages.animation_clock, self.messages.rows.app_renderer,
                                 ui.scrollbar.overlay * cell)
+        self.messages.apply_font_scale(ui.message_font_scale)
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)

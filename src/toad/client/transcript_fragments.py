@@ -55,6 +55,7 @@ from toad.client.line_blocks import (
     MarkdownMessageBody,
     MessageBody,
     MutedRole,
+    ThinkingRole,
     UserRole,
 )
 from toad.commit_claims import CommitClaim
@@ -322,6 +323,33 @@ class ContextTranscriptFragment(TranscriptFragment):
         return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole) for event in self.events))
 
 
+class ThinkingTranscriptFragment(TranscriptFragment):
+    """An agent's thinking block: collapsed to a tappable preview line, expanded on tap.
+
+    Long thinking events split across multiple parts sharing ``source_identity`` under
+    ``RenderBudget``: part 0 owns the ``▶/▼ Thinking`` header, and continuation parts draw
+    empty while collapsed and their own body when expanded."""
+
+    has_details: ClassVar[bool] = True
+
+    @property
+    def has_blocks(self) -> bool:
+        return self.part_position.index == 0 or self.shown.details_open
+
+    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
+        prefix = AgentActivityPresentation.group if self.starts_agent_activity else ()
+        text = "\n\n".join(event.text for event in self.events if event.text.strip())
+        if not text:
+            return prefix
+        if self.part_position.index > 0:
+            if not shown.details_open:
+                return ()
+            return MarkdownMessageBody(text, role=ThinkingRole, bar=ThinkingRole).presentation()
+        return (*prefix, *AgentActivityPresentation.thinking_blocks(
+            text, details_open=shown.details_open, details_link=self.details_link,
+        ))
+
+
 type ResolvedSent = Mapping[SentTranscript, SentTranscript | PublishedSentMessage]
 
 
@@ -338,6 +366,7 @@ class FragmentClasses:
     bus_message: type[BusMessageFragment]
     sent_message: type[SentMessageFragment]
     tool: type[ToolTranscriptFragment]
+    thinking: type[ThinkingTranscriptFragment]
 
 
 class FragmentSlot(ABC):
@@ -495,6 +524,10 @@ class TranscriptFragmentConsumer(MroProjection[None]):
             row=row,
             files=self.files.of(row.message.reference),
         )
+
+    @handles(ThinkingTranscript)
+    def thinking(self, event: ThinkingTranscript) -> None:
+        self.text(event, self.classes.thinking)
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] | None = None, **kwargs) -> None:

@@ -250,6 +250,8 @@ def test_composer_fit_height_resets_scroll_when_wrapped_lines_fit(monkeypatch):
     composer.visible_viewport_height.return_value = 400
     composer.visible_editor_lines.return_value = 2
     composer.editor_height.return_value = 48
+    composer._buttons_band_size.return_value = (0, 0)
+    composer._needs_button_clearance.return_value = False
 
     Composer.fit_height(composer)
     vbar.setValue.assert_called_once_with(0)
@@ -541,3 +543,275 @@ def test_bottom_chrome_yields_to_keyboard_while_open_sidebars_stay() -> None:
 
     parent.deleteLater()
     app.processEvents()
+
+
+def test_scroll_paint_event_clips_offscreen_tiles_and_tiles_horizontally(monkeypatch) -> None:
+    """`QListView::paintEvent` leaves `painter.hasClipping()` False; `QtHistoryWindow.paintEvent`
+    captures `event.region()` so `HistoryRowDelegate.paint_pictures` rasterizes only visible
+    tiles vertically and horizontally instead of blowing the 64 MB `RowPictures` cache."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import inspect
+    from PySide6.QtCore import QModelIndex, QRect, QSize
+    from PySide6.QtGui import QFont, QPainter, QPixmap, QRegion, QTextDocument
+    from PySide6.QtWidgets import QStyleOptionViewItem
+    from toad.markdown_links import ReferenceContext
+    from toad.qt.history import HistoryRowDelegate, RowPictures
+
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    pictures = RowPictures(64 * 1024 * 1024)
+    delegate = HistoryRowDelegate(renderer, pictures, MagicMock())
+
+    # Tall (2560 px) + wide (1800 px) row painted into a 400x300 viewport with paintEvent region.
+    doc = QTextDocument()
+    doc.setPlainText("line\n" * 120)
+    delegate.painted_document = lambda _idx, _opt: doc
+
+    viewport = MagicMock()
+    viewport.rect.return_value = QRect(0, 0, 400, 300)
+    view = MagicMock()
+    view.viewport.return_value = viewport
+    view._paint_region = QRegion(QRect(0, 0, 400, 300))
+    delegate.view = view
+
+    surface = QPixmap(400, 300)
+    painter = QPainter(surface)
+    assert painter.hasClipping() is False  # exact QListView::paintEvent condition
+    option = QStyleOptionViewItem()
+    option.rect = QRect(0, -1000, 1800, 2560)
+    option.font = QFont()
+
+    # Track tiles rasterized.
+    painted_tiles: list[tuple[int, int, int, int]] = []
+    orig_paint = delegate._paint_tile_document
+
+    def record_paint(drawing, local, index, document, left, top, width, height):
+        painted_tiles.append((left, top, width, height))
+        orig_paint(drawing, local, index, document, left, top, width, height)
+
+    delegate._paint_tile_document = record_paint
+    try:
+        assert delegate.paint_pictures(painter, option, QModelIndex(), "row-1", None) is True
+    finally:
+        painter.end()
+
+    # Viewport [0..300] maps to row-local y in [1000..1300] (tiles 3, 4, 5) and x in [0..400] (tile_x 0 only).
+    assert painted_tiles, "visible tiles should be rasterized"
+    assert len(painted_tiles) <= 3, f"expected <=3 visible tiles, got {len(painted_tiles)}: {painted_tiles}"
+    assert all(left == 0 and width == delegate.TILE_X for left, _top, width, _h in painted_tiles)
+    assert all(top >= 768 and top <= 1280 for _l, top, _w, _h in painted_tiles)
+
+    # Fractional font sizes produce distinct `drawn_key` entries.
+    f1, f2 = QFont("monospace"), QFont("monospace")
+    f1.setPointSizeF(10.0)
+    f2.setPointSizeF(10.5)
+    assert delegate.drawn_key(("k",), f1, 400) != delegate.drawn_key(("k",), f2, 400)
+    app.processEvents()
+
+
+def test_inline_spans_isolates_unmatched_backticks_and_rejects_dotdot_ranges() -> None:
+    """An unmatched backtick on one line must never invert subsequent lines into `code_inline`
+    (which collapses newlines and eats spaces), and numeric ranges like `row[4..5]` must not
+    match `_PATH_PATTERN` as clickable files."""
+    from agent_comms.messaging.display_references import ProjectReferences
+    from toad.client.line_blocks import CodeRole, TextRole
+    from toad.inline_spans import inline_spans
+    from toad.markdown_links import _PATH_PATTERN
+
+    context = LinkContext(Path("."), ProjectReferences())
+    body = (
+        "1. Line with stray `backtick and `KNOBS` cleanly.\n"
+        "### 2. Next heading should stay normal prose\n"
+        "It spammed `grep` because `sft_v4` had only `3` examples in row[4..5] and row[2..3]."
+    )
+    spans = inline_spans(body, context)
+    rendered = "".join(span.text for span in spans)
+    assert "### 2. Next heading should stay normal prose" in rendered
+    assert "It spammed grep because sft_v4 had only 3 examples" in rendered
+    # Line 3's prose is TextRole, and its backticked tokens are CodeRole (not inverted).
+    assert any(span.text == "grep" and span.role is CodeRole for span in spans)
+    assert any(span.text == "sft_v4" and span.role is CodeRole for span in spans)
+    assert any("It spammed " in span.text and span.role is TextRole for span in spans)
+
+    # `4..5` and `2..3` must not match as bare filenames; real filenames still match.
+    assert [m.group("path") for m in _PATH_PATTERN.finditer("row[4..5] and row[2..3]")] == []
+    assert [m.group("path") for m in _PATH_PATTERN.finditer("see src/foo.py and archive.tar.gz")] == [
+        "src/foo.py", "archive.tar.gz"
+    ]
+
+
+def test_composer_floating_buttons_and_nav_separators_and_ime_inset_file(monkeypatch, tmp_path) -> None:
+    """Floating composer buttons sit inside `self.frame` (not `editor_row`), reserve bottom
+    clearance only when the last line collides or scrolls, `_NavSeparator` draws a 1 px
+    divider, and `QtToadApp.fit_safe_area` honors `TOAD_IME_INSET_FILE` across stale
+    `QtWindow.onLayoutChange` reads."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtCore import QMargins
+    from PySide6.QtWidgets import QFrame, QHBoxLayout, QPlainTextEdit, QPushButton
+    from toad.qt.composer import Composer
+    from toad.qt.window import QtToadApp, _NavSeparator
+
+    # 1. Floating box buttons + collision clearance logic.
+    frame = QFrame()
+    frame.resize(300, 80)
+    layout = QHBoxLayout(frame)
+    editor = QPlainTextEdit(frame)
+    editor.resize(280, 40)
+    layout.addWidget(editor)
+
+    send_btn = QPushButton("➤")
+    attach_btn = QPushButton("+")
+    composer = MagicMock(spec=Composer)
+    composer.frame = frame
+    composer.editor_row = layout
+    composer.editor = editor
+    composer.box_buttons = ()
+    composer.font.return_value = frame.font()
+    composer.fontMetrics.return_value = frame.fontMetrics()
+    composer.document_margin.return_value = 4
+    composer._visible_box_buttons = lambda: Composer._visible_box_buttons(composer)
+    composer._buttons_band_size = lambda: Composer._buttons_band_size(composer)
+    composer._place_box_buttons = lambda: Composer._place_box_buttons(composer)
+    composer.fit_buttons = lambda: Composer.fit_buttons(composer)
+    composer.fit_height = lambda: None
+
+    Composer.add_box_button(composer, send_btn)
+    Composer.add_box_button(composer, attach_btn)
+    assert composer.box_buttons == (attach_btn, send_btn)
+    # Buttons are children of `frame`, NOT packed into `editor_row`.
+    assert layout.indexOf(send_btn) == -1
+    assert layout.indexOf(attach_btn) == -1
+    assert send_btn.parentWidget() is frame and attach_btn.parentWidget() is frame
+
+    # Empty or short text does not need bottom clearance; scrolled or colliding text does.
+    composer.text = ""
+    assert Composer._needs_button_clearance(composer, 1, 1) is False
+    composer.text = "hi"
+    editor.setPlainText("hi")
+    assert Composer._needs_button_clearance(composer, 1, 1) is False
+    assert Composer._needs_button_clearance(composer, 5, 3) is True
+    long_line = "x" * 120
+    composer.text = long_line
+    editor.setPlainText(long_line)
+    assert Composer._needs_button_clearance(composer, 1, 1) is True
+
+    # 2. _NavSeparator is 1 px wide and paints cleanly.
+    sep = _NavSeparator()
+    sep.resize(1, 32)
+    assert sep.width() == 1
+    sep.grab()
+
+    # 3. QtToadApp.fit_safe_area protects IME bottom margin against stale getRootWindowInsets().
+    inset_file = tmp_path / "ime_bottom_px"
+    inset_file.write_text("900", encoding="ascii")
+    monkeypatch.setenv("TOAD_IME_INSET_FILE", str(inset_file))
+
+    fake_app = MagicMock()
+    fake_app._rest_bottom_margin = 24
+    fake_app._keyboard_open = False
+    fake_app.KEYBOARD_MARGIN_THRESHOLD = QtToadApp.KEYBOARD_MARGIN_THRESHOLD
+    fake_app.devicePixelRatioF.return_value = 3.0
+    fake_app._android_ime_bottom_dp = lambda: QtToadApp._android_ime_bottom_dp(fake_app)
+
+    # Stale 24 dp margin from QtWindow.onLayoutChange while keyboard (900 px = 300 dp) is up:
+    QtToadApp.fit_safe_area(fake_app, QMargins(0, 48, 0, 24))
+    applied = fake_app.setContentsMargins.call_args[0][0]
+    assert applied.bottom() == 300
+    assert fake_app._keyboard_open is True
+
+    # Keyboard closes -> ToadActivity writes "0" -> resting 24 dp restored cleanly.
+    inset_file.write_text("0", encoding="ascii")
+    QtToadApp.fit_safe_area(fake_app, QMargins(0, 48, 0, 24))
+    applied = fake_app.setContentsMargins.call_args[0][0]
+    assert applied.bottom() == 24
+    assert fake_app._keyboard_open is False
+
+    # ToadActivity.java wires TOAD_IME_INSET_FILE.
+    activity = (Path(__file__).resolve().parents[2]
+                / "tools/android/keepalive/java/org/toadcomms/ToadActivity.java").read_text()
+    assert "TOAD_IME_INSET_FILE" in activity
+
+    frame.deleteLater()
+    sep.deleteLater()
+    app.processEvents()
+
+
+def test_message_font_scale_zoom_and_collapsible_thinking_and_messages(monkeypatch) -> None:
+    """Message zoom setting + actions work within [50, 200], thinking blocks default collapsed
+    with tappable preview across split parts, and bus messages collapse/expand via header."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    from dataclasses import replace
+    from agent_comms.messaging.messages import InfoKind, Message
+    from agent_comms.transcript.transcript_events import IncomingTranscript, ThinkingTranscript
+    from toad.client.application_actions import ResetZoomAction, ZoomInAction, ZoomOutAction
+    from toad.client.fragments import FragmentCollapse, FragmentDetails, MessageShown
+    from toad.client.line_blocks import Divider, Summary
+    from toad.client.message_file_links import NO_PAGE_FILES
+    from toad.client.transcript_fragments import RenderBudget, transcript_fragments
+    from toad.preferences import SETTINGS, SavedSettings
+    from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES, QtThinkingTranscriptFragment
+    from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
+
+    # 1. Font scale preference + actions.
+    saved = SavedSettings()
+    assert saved.current.ui.message_font_scale == 100
+    saved.set(SETTINGS.ui.message_font_scale, 80)
+    assert saved.current.ui.message_font_scale == 80
+    for action_cls in (ZoomInAction, ZoomOutAction, ResetZoomAction):
+        assert action_cls.show is True
+        assert action_cls.summary()
+
+    # 2. ThinkingTranscriptFragment defaults collapsed and expands across split parts in both frontends.
+    long_thought = "\n\n".join(f"Step {i}: " + "analysis " * 30 for i in range(6))
+    assert len(long_thought) > RenderBudget().characters
+    for classes in (QT_FRAGMENT_CLASSES, TEXTUAL_FRAGMENT_CLASSES):
+        built = transcript_fragments(
+            (ThinkingTranscript(long_thought, position=1, timestamp=0.0, ordinal=0),),
+            resolve_sent=lambda _r: {},
+            classes=classes,
+            files=NO_PAGE_FILES,
+        )
+        assert len(built) > 1
+        assert built[0].has_details is True
+        head_blocks = built[0].line_blocks
+        toggle = head_blocks[-1]
+        assert isinstance(toggle, Summary)
+        assert toggle.spans[0].text.startswith("▶ Thinking")
+        assert isinstance(toggle.spans[0].link, FragmentDetails)
+        assert all(part.line_blocks == () for part in built[1:])
+
+        # Expanding all parts shows ▼ Thinking + body across parts.
+        for part in built:
+            part.request_show(part.shown.toggled())
+        expanded_head = built[0].line_blocks
+        assert len(expanded_head) > len(head_blocks)
+        assert any(isinstance(b, Summary) and b.spans[0].text.startswith("▼ Thinking") for b in expanded_head)
+        assert all(len(part.line_blocks) >= 1 for part in built[1:])
+    assert issubclass(QT_FRAGMENT_CLASSES.thinking, QtThinkingTranscriptFragment)
+
+    # 3. Bus messages carry a clickable ▼/▶ header disclosure and collapse/expand cleanly.
+    long_body = "\n\n".join(f"Paragraph {i}: " + "content " * 35 for i in range(6))
+    msg = Message(sender="toad-qt", target="#comms", body=long_body, type=InfoKind)
+    parts = transcript_fragments(
+        (IncomingTranscript.of(msg, reader="tristan"),),
+        resolve_sent=lambda _r: {},
+        classes=QT_FRAGMENT_CLASSES,
+        files=NO_PAGE_FILES,
+    )
+    assert len(parts) > 1
+    head_divider = next(b for b in parts[0].line_blocks if isinstance(b, Divider))
+    assert head_divider.spans[0].text == "▼ "
+    assert isinstance(head_divider.spans[0].link, FragmentCollapse)
+
+    # Collapse all parts of the message.
+    for part in parts:
+        part.request_show(replace(part.shown, collapsed=True))
+    collapsed_blocks = parts[0].line_blocks
+    collapsed_divider = next(b for b in collapsed_blocks if isinstance(b, Divider))
+    assert collapsed_divider.spans[0].text == "▶ "
+    assert any(isinstance(b, Summary) and isinstance(b.spans[0].link, FragmentCollapse) for b in collapsed_blocks)
+    assert all(part.line_blocks == () for part in parts[1:])

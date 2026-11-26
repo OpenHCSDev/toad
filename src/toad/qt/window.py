@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QKeySequence, QScreen, QShortcut
+from PySide6.QtGui import QColor, QFont, QKeySequence, QPainter, QPalette, QPen, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -1531,6 +1531,22 @@ PRESENCE_TRANSITIONS: dict[Qt.ApplicationState, Callable[[ApplicationPresence, Q
 }
 
 
+class _NavSeparator(QWidget):
+    """Thin 1 px vertical divider in the navigation bar, matching `QtSideBarToggle`'s splitter."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setFixedWidth(1)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+
+    def paintEvent(self, event) -> None:  # type: ignore[override]
+        painter = QPainter(self)
+        painter.setPen(QPen(self.palette().color(QPalette.ColorRole.Mid), 1))
+        margin = 4
+        painter.drawLine(0, margin, 0, max(margin, self.height() - margin))
+        painter.end()
+
+
 class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
@@ -1673,8 +1689,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
         bar.setContentsMargins(0, 0, 0, 0)
-        for widget in (self.menu, self.back, self.forward):
-            bar.addWidget(widget)
+        self._nav_separators = (_NavSeparator(self), _NavSeparator(self))
+        bar.addWidget(self.menu)
+        bar.addWidget(self._nav_separators[0])
+        bar.addWidget(self.back)
+        bar.addWidget(self.forward)
+        bar.addWidget(self._nav_separators[1])
         bar.addWidget(self.tab_strip, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
@@ -1760,6 +1780,27 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     """Logical-pixel jump above the resting bottom safe-area inset that marks an open soft
     keyboard (system gesture/3-button bars sit at 0-56 dp; touch keyboards are 250-350 dp)."""
 
+    def _android_ime_bottom_dp(self) -> int:
+        """Authoritative IME bottom inset (in logical dp) written by `ToadActivity`, or 0.
+
+        Qt-for-Android's `QtWindow.onLayoutChange` reads raw `getRootWindowInsets()` (which
+        bypasses `ToadActivity`'s folded IME inset on `android.R.id.content`) and emits a
+        stale resting bottom margin whenever `m_editText` repositions on a tap inside an
+        already-focused composer. Checking `TOAD_IME_INSET_FILE` keeps the keyboard margin
+        intact until Android's `OnApplyWindowInsetsListener` reports `ime().bottom == 0`."""
+        inset_path = os.environ.get("TOAD_IME_INSET_FILE")
+        if not inset_path:
+            return 0
+        try:
+            raw = Path(inset_path).read_text(encoding="ascii").strip()
+            ime_px = int(raw) if raw else 0
+        except (OSError, ValueError):
+            return 0
+        if ime_px <= 0:
+            return 0
+        dpr = max(1.0, self.devicePixelRatioF())
+        return round(ime_px / dpr)
+
     def fit_safe_area(self, margins: QMargins) -> None:
         """Keep every row clear of the status bar, navigation bar and soft keyboard.
 
@@ -1768,11 +1809,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         height without resizing the EGL ``SurfaceView``. While the keyboard is up, bottom-
         docked chrome (bottom navigation bar and collapsed bottom sidebar toggle strips)
         hides so the composer sits flush above the keyboard."""
+        ime_bottom = self._android_ime_bottom_dp()
+        if ime_bottom > margins.bottom():
+            margins = QMargins(margins.left(), margins.top(), margins.right(), ime_bottom)
         self.setContentsMargins(margins)
         bottom = margins.bottom()
-        if self._rest_bottom_margin is None or bottom < self._rest_bottom_margin:
+        if self._rest_bottom_margin is None or (ime_bottom == 0 and bottom < self._rest_bottom_margin):
             self._rest_bottom_margin = bottom
-        self._keyboard_open = (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
+        self._keyboard_open = (
+            ime_bottom > 0
+            or (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
+        )
         self._sync_keyboard_chrome()
 
     def _sync_keyboard_chrome(self) -> None:
@@ -1887,6 +1934,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             scheme.styles.generate_frame_style()
             + "QFrame { padding: 2px 4px; }"
         )
+        for separator in self._nav_separators:
+            separator.update()
         self.float_layer.follow_scheme(scheme)
 
     def settings_widgets(self, widget_type: type) -> list:
@@ -1939,6 +1988,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def show_session_tabs(self, shown: bool) -> None:
         self.paint_tabs()
         self.tab_strip.setVisible(shown)
+        self._nav_separators[1].setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:
         """Read through SidebarLayout — the single collapsed-state owner. A collapsed

@@ -108,7 +108,7 @@ from toad.widgets.fragment_states import (
     UNDRAWN,
     UndrawnFragment,
 )
-from toad.client.fragments import FragmentDetails, FragmentKey, Shown
+from toad.client.fragments import FragmentCollapse, FragmentDetails, FragmentKey, Shown
 from toad.widgets.transcript_lines import (
     BlockLines,
     BlockSpan,
@@ -231,11 +231,34 @@ class TranscriptPageView(
 
     @handles(FragmentDetails)
     def toggle_details(self, link: FragmentDetails) -> None:
-        """The painted action already names its occurrence in this page."""
-        for fragment in self.prepared.fragments_in_range:
-            if fragment.key == link.key:
-                self.history.show_details(self, fragment, fragment.shown.toggled())
-                return
+        """The painted action already names its occurrence in this page; toggle all parts
+        sharing its source identity (e.g. a split thinking block) together."""
+        target = next((fragment for fragment in self.prepared.fragments_in_range if fragment.key == link.key), None)
+        if target is None:
+            return
+        opened = not target.shown.details_open
+        changes = [
+            (fragment, replace(fragment.shown, details_open=opened))
+            for fragment in self.prepared.fragments_in_range
+            if fragment.source_identity == target.source_identity
+        ]
+        self.hold_fragment_top(self.history.window, target.key)
+        self.run_worker(self.history._show(changes), group="message-details")
+
+    @handles(FragmentCollapse)
+    def toggle_collapse(self, link: FragmentCollapse) -> None:
+        """Collapse or expand all parts of the message whose header disclosure was activated."""
+        target = next((fragment for fragment in self.prepared.fragments_in_range if fragment.key == link.key), None)
+        if target is None:
+            return
+        collapsed = not target.shown.collapsed
+        changes = [
+            (fragment, replace(fragment.shown, collapsed=collapsed))
+            for fragment in self.prepared.fragments_in_range
+            if fragment.source_identity == target.source_identity
+        ]
+        self.hold_fragment_top(self.history.window, target.key)
+        self.run_worker(self.history._show(changes), group="message-details")
 
     @property
     def line_width(self) -> int:

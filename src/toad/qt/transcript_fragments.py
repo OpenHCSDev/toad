@@ -16,6 +16,7 @@ from toad.client.transcript_fragments import (
     ContextTranscriptFragment,
     FragmentClasses,
     SentMessageFragment,
+    ThinkingTranscriptFragment,
     ToolTranscriptFragment,
     TranscriptFragment,
 )
@@ -46,6 +47,10 @@ class QtContextTranscriptFragment(ContextTranscriptFragment):
     """Coordination context drawn by Qt."""
 
 
+class QtThinkingTranscriptFragment(ThinkingTranscriptFragment):
+    """Agent thinking drawn by Qt as a collapsible disclosure."""
+
+
 @dataclass(kw_only=True)
 class QtSentMessageFragment(SentMessageFragment, EvidencedFragment):
     """A sent bus message carrying the evidence used by Qt's read marker."""
@@ -59,5 +64,6 @@ QT_FRAGMENT_CLASSES = FragmentClasses(
     bus_message=QtMessageFragment,
     sent_message=QtSentMessageFragment,
     tool=QtToolTranscriptFragment,
+    thinking=QtThinkingTranscriptFragment,
 )
 """The one Qt fragment-family declaration used by both renderer and UI."""
