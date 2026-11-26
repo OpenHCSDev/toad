@@ -1478,6 +1478,8 @@ class QtWorkspaceViews(WorkspaceViews):
         return view
 
     def select(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
+        if (menu := QtMenu.of(self.app)) is not None and menu.isVisible():
+            menu.hide()
         page = self.prepare(mode)
         self.pages.setCurrentWidget(page)
         page.shown(self.app, visited)
