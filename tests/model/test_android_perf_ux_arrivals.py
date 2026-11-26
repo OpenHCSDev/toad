@@ -945,18 +945,36 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
     picked = QtHistoryWindow._tapped_link_at(fake_win, QPoint(mid_x, just_below_y))
     assert picked == OpenTarget("toad-qt")
 
-    # 3. Tap highlight tracks live row geometry rather than freezing at stale pixels.
+    # 3. Tap highlight tracks live row geometry, paints inside the row rect, and on scroll
+    #    invalidates BOTH its pre-scroll rect and the shifted destination rect that
+    #    `viewport.scroll(dx, dy, ...)` blits backing-store pixels into.
     fake_win.widget_gone = False
     fake_win._tap_flash = (frag.key, 10, 20)
+    fake_win._tap_flash_painted = QRect(0, 130, 360, 20)
+    fake_win._tap_flash_timer = MagicMock()
     fake_win.model_rows.row_of.return_value = 0
     fake_win.viewport.return_value.rect.return_value = QRect(0, 0, 360, 600)
     fake_win.visualRect.return_value = QRect(0, 120, 360, 80)
+    fake_win.tap_flash_band = lambda k, r: QtHistoryWindow.tap_flash_band(fake_win, k, r)
     assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 130, 360, 20)
     fake_win.visualRect.return_value = QRect(0, 40, 360, 50)
     assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 50, 360, 20)
+    # Non-matching fragment key gets an empty band; collapsed row clamps strictly inside row rect.
+    assert QtHistoryWindow.tap_flash_band(fake_win, ("other", 0), QRect(0, 40, 360, 50)).isEmpty()
+    assert QtHistoryWindow.tap_flash_band(fake_win, frag.key, QRect(0, 40, 360, 16)) == QRect(0, 40, 360, 16)
+    # Clearing with dy=+180 (rows shifted down by 180 px during collapse) invalidates both
+    # the pre-scroll rect (130) AND the blitted destination rect (310).
+    updated_rects: list[QRect] = []
+    fake_win.viewport.return_value.update.side_effect = updated_rects.append
+    fake_win._live_tap_flash_rect = lambda: QtHistoryWindow._live_tap_flash_rect(fake_win)
+    QtHistoryWindow._clear_tap_flash(fake_win, dy=180)
+    assert fake_win._tap_flash is None
+    assert fake_win._tap_flash_painted is None
+    assert QRect(0, 130, 360, 20) in updated_rects
+    assert QRect(0, 310, 360, 20) in updated_rects
 
     # 4. QtToadApp._resync_safe_area restores resting bottom margin after IME file hits 0
-    #    even when Qt deduplicates safeAreaMarginsChanged.
+    #    even when Qt's cached safeAreaMargins() still holds the old 320 dp folded IME inset.
     inset_file = tmp_path / "ime_bottom_px"
     inset_file.write_text("0", encoding="ascii")
     monkeypatch.setenv("TOAD_IME_INSET_FILE", str(inset_file))
@@ -967,7 +985,7 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
     fake_app.KEYBOARD_MARGIN_THRESHOLD = QtToadApp.KEYBOARD_MARGIN_THRESHOLD
     fake_app.devicePixelRatioF.return_value = 3.0
     fake_app._android_ime_bottom_dp = lambda: QtToadApp._android_ime_bottom_dp(fake_app)
-    fake_app.windowHandle.return_value.safeAreaMargins.return_value = QMargins(0, 48, 0, 24)
+    fake_app.windowHandle.return_value.safeAreaMargins.return_value = QMargins(0, 48, 0, 320)
     fake_app.fit_safe_area = lambda m: QtToadApp.fit_safe_area(fake_app, m)
     QtToadApp._resync_safe_area(fake_app)
     assert fake_app._safe_area_resync_pending is False

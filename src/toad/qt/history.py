@@ -622,6 +622,21 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         opacity = self.view.arrival_opacity(fragment.key) if self.view.has_active_arrivals else None
         if not self.paint_pictures(painter, option, index, fragment.key, opacity):
             super().paint(painter, option, index)
+        if self.view._tap_flash is not None:
+            band = self.view.tap_flash_band(fragment.key, option.rect)
+            if not band.isEmpty():
+                painter.save()
+                if painter.hasClipping():
+                    painter.setClipRect(option.rect, Qt.ClipOperation.IntersectClip)
+                else:
+                    painter.setClipRect(option.rect)
+                colour = QColor(PrimaryColour.rgb(self.renderer.scheme).hex)
+                colour.setAlpha(64)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(colour)
+                painter.drawRoundedRect(band, 4, 4)
+                painter.restore()
+                self.view.note_tap_flash_painted(band)
         self.view.row_painted(fragment, option.rect)
 
     def release_documents(self) -> None:
@@ -1754,31 +1769,73 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.viewport().update(live)
             self._tap_flash_timer.start()
 
+    def tap_flash_band(self, key: object, row_rect: QRect) -> QRect:
+        """Viewport-coordinate band to highlight inside `row_rect` when `key` owns the active
+        tap flash, clamped to `row_rect` so expand/collapse never overhangs another row."""
+        flash = self._tap_flash
+        if flash is None or flash[0] != key or row_rect.isEmpty():
+            return QRect()
+        _key, y_in_row, height = flash
+        clamped_h = min(height, row_rect.height())
+        top = min(row_rect.bottom() - clamped_h + 1, row_rect.top() + y_in_row)
+        return QRect(row_rect.left(), max(row_rect.top(), top), row_rect.width(), clamped_h)
+
+    def note_tap_flash_painted(self, rect: QRect) -> None:
+        """Record the viewport rect where the delegate just painted the tap highlight so
+        scroll or timer expiry erases those exact backing-store pixels."""
+        if not rect.isEmpty() and not self.widget_gone:
+            self._tap_flash_painted = rect.intersected(self.viewport().rect())
+
     def _live_tap_flash_rect(self) -> QRect:
         """Current viewport rect of the active tap highlight, resolved from the row's live
         geometry so layout shifts from expand/collapse move the highlight with the row."""
         flash = self._tap_flash
         if flash is None or self.widget_gone:
             return QRect()
-        key, y_in_row, height = flash
-        row = self.model_rows.row_of(key)
+        row = self.model_rows.row_of(flash[0])
         if row < 0:
             return QRect()
         rect = self.visualRect(self.model_rows.index(row, 0))
-        if rect.isEmpty():
-            return QRect()
-        clamped_h = min(height, rect.height())
-        top = min(rect.bottom() - clamped_h + 1, rect.top() + y_in_row)
-        return QRect(rect.left(), max(rect.top(), top), rect.width(), clamped_h).intersected(
-            self.viewport().rect()
-        )
+        return self.tap_flash_band(flash[0], rect).intersected(self.viewport().rect())
 
-    def _clear_tap_flash(self) -> None:
+    def _clear_tap_flash(self, dx: int = 0, dy: int = 0) -> None:
         previous = self._tap_flash_painted
+        live = self._live_tap_flash_rect()
         self._tap_flash = None
         self._tap_flash_painted = None
-        if previous is not None and not previous.isEmpty() and not self.widget_gone:
-            self.viewport().update(previous)
+        self._tap_flash_timer.stop()
+        if self.widget_gone:
+            return
+        viewport = self.viewport()
+        vp_rect = viewport.rect()
+        for rect in (
+            previous,
+            previous.translated(dx, dy) if (previous is not None and (dx or dy)) else None,
+            live,
+        ):
+            if rect is not None and not rect.isEmpty():
+                clipped = rect.intersected(vp_rect)
+                if not clipped.isEmpty():
+                    viewport.update(clipped)
+
+    def scrollContentsBy(self, dx: int, dy: int) -> None:  # noqa: N802 - Qt virtual method name
+        """Clear any active tap highlight before scrolling and invalidate both its pre-scroll
+        rect and the destination rect that `viewport.scroll(dx, dy, ...)` blits its
+        backing-store pixels into."""
+        stale = self._tap_flash_painted if (dx or dy) else None
+        had_flash = (dx or dy) and (self._tap_flash is not None or stale is not None)
+        if had_flash:
+            self._tap_flash = None
+            self._tap_flash_painted = None
+            self._tap_flash_timer.stop()
+        super().scrollContentsBy(dx, dy)
+        if had_flash and stale is not None and not stale.isEmpty() and not self.widget_gone:
+            viewport = self.viewport()
+            vp_rect = viewport.rect()
+            for rect in (stale, stale.translated(dx, dy)):
+                clipped = rect.intersected(vp_rect)
+                if not clipped.isEmpty():
+                    viewport.update(clipped)
 
     _TOUCH_LINK_OFFSETS: ClassVar[tuple[tuple[int, int], ...]] = (
         (0, -4), (0, 4), (0, -8), (0, 8), (-3, 0), (3, 0),
@@ -1848,21 +1905,10 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
-        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`, and
-        draw the brief tap-feedback highlight over clickable text / header disclosures."""
+        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`."""
         self._paint_region = event.region()
         try:
             super().paintEvent(event)
-            live = self._live_tap_flash_rect()
-            self._tap_flash_painted = live if not live.isEmpty() else None
-            if not live.isEmpty():
-                painter = QPainter(self.viewport())
-                colour = QColor(PrimaryColour.rgb(self.rows.renderer.scheme).hex)
-                colour.setAlpha(64)
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(colour)
-                painter.drawRoundedRect(live, 4, 4)
-                painter.end()
         finally:
             self._paint_region = None
 
@@ -2117,7 +2163,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         clamping inside `executeDelayedItemsLayout()` from firing `scrolled()` as a fake
         reader move and corrupting `lookahead` mid-drag."""
         answered = self.history_change.layout_requests
-        stale_flash = self._tap_flash_painted
+        before_flash = self._tap_flash_painted or self._live_tap_flash_rect()
         with self.layout_scroll():
             self.scheduleDelayedItemsLayout()
             self.executeDelayedItemsLayout()
@@ -2125,10 +2171,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self._visible_cache = None
             self.place_layout_reader()
         self.history_change.finish_layout(answered)
-        if stale_flash is not None and not stale_flash.isEmpty() and not self.widget_gone:
-            self.viewport().update(stale_flash)
-            if not (live_flash := self._live_tap_flash_rect()).isEmpty():
-                self.viewport().update(live_flash)
+        if not self.widget_gone:
+            if before_flash is not None and not before_flash.isEmpty():
+                self.viewport().update(before_flash)
+            if not (after_flash := self._live_tap_flash_rect()).isEmpty():
+                self.viewport().update(after_flash)
         self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
@@ -2257,8 +2304,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
         self._schedule_scroll_frame()
         moved, self._scrolled_to = value - self._scrolled_to, value
-        if moved and self._tap_flash is not None:
-            self._clear_tap_flash()
+        if moved and (self._tap_flash is not None or self._tap_flash_painted is not None):
+            self._clear_tap_flash(dy=-moved)
         if self._restoring:
             return
         if not self.at_end and self.follows_tail:
