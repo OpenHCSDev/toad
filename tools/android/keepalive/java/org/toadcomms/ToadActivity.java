@@ -3,6 +3,9 @@ package org.toadcomms;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Insets;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.system.ErrnoException;
@@ -46,6 +49,10 @@ public class ToadActivity extends PythonActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Keep Android's window and decor background black so opening the soft keyboard or
+        // resizing never exposes Android's default white windowBackground behind Qt's surface.
+        getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         // The composer is part of the app's visible window, not a surface the keyboard may
         // cover. Resizing the window leaves Qt's layout in charge: history gives up height,
         // while Composer derives its shared viewport limit and then scrolls within it.
@@ -67,21 +74,27 @@ public class ToadActivity extends PythonActivity {
         }
         super.onCreate(savedInstanceState);
         // Android 15 (targetSdk 35) enforces edge-to-edge and stops resizing the activity
-        // window for SOFT_INPUT_ADJUST_RESIZE; Qt's own WindowInsets listener only reads
-        // systemBars() | displayCutout(), and QtActivityDelegate's fallback uses deprecated
-        // Display.getMetrics() which under-counts the keyboard by system-bar/toolbar height.
-        // Padding android.R.id.content by WindowInsets.Type.ime().bottom shrinks QtRootLayout
-        // natively to the exact height above the keyboard, while insets.inset(...) consumes
-        // that bottom band so QtWindow does not add a duplicate nav-bar margin on top of it.
+        // window for SOFT_INPUT_ADJUST_RESIZE; Qt's QtWindow.getSafeInsets only reads
+        // systemBars() | displayCutout(), and QtActivityDelegate's keyboardGeometryChanged
+        // uses deprecated Display.getMetrics() which under-counts the keyboard by ~290 px.
+        // Resizing android.R.id.content with setPadding() resizes QtRootLayout's SurfaceView
+        // and flashes white on EGL reallocation. Instead, fold WindowInsets.Type.ime().bottom
+        // into systemBars().bottom via WindowInsets.Builder: QtWindow receives the exact IME
+        // bottom inset through safeAreaMarginsChanged with zero SurfaceView resize or flash.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             final View content = findViewById(android.R.id.content);
             if (content != null) {
                 content.setOnApplyWindowInsetsListener((view, insets) -> {
+                    Insets nav = insets.getInsets(WindowInsets.Type.navigationBars());
                     int imeBottom = insets.getInsets(WindowInsets.Type.ime()).bottom;
-                    if (view.getPaddingBottom() != imeBottom) {
-                        view.setPadding(0, 0, 0, imeBottom);
+                    if (imeBottom <= nav.bottom) {
+                        return insets;
                     }
-                    return imeBottom > 0 ? insets.inset(0, 0, 0, imeBottom) : insets;
+                    return new WindowInsets.Builder(insets)
+                            .setInsets(
+                                    WindowInsets.Type.navigationBars(),
+                                    Insets.of(nav.left, nav.top, nav.right, imeBottom))
+                            .build();
                 });
                 content.requestApplyInsets();
             }

@@ -7,6 +7,7 @@ from what Core answers; the frontend says where its rows are and how its work ru
 from abc import abstractmethod
 from collections.abc import Awaitable, Iterable
 from dataclasses import replace
+from functools import partial
 
 from agent_comms.messaging.message_reference import MessageReference
 from agent_comms.messaging.notification_reads import LiveNotificationRead
@@ -74,13 +75,15 @@ class HistoryNotifications(NotificationSubscriber):
             self.report_queue_evidence()
 
     def notification_read(self, references: Iterable[MessageReference]) -> ReadNotifications:
+        return self.notification_read_for_root(references, self.notification_root)
+
+    def notification_read_for_root(self, references: Iterable[MessageReference], root: str) -> ReadNotifications:
         references = tuple(references)
         wanted = frozenset(references)
         display = next((target.notification_identity_for(wanted)
                         for target in self.notification_targets()
                         if wanted.intersection(target.notification_references)), NoDisplaySelection())
-        return ReadNotifications(self.notification_root, self.notification_operation(references),
-                                 display=display)
+        return ReadNotifications(root, self.notification_operation(references), display=display)
 
     def subscribe_notifications(self, references) -> bool:
         """Whether the read this view shows changed."""
@@ -134,6 +137,15 @@ class OneHistoryNotifications(HistoryNotifications):
     @property
     def notification_root(self) -> str:
         return str(self.app.source().root)
+
+    def subscribe_notifications(self, references) -> bool:
+        """Route through the current `Observation` so a disconnected or closed observation
+        reports its failure cleanly instead of raising from `self.app.source().core`."""
+        access = self.app.coordination_access
+        if references:
+            return access.observation.observed().subscribe_notifications(
+                self, partial(self.notification_read_for_root, references))
+        return access.stop_notifications(self)
 
 
 class SourceNotifications:
