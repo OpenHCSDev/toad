@@ -21,6 +21,7 @@ from textual.timer import Timer
 from textual.widget import Widget
 
 from toad.block_navigation import ConversationBlock
+from toad.arrivals import AnimatesArrivals
 from toad.frame_presentation import FollowsUnrisenRows, UnrisenRows
 from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
 from toad.core.projection import MroProjection
@@ -57,7 +58,7 @@ if TYPE_CHECKING:
 
 
 class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjection[tuple[MessageRowOwner, ...]],
-                    ReaderPlacement, ReaderWindow, FollowsUnrisenRows, VerticalScroll, PagingWindow,
+                    AnimatesArrivals, ReaderPlacement, ReaderWindow, FollowsUnrisenRows, VerticalScroll, PagingWindow,
                     actions=(ReaderAction,)):
     """A document owns reader intent and ends its pointer-scroll route.
 
@@ -261,11 +262,37 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
 
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
+        self.stop_arrival_motion()
         self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
         self.scroll_target_y = self.scroll_y
         parked = self.reader_position.parked(self, contents)
         self.reader_position = parked
         return parked
+
+    @property
+    def animation_clock(self):
+        return self.app.colours.clock
+
+    @property
+    def arrival_animation_visible(self) -> bool:
+        return self.shown and self.app.app_focus
+
+    def arrival_rows_height(self, keys: tuple[object, ...]) -> float | None:
+        total = 0.0
+        found = False
+        for page in self.drawn_pages():
+            for key in keys:
+                slot = page._fragment_slots.get(key)
+                if slot is not None:
+                    total += slot.lines.height
+                    found = True
+        return total if found else None
+
+    def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
+        wanted = set(keys)
+        for page in self.drawn_pages():
+            if any(key in page._fragment_slots for key in wanted):
+                page.refresh()
 
     def prepare_history(self, history: TranscriptSourcePreparation) -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""
@@ -279,6 +306,7 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
 
     def shift_travel(self, rows: float, destination: float) -> None:
         """A running scroll animation and its target move by the rows layout moved the reader."""
+        self.shift_arrival_motion(rows)
         self.app.animator.transform_running_animation(self, "scroll_y", lambda value: value + rows)
         self.scroll_target_y = destination + rows
 
@@ -293,6 +321,7 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
 
     @on(events.Unmount)
     def on_unmount(self) -> None:
+        self.stop_arrival_motion()
         self.retire_presentation_wait()
         self.settle_preparation()
         self.screen.history_windows.discard(self)
@@ -314,6 +343,8 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
 
     @property
     def animated_travel(self) -> float:
+        if (travel := self.head_reveal_travel()) is not None:
+            return travel
         return self.scroll_target_y - self.scroll_y if self.app.animator.is_being_animated(self, "scroll_y") else 0
 
     @property
@@ -385,6 +416,7 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         if anchor:
             # Tail intent replaces earlier motion even while a publication has
             # no scrollable rows. Native cancellation depends on the scrollbar.
+            self.cancel_head_reveal()
             self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
             self.scroll_target_y = self.scroll_y
             self._anchor_released = False
@@ -441,6 +473,8 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         # Animation ticks and direct native scrolling change reader intent
         # too. The existing restoration scope excludes layout compensation.
         if new_value != old_value and not self._restoring:
+            if not self._applying_head_reveal:
+                self.cancel_head_reveal()
             self.record_reader_scroll(new_value - old_value)
             self._invalidate_tooltip_on_scroll()
         else:

@@ -302,3 +302,89 @@ def test_thread_sidebar_panel_family_owns_both_frontends_panels():
     qt_panels = (QtCoordinationStatus, QtThreadCommsPanel, QtPlan, QtProjectPanel, QtContextExplorer)
     assert tuple(panel.panel_type for panel in qt_panels) == declared
     assert tuple(panel.panel_type for panel in SessionPanel.members_with(SessionPanel)) == declared
+
+
+def test_animates_arrivals_is_shared_by_both_history_windows():
+    from contextlib import nullcontext
+    from dataclasses import dataclass
+    from ui_theme.clock import AnimationClock
+    from toad.arrivals import AnimatesArrivals, ArrivalFadeRun, ArrivalGlide, HeadReveal
+    from toad.qt.history import QtHistoryWindow
+    from toad.widgets.history_anchor import HistoryWindow
+
+    for member in (
+        "arrive_fragments",
+        "arrive",
+        "glide_to_end",
+        "gliding_to_end",
+        "start_head_reveal",
+        "head_reveal_travel",
+        "shift_arrival_motion",
+        "cancel_head_reveal",
+        "cancel_arrival_glide",
+        "stop_arrival_motion",
+        "arrival_landed",
+        "arrival_frame",
+        "arrival_opacity",
+    ):
+        _owned_by(AnimatesArrivals, member, HistoryWindow, QtHistoryWindow)
+
+    @dataclass(frozen=True)
+    class _Frag:
+        key: str
+        source_identity: str
+
+    class _ProbeReader:
+        def joins_tail(self, _window) -> bool:
+            return True
+
+    class _ProbeWindow(AnimatesArrivals):
+        def __init__(self) -> None:
+            self._clock = AnimationClock(lambda _dt: None)
+            self.follows_tail = True
+            self.scroll_y = 100.0
+            self.tail_scroll_y = 140.0
+            self.reader_position = _ProbeReader()
+            self.repainted: list[tuple[object, ...]] = []
+
+        @property
+        def animation_clock(self) -> AnimationClock:
+            return self._clock
+
+        @property
+        def arrival_animation_visible(self) -> bool:
+            return True
+
+        def layout_scroll(self):
+            return nullcontext()
+
+        def arrival_rows_height(self, keys: tuple[object, ...]) -> float | None:
+            return float(len(keys) * 40)
+
+        def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
+            self.repainted.append(keys)
+
+    win = _ProbeWindow()
+    live_tool = _Frag(key="live-1", source_identity="src-tool")
+    saved_tool = _Frag(key="saved-1", source_identity="src-tool")
+    saved_thought = _Frag(key="saved-2", source_identity="src-thought")
+
+    # Live arrival fades in and starts a tail-follow glide.
+    win.arrive_fragments((live_tool,), live=True)
+    assert len(win.arrivals) == 1 and isinstance(win.arrivals[0], ArrivalFadeRun)
+    assert isinstance(win.glide, ArrivalGlide)
+    assert win.arrival_opacity("live-1") is not None
+
+    # Saved commit of that same live source does not double-fade it, while a genuinely
+    # new sibling fragment (e.g. thinking trace / bus message) in the same batch DOES fade.
+    win.arrive_fragments((saved_tool, saved_thought), live=False)
+    assert win.arrival_opacity("saved-1") is None
+    assert win.arrival_opacity("saved-2") is not None
+
+    # HeadReveal glides and shifts cleanly on layout changes.
+    assert win.start_head_reveal(20.0) is True
+    assert isinstance(win.head_reveal, HeadReveal)
+    win.shift_arrival_motion(15.0)
+    assert win.head_reveal.target == 35.0
+    win.stop_arrival_motion()
+    assert win.head_reveal is None and win.glide is None and not win.arrivals

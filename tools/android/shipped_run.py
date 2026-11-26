@@ -237,11 +237,12 @@ def main(runtime: Path, app: Path, site_packages: Path) -> int:
         # What a frame does, counted on the same bus (qt_drive's `frame_work`): the same rows
         # and views every time, so an owner's count moves only when its code does.
         counted = shipped_qt(shipped, recipes, trust, profile, work / "frame-work", scenario="frame_work")
-        print(counted.stdout[counted.stdout.find("frame work:"):][-4000:])
+        at = counted.stdout.find("frame work:")
+        print((counted.stdout[at:] if at >= 0 else counted.stdout)[-4000:])
         if counted.returncode != 0:
             print(counted.stderr[-4000:], file=sys.stderr)
-            print("error: a frame of the shipped app does more than tools/frame_work_baseline.json allows, "
-                  "or the count did not run", file=sys.stderr)
+            print(f"error: a frame of the shipped app does more than tools/frame_work_baseline.json allows, "
+                  f"or the count did not run (exit {counted.returncode})", file=sys.stderr)
             return 1
         return 0
     finally:

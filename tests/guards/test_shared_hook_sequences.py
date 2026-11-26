@@ -897,13 +897,17 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
     from toad.transcript_publication import BoundView
     from toad.client.committed_presentation import CommitTranscript, block_claim
 
+    from toad.arrivals import AnimatesArrivals
     redrawn = []
-    window = SimpleNamespace(
-        live_blocks=[],
-        history=SimpleNamespace(pages=()),
-        show_pages=lambda: redrawn.append("show"),
-    )
-    window.retire_live = QtHistoryWindow.retire_live.__get__(window, SimpleNamespace)
+
+    class FakeWindow(AnimatesArrivals):
+        def __init__(self) -> None:
+            self.live_blocks = []
+            self.history = SimpleNamespace(pages=())
+            self.show_pages = lambda: redrawn.append("show")
+
+    window = FakeWindow()
+    window.retire_live = QtHistoryWindow.retire_live.__get__(window, FakeWindow)
 
     started = InputStartedUpdate("hello", NoQueueScope(), None, "in-1")
     covered_input = QtUserInputBlock(window, "hello", claim=StartedInputClaim(started))
