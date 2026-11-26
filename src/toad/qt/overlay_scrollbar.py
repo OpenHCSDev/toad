@@ -15,7 +15,7 @@ from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QAbstractScrollArea, QAbstractSlider, QScrollBar
 from ui_theme.clock import AnimationClock
-from ui_theme.scheme import SurfaceHoverColour
+from ui_theme.scheme import BackgroundColour, SurfaceHoverColour
 
 from toad.motion import SCROLLBAR_FADE, TransitionTarget
 from toad.qt.lines import QtLineRenderer
@@ -48,13 +48,19 @@ class OverlayScrollBar(QScrollBar):
     STILL_MS = 1000
     """How long the area stays still before the bar fades."""
 
-    def __init__(self, area: QAbstractScrollArea, clock: AnimationClock, renderer: QtLineRenderer) -> None:
+    def __init__(self, area: QAbstractScrollArea, clock: AnimationClock, renderer: QtLineRenderer, *,
+                 watch_geometry: bool = True) -> None:
         super().__init__(Qt.Orientation.Vertical, area)
+        # Opaque paint: fills its right-margin strip with BackgroundColour so updating the
+        # moving thumb never walks up five ancestor widgets (QtHistoryWindow -> ConversationView
+        # -> QStackedWidget -> QtWorkspaceChrome -> QtToadApp) painting backgrounds every frame.
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         self.area, self.clock, self.renderer = area, clock, renderer
         self.source = area.verticalScrollBar()
         self.thickness = 0
         self.fade: ScrollbarFade | None = None
         self.handle_opacity = 1.0
+        self._bg_color = QColor(BackgroundColour.rgb(renderer.scheme).hex)
         self._handle_color = QColor(SurfaceHoverColour.rgb(renderer.scheme).hex)
         self._last_thumb = QRect()
         self._last_moved = 0.0
@@ -66,8 +72,9 @@ class OverlayScrollBar(QScrollBar):
         self.setRange(self.source.minimum(), self.source.maximum())
         self.source.valueChanged.connect(self.moved)
         self.valueChanged.connect(self.source.setValue)
-        self.geometry_watch = _ViewportGeometry(self)
-        area.viewport().installEventFilter(self.geometry_watch)
+        self.geometry_watch = _ViewportGeometry(self) if watch_geometry else None
+        if self.geometry_watch is not None:
+            area.viewport().installEventFilter(self.geometry_watch)
         renderer.themed(self, self.paint_colours)
         self.hide()
 
@@ -110,39 +117,40 @@ class OverlayScrollBar(QScrollBar):
                 self.update(thumb.adjusted(0, -1, 0, 1))
 
     def paint_colours(self) -> None:
-        """Cache the raised handle colour; `paintEvent` draws the handle directly."""
+        """Cache the track background and raised handle colours; `paintEvent` draws both
+        directly with `WA_OpaquePaintEvent`."""
+        self._bg_color = QColor(BackgroundColour.rgb(self.renderer.scheme).hex)
         self._handle_color = QColor(SurfaceHoverColour.rgb(self.renderer.scheme).hex)
         if self.isVisible():
             self.update()
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
-        if self.handle_opacity <= 0.0:
-            return
-        thumb = self._thumb_rect()
-        if thumb.isEmpty():
-            return
-        self._last_thumb = thumb
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        if self.handle_opacity < 1.0:
-            painter.setOpacity(self.handle_opacity)
-        radius = max(1.0, thumb.width() / 2.0)
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(self._handle_color)
-        painter.drawRoundedRect(thumb, radius, radius)
+        painter.fillRect(event.rect(), self._bg_color)
+        if self.handle_opacity > 0.0:
+            thumb = self._thumb_rect()
+            if not thumb.isEmpty():
+                self._last_thumb = thumb
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+                if self.handle_opacity < 1.0:
+                    painter.setOpacity(self.handle_opacity)
+                radius = max(1.0, thumb.width() / 2.0)
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.setBrush(self._handle_color)
+                painter.drawRoundedRect(thumb, radius, radius)
         painter.end()
 
     @classmethod
     def follow(cls, area: QAbstractScrollArea, clock: AnimationClock, renderer: QtLineRenderer,
-               thickness: int) -> None:
+               thickness: int, *, watch_geometry: bool = True) -> OverlayScrollBar | None:
         """Reserve ``thickness`` pixels on ``area``'s right viewport margin and draw the fading
         scrollbar in that strip so it never overlaps the viewport (overlapping siblings force
         `VirtualRowView.scrollContentsBy` to repaint the full-height right strip on every frame)."""
         bar = area.findChild(cls, options=Qt.FindChildOption.FindDirectChildrenOnly)
         if bar is None:
             if not thickness:
-                return
-            bar = cls(area, clock, renderer)
+                return None
+            bar = cls(area, clock, renderer, watch_geometry=watch_geometry)
         if bar.thickness != thickness:
             bar.thickness = thickness
             bar.paint_colours()
@@ -154,6 +162,7 @@ class OverlayScrollBar(QScrollBar):
             bar.hide()
         else:
             bar.place()
+        return bar
 
     def stop(self) -> None:
         self.still.stop()

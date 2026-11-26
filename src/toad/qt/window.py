@@ -24,7 +24,7 @@ from agent_comms.registry.thread_identity import ThreadIncarnation
 from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
-from PySide6.QtCore import QFileSystemWatcher, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
+from PySide6.QtCore import QEvent, QFileSystemWatcher, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPalette, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
@@ -963,19 +963,51 @@ class QtChannelGroup(ChannelGroupRows, TreeItemRows[str]):
 class RowFittedTree(FittedRowTree):
     """A `ConversationRows` tree sized to its visible rows, up to `most_rows` before scrolling."""
 
+    _last_fit_key: tuple | None = None
+
     def bind_row_fitting(self) -> None:
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.itemExpanded.connect(lambda _item: self.fit_rows())
-        self.itemCollapsed.connect(lambda _item: self.fit_rows())
+        self.itemExpanded.connect(self._on_tree_expansion_changed)
+        self.itemCollapsed.connect(self._on_tree_expansion_changed)
+
+    def _on_tree_expansion_changed(self, _item) -> None:
+        self._last_fit_key = None
+        self.fit_rows()
+
+    def _fit_key(self) -> tuple:
+        count = self.topLevelItemCount()
+        return (
+            self.width(),
+            count,
+            tuple(
+                (item.isExpanded(), item.childCount())
+                for index in range(count)
+                if (item := self.topLevelItem(index)) is not None
+            ),
+        )
 
     def fit_rows(self) -> None:
-        """As tall as its shown lines, up to `most_rows` of them."""
+        """As tall as its shown lines, up to `most_rows` of them. Skips `doItemsLayout()`
+        when width, item count and expansion state are unchanged — `ChannelActivitySidebar`
+        fires on every bus observation, and unconditional `doItemsLayout()` was 4.7% of
+        Pixel 8a's UI thread while scrolling."""
+        key = self._fit_key()
+        if key == self._last_fit_key and self.height() > 0:
+            return
+        self._last_fit_key = key
         self.doItemsLayout()
         heights, item = [], self.topLevelItem(0)
         while item is not None and len(heights) <= self.most_rows:
             heights.append(self.visualItemRect(item).height())
             item = self.itemBelow(item)
-        self.setFixedHeight(sum(heights) + 2 * self.frameWidth())
+        target_height = sum(heights) + 2 * self.frameWidth()
+        if self.height() != target_height:
+            self.setFixedHeight(target_height)
+
+    def changeEvent(self, event) -> None:  # type: ignore[override]
+        super().changeEvent(event)
+        if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange):
+            self._last_fit_key = None
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import time
 
-import qasync
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.transport.connector_profile import UiConnectionProfile
 from ui_theme.scheme import ColourScheme
@@ -13,7 +12,7 @@ from ui_theme.scheme import ColourScheme
 from toad.client.bus_selection import BusChoice, held_profile_path, hold_ui_profile
 from toad.client.connection import RemoteCoreConnection
 from toad.qt.android_app import APP
-from toad.qt.client_start import serve
+from toad.qt.client_start import run_qt_loop, serve
 
 BUNDLED_PROFILE = APP / "profile.json"
 
@@ -50,4 +49,4 @@ def held_connection() -> RemoteCoreConnection:
 
 def serve_held(scheme: ColourScheme) -> None:
     """Serve the held bus until the application ends."""
-    qasync.run(serve(held_connection(), Checkout(APP), scheme))
+    run_qt_loop(serve(held_connection(), Checkout(APP), scheme))

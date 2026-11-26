@@ -260,6 +260,11 @@ class CoreConnection(ABC):
     def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """Whether ``source`` still belongs to what this connection currently observes."""
 
+    async def holds_async(self, runtime, access: CoordinationAccess, source: str | Path) -> bool:
+        """Whether ``source`` still belongs to this connection: local routes check disk on a
+        worker thread, while remote connections read their in-memory observation directly."""
+        return await runtime.run_thread(self.holds, access, source)
+
     @abstractmethod
     def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
         """The observation serving ``source``, or the refusal that it is not this Core's."""
@@ -320,6 +325,11 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
     def holds(self, access: CoordinationAccess, source: str | Path) -> bool:
         """The root the connector's Core serves, as the current observation holds it."""
         return access.observation.observed().observes(source)
+
+    async def holds_async(self, runtime, access: CoordinationAccess, source: str | Path) -> bool:
+        """Remote observation membership is a pure in-memory check; avoid spawning a worker
+        thread and ~10 qasync timers per scroll/read check."""
+        return self.holds(access, source)
 
     def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
         """The current observation through the connector, when it serves ``source``."""

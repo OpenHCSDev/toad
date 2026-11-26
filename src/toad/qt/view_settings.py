@@ -8,6 +8,7 @@ read through the view's own configuration, so a per-view override repaints the v
 
 from __future__ import annotations
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
 
 from toad.client.view_layout import ConversationColumn, LayoutFollower
@@ -38,9 +39,17 @@ class QtViewSettings(LayoutFollower, ConversationColumn):
         margins = self.layout().contentsMargins()
         self.layout().setContentsMargins(left, margins.top(), width - column - left, margins.bottom())
         bar = self.messages.verticalScrollBar()
-        bar.setFixedWidth(self.scrollbar_cells(ui) * cell)
-        OverlayScrollBar.follow(self.messages, self.messages.animation_clock, self.messages.rows.app_renderer,
-                                ui.scrollbar.overlay * cell)
+        native_width = self.scrollbar_cells(ui) * cell
+        if native_width > 0:
+            self.messages.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            bar.setFixedWidth(native_width)
+        else:
+            # Hide the native scrollbar via policy instead of leaving a 0px visible QScrollBar
+            # firing Qt style-animation timers (~120/sec) on every scroll value change.
+            self.messages.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.messages._overlay_scrollbar = OverlayScrollBar.follow(
+            self.messages, self.messages.animation_clock, self.messages.rows.app_renderer,
+            ui.scrollbar.overlay * cell, watch_geometry=False)
 
     def showEvent(self, event) -> None:  # type: ignore[override]
         super().showEvent(event)

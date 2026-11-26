@@ -745,9 +745,10 @@ class WirePageBuffer(SavedHistory):
         return release
 
     async def route_is_current(self) -> bool:
-        return not self.closed and await self.runtime.run_thread(
-            lambda: self.loader.access.current(self.loader.root)
-        )
+        if self.closed:
+            return False
+        access = self.loader.access
+        return await access.connection.holds_async(self.runtime, access, self.loader.root)
 
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)

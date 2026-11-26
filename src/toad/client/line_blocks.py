@@ -15,6 +15,7 @@ from typing import ClassVar, Self
 from urllib.parse import quote, unquote
 
 from rich.cells import cell_len, set_cell_size
+from markdown_it.token import Token
 
 from agent_comms.messaging.display_references import DisplayReference
 from agent_comms.nominal.declared_family import DeclaredFamily
@@ -239,7 +240,6 @@ class LineLink(DeclaredFamily, affix="Link"):
         return self.href_scheme + quote(json.dumps(FieldCodec.encode(self)), safe="")
 
     def inline_tokens(self, content):
-        from markdown_it.token import Token
         return (Token("link_open", "a", 1, attrs={"href": LinkHref.capture(self)}),
                 content, Token("link_close", "a", -1))
 
