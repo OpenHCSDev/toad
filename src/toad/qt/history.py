@@ -1445,6 +1445,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self._base_font_point_size: float = self.font().pointSizeF()
         self._font_scale_percent: int = 100
         self._last_viewport_width: int = 0
+        self._viewport_resize_pending: bool = False
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1622,16 +1623,29 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self.jump_bar.move(vp.mapTo(self, point_in_vp))
         self.jump_bar.raise_()
 
+    def _apply_viewport_width_change(self) -> None:
+        """Re-measure rows once after a viewport-only width change (e.g. `setViewportMargins`
+        from `OverlayScrollBar.follow`). Deferred off `eventFilter` so Qt's own scrollbar
+        geometry updates inside `doItemsLayout` can never recurse back into `rows_changed`."""
+        self._viewport_resize_pending = False
+        if self.widget_gone:
+            return
+        width = self.viewport().width()
+        if width > 0 and width != self._last_viewport_width:
+            self._last_viewport_width = width
+            self.rows.width_changed()
+            self.rows_changed()
+
     def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
         if obj is self.viewport():
             if event.type() == QEvent.Type.Resize:
                 width = self.viewport().width()
                 if width > 0 and width != self._last_viewport_width:
-                    previous = self._last_viewport_width
-                    self._last_viewport_width = width
-                    if previous > 0:
-                        self.rows.width_changed()
-                        self.rows_changed()
+                    if self._last_viewport_width == 0:
+                        self._last_viewport_width = width
+                    elif not self._viewport_resize_pending:
+                        self._viewport_resize_pending = True
+                        QTimer.singleShot(0, self, self._apply_viewport_width_change)
                 if self.jump_bar.isVisible():
                     self._place_jump_bar()
                 self.repin_header()
