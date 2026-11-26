@@ -181,6 +181,7 @@ def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monke
         key="patch",
         shown="shown",
         revision=1,
+        has_blocks=True,
         line_blocks=(patch,),
         clipboard_text="plain fallback",
         header_blocks=0,
@@ -194,7 +195,9 @@ def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monke
         view = VirtualRowView(delegate)
         # HistoryRowDelegate's paint hook belongs to QtHistoryWindow; this proof
         # exercises layout only through the generic virtual-row host.
-        view.arrivals = None
+        view.has_active_arrivals = False
+        view._tap_flash = None
+        view._paint_region = None
         view.row_painted = lambda *args: None
         model = HistoryRows()
         try:

@@ -1849,22 +1849,25 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         if handle is not None:
             self.fit_safe_area(handle.safeAreaMargins())
 
-    def _android_ime_bottom_dp(self) -> int:
-        """Authoritative IME bottom inset (in logical dp) written by `ToadActivity`, or 0.
+    def _android_ime_bottom_dp(self) -> int | None:
+        """Authoritative IME bottom inset (in logical dp) written by `ToadActivity`, or None
+        when not running under Android's inset handoff file.
 
         Qt-for-Android's `QtWindow.onLayoutChange` reads raw `getRootWindowInsets()` (which
         bypasses `ToadActivity`'s folded IME inset on `android.R.id.content`) and emits a
         stale resting bottom margin whenever `m_editText` repositions on a tap inside an
-        already-focused composer. Checking `TOAD_IME_INSET_FILE` keeps the keyboard margin
-        intact until Android's `OnApplyWindowInsetsListener` reports `ime().bottom == 0`."""
+        already-focused composer; conversely, pressing Back to dismiss the keyboard can
+        write `0` before `QtWindow.safeAreaMargins()` drops its cached folded IME height.
+        Checking `TOAD_IME_INSET_FILE` keeps the bottom margin authoritative in both
+        directions."""
         inset_path = os.environ.get("TOAD_IME_INSET_FILE")
         if not inset_path:
-            return 0
+            return None
         try:
             raw = Path(inset_path).read_text(encoding="ascii").strip()
             ime_px = int(raw) if raw else 0
         except (OSError, ValueError):
-            return 0
+            return None
         if ime_px <= 0:
             return 0
         dpr = max(1.0, self.devicePixelRatioF())
@@ -1879,16 +1882,27 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         docked chrome (bottom navigation bar and collapsed bottom sidebar toggle strips)
         hides so the composer sits flush above the keyboard."""
         ime_bottom = self._android_ime_bottom_dp()
-        if ime_bottom > margins.bottom():
-            margins = QMargins(margins.left(), margins.top(), margins.right(), ime_bottom)
+        if ime_bottom is not None:
+            if ime_bottom > 0 and ime_bottom > margins.bottom():
+                margins = QMargins(margins.left(), margins.top(), margins.right(), ime_bottom)
+            elif (
+                ime_bottom == 0
+                and self._rest_bottom_margin is not None
+                and margins.bottom() > self._rest_bottom_margin
+            ):
+                margins = QMargins(
+                    margins.left(), margins.top(), margins.right(), self._rest_bottom_margin
+                )
         self.setContentsMargins(margins)
         bottom = margins.bottom()
-        if self._rest_bottom_margin is None or (ime_bottom == 0 and bottom < self._rest_bottom_margin):
+        if self._rest_bottom_margin is None or (
+            (ime_bottom is None or ime_bottom == 0) and bottom < self._rest_bottom_margin
+        ):
             self._rest_bottom_margin = bottom
-        self._keyboard_open = (
-            ime_bottom > 0
-            or (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
-        )
+        if ime_bottom is not None:
+            self._keyboard_open = ime_bottom > 0
+        else:
+            self._keyboard_open = (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
         self._sync_keyboard_chrome()
 
     def _sync_keyboard_chrome(self) -> None:
@@ -1993,7 +2007,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
               " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
             + f"QToolButton#tab-close-button {{"
               f" border: none; border-radius: 4px; padding: 0px;"
-              f" background: transparent; color: {muted}; font-weight: bold; font-size: 13pt; }}"
+              f" background: transparent; color: {muted}; font-weight: bold; }}"
             + f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
               f" background: {toggle_bg}; color: {ink_hex}; }}"
         )
