@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
 from pyqt_reactive.widgets.virtual_rows import (
     HtmlRow, RowDocumentDelegate, RowFormatting, RowPreparer, VirtualRowView,
 )
+from toad.arrivals import AnimatesArrivals
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
@@ -77,7 +78,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.patch import PREFORMATTED, DiffSettings
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
-from toad.qt.widget_animation import WidgetAnimation, frame_interval
+from toad.qt.widget_animation import frame_interval
 from toad.qt.transcript_fragments import (
     QT_FRAGMENT_CLASSES,
     QtContextTranscriptFragment,
@@ -89,7 +90,6 @@ from toad.qt.transcript_fragments import (
 )
 from toad.render_backend import Renderer, RenderTask
 from toad.transcript_filter import DrawnFilter, FilterState
-from toad.motion import ARRIVAL, FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
 from ui_theme.scheme import BackgroundColour, ColourScheme, ForegroundColour, PrimaryColour, SurfaceHoverColour
 
 class QtPage(ReaderPage):
@@ -236,94 +236,6 @@ class HistoryRows(QAbstractListModel):
             if (row := self.row_of(fragment.key)) >= 0:
                 index = self.index(row, 0)
                 self.dataChanged.emit(index, index)
-
-
-class ArrivalFade(WidgetAnimation):
-    """Rows that arrived together, rising as the TUI's `ARRIVAL` cascade raises them: each fades
-    from the background into its own colours, row after row, on the app's clock. A row's
-    opacity is the cascade's `Mix` amount at the row's place in the burst, the frame Textual's
-    `TranscriptHistory` paints, so `TEXTUAL_ANIMATIONS=none` shows them at once in both."""
-
-    def __init__(self, window: QtHistoryWindow, keys: tuple) -> None:
-        self.window = window
-        self.bind_widget(window, window.animation_clock)
-        last = max(1, len(keys) - 1)
-        self.positions = {key: index / last for index, key in enumerate(keys)}
-        self.animation = window.animation_clock.start(ARRIVAL, self)
-
-    def opacity(self, key) -> float | None:
-        position = self.positions.get(key)
-        return None if position is None else self.animation.at(position).amount
-
-    def repaint(self) -> None:
-        """Only the rising rows: a whole-viewport update every tick flickers the pinned header."""
-        window = self.window
-        if self.animation.finished:
-            window.arrival_landed(self)
-        model_rows = window.model_rows
-        for key in self.positions:
-            if (row := model_rows.row_of(key)) >= 0:
-                window.update(model_rows.index(row, 0))
-
-
-class ArrivalGlide(WidgetAnimation, TransitionTarget):
-    """A reader following the end glides down to rows that arrived (`FOLLOW_ARRIVAL`) instead of
-    jumping their height in one frame; it lands on the end however far the rows grew meanwhile."""
-
-    def __init__(self, window: QtHistoryWindow, start: float) -> None:
-        self.window, self.start = window, start
-        self.at = start
-        self.bind_widget(window, window.animation_clock)
-        self.start_transition(window.animation_clock, FOLLOW_ARRIVAL)
-
-    def apply_amount(self, amount: float) -> None:
-        window = self.window
-        if not window.follows_tail:
-            self.animation.stop()
-            window.glide = None
-            return
-        # Only ever down: a row that lands mid-glide moves the end, never the reader back up.
-        self.at = max(self.at, window.scroll_y, self.start + (window.tail_scroll_y - self.start) * amount)
-        with window.layout_scroll():
-            window.scroll_y = self.at
-
-    def land(self) -> None:
-        window = self.window
-        window.glide = None
-        if window.follows_tail:
-            with window.layout_scroll():
-                window.follow_end()
-
-
-class HeadReveal(WidgetAnimation, TransitionTarget):
-    """A tapped message whose head is above the viewport glides its head up to the top
-    (`HEAD_REVEAL`), as Textual's clicked-head reveal scrolls it into view. A finger that
-    takes the rows again stops it where it is."""
-
-    def __init__(self, window: QtHistoryWindow, start: float, target: float) -> None:
-        self.window, self.start, self.target = window, start, target
-        self.bind_widget(window, window.animation_clock)
-        self.start_transition(window.animation_clock, HEAD_REVEAL)
-
-    def apply_amount(self, amount: float) -> None:
-        window = self.window
-        window.scroll_y = self.start + (self.target - self.start) * amount
-
-    def land(self) -> None:
-        window = self.window
-        if window.head_reveal is self:
-            window.head_reveal = None
-            window.scroll_y = self.target
-
-    def shifted(self, rows: float) -> None:
-        """Layout moved the reader `rows` mid-glide: the glide is to the same message."""
-        self.start += rows
-        self.target += rows
-
-    def cancel(self) -> None:
-        """Stop where it is: the reader's own scrolling owns the rows now."""
-        self.window.head_reveal = None
-        self.animation.stop()
 
 
 class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
@@ -1030,9 +942,9 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         window = self.window
         model_rows = window.model_rows
         if fragments and window.isVisible():
-            # Where Textual's `repaint` starts `ARRIVAL` (`EffectPhase.on_new_arrival`), on every
-            # publish path: an edge extended under the reader, or a newest page replacing the source.
-            window.arrive(tuple(fragment.key for fragment in fragments))
+            # Unified arrival entry point (`AnimatesArrivals`): bus messages, tool calls,
+            # thinking traces, drafts, and live blocks share one fade + glide coordinator.
+            window.arrive_fragments(fragments, live=False)
         for fragment in (*fragments, *continuing):
             row = model_rows.row_of(fragment.key)
             if row >= 0:
@@ -1407,8 +1319,9 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow, QtWorkspaceHosted,
-                      VirtualRowView, PagingWindow, OpensLineLinks, PinsMessageHeader, SettingsReading):
+class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow,
+                      QtWorkspaceHosted, VirtualRowView, PagingWindow, OpensLineLinks, PinsMessageHeader,
+                      SettingsReading):
     """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
     history's shown fragments, scrolled by pixel. It answers the shared pager's window
     contract: reaching the top reads older pages, the bottom newer ones, End and the
@@ -1496,15 +1409,10 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self.jump_bar = QtJumpBar(self, renderer)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.sticky_header = QtStickyHeader(self)
-        # Arriving rows fading in, and the glide down to them (`arrive`).
-        self.arrivals: list[ArrivalFade] = []
-        self.glide: ArrivalGlide | None = None
-        # A tapped message's head gliding to the top (`reveal_head_at`).
-        self.head_reveal: HeadReveal | None = None
+        # Stop any active shared arrival fades, glides, or head reveals before Qt frees C++ memory.
+        self.destroyed.connect(self._on_widget_destroyed)
         # A press that stops a fling is not a tap on a row (Android's lists do the same).
         self._fling_stopped = False
-        # Rows that arrived at the end the reader follows, not yet glided to (`glide_to_end`).
-        self._arrived: tuple = ()
         # A press makes its row Qt's current index, and autoScroll would then scroll that
         # row into view at once (QAbstractItemView.currentChanged → scrollTo): a jump on
         # every tap, and one that fights a drag starting on a row. A tap's reveal is the
@@ -1531,62 +1439,35 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def animation_clock(self):
         return self.configuration_scope.app.animation_clock
 
-    def arrive(self, keys: tuple, *, replace_live: bool = True) -> None:
-        """Rows `keys` just arrived: they fade in row after row, and a reader following the
-        end glides down to them rather than jumping their height (`glide_to_end`)."""
-        if not (keys and self.animation_clock.enabled):
-            return
-        if not (replace_live and (self.draft or self.live_blocks)):
-            # Saved rows replacing an already-seen draft or live block keep their opacity
-            # in place; brand-new live blocks, drafts, and saved arrivals all fade in.
-            self.arrivals.append(ArrivalFade(self, keys))
-        if self.follows_tail:
-            self._arrived += keys
-            self.glide_to_end()
+    @property
+    def arrival_animation_visible(self) -> bool:
+        return not self.widget_gone and self.isVisible()
 
-    def glide_to_end(self) -> bool:
-        """Glide to the end from where it was before the arrived rows, once they are laid out
-        (a page published after `repaint` lays them out in `keep_reader`). A glide already
-        running turns toward the new end from where it is, so it never lands by jumping."""
+    def arrival_rows_height(self, keys: tuple[object, ...]) -> float | None:
+        if self.widget_gone:
+            return None
         model_rows = self.model_rows
-        rows = [row for key in self._arrived if (row := model_rows.row_of(key)) >= 0]
+        rows = [row for key in keys if (row := model_rows.row_of(key)) >= 0]
         if not rows:
-            return False
-        self._arrived = ()
+            return None
         self.executeDelayedItemsLayout()
-        if not self.reader_position.joins_tail(self):
-            # An arrival taller than the window is read from its head: layout places it there
-            # (`ArrivalPosition`), and a glide still running stops with the following.
-            return False
-        tail = self.tail_scroll_y
-        start = max(0, tail - sum(self.visualRect(model_rows.index(row, 0)).height() for row in rows))
-        if self.glide is not None:
-            self.glide.animation.stop()
-            start = max(start, self.glide.at)
-        with self.layout_scroll():
-            self.scroll_y = min(start, tail)
-            self.glide = ArrivalGlide(self, self.scroll_y)
-        return True
+        return float(sum(self.visualRect(model_rows.index(row, 0)).height() for row in rows))
 
-    def gliding_to_end(self) -> bool:
-        """Whether a glide owns the way to the end, so whatever follows the end for a following
-        reader (`anchor`, `check_follow`, `keep_reader`) leaves it to the glide, which lands there.
-        Rows that arrived start their glide here once laid out; arrivals this view never draws
-        are let go, so following the end is never held for them."""
-        if self._arrived and not self.glide_to_end():
-            self._arrived = ()
-        return self.glide is not None
+    def prepare_arrival_layout(self) -> None:
+        if not self.widget_gone:
+            self.executeDelayedItemsLayout()
 
-    def arrival_landed(self, fade: ArrivalFade) -> None:
-        if fade in self.arrivals:
-            self.arrivals.remove(fade)
+    def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
+        """Only the rising rows: a whole-viewport update every tick flickers the pinned header."""
+        if self.widget_gone:
+            return
+        model_rows = self.model_rows
+        for key in keys:
+            if (row := model_rows.row_of(key)) >= 0:
+                self.update(model_rows.index(row, 0))
 
-    def arrival_opacity(self, key) -> float | None:
-        """How far the row `key` has risen, while it is still rising."""
-        for fade in self.arrivals:
-            if (opacity := fade.opacity(key)) is not None:
-                return opacity
-        return None
+    def _on_widget_destroyed(self, *_args) -> None:
+        self.stop_arrival_motion()
 
     async def acquire_links(self, app) -> None:
         """The names this conversation's bodies link through; the rows draw again with them."""
@@ -1891,8 +1772,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         """Pixels the rows are still being carried with no finger on them, as Textual answers
         with its scroll animation's distance to its target: a head reveal's way to its head,
         or a fling's momentum (`fling_travel`)."""
-        if self.head_reveal is not None:
-            return self.head_reveal.target - self.scroll_y
+        if (travel := self.head_reveal_travel()) is not None:
+            return travel
         return self._safe_qt_read(self.fling_travel, 0.0)
 
     def fling_travel(self) -> float:
@@ -1945,12 +1826,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
 
     def _stop_scroll_momentum(self) -> None:
         """Cancel any active fling, glide, head reveal, or travel offset before an explicit jump."""
-        if self.head_reveal is not None:
-            self.head_reveal.cancel()
-        if self.glide is not None:
-            self.glide.animation.stop()
-            self.glide = None
-        self._arrived = ()
+        self.cancel_head_reveal()
+        self.cancel_arrival_glide()
         if not self.widget_gone:
             scroller = QScroller.scroller(self.viewport())
             if scroller.state() != QScroller.State.Inactive:
@@ -2031,17 +1908,16 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         if not fragments and not self.draft:
             return
         existing = {fragment.key for fragment in self.draft}
-        new_keys = tuple(fragment.key for fragment in fragments if fragment.key not in existing)
+        new_fragments = tuple(fragment for fragment in fragments if fragment.key not in existing)
         self.draft = fragments
-        if new_keys and self.isVisible():
-            self.arrive(new_keys, replace_live=False)
+        if new_fragments:
+            self.arrive_fragments(new_fragments, live=True)
         self.show_pages()
 
     def show_live(self, block: QtLiveBlock) -> None:
         """A turn's live block as a row after the history and the draft, arriving smoothly."""
         self.live_blocks.append(block)
-        if self.isVisible():
-            self.arrive((block.fragment().key,), replace_live=False)
+        self.arrive_fragments((block.fragment(),), live=True)
         self.live_changed()
 
     def live_changed(self) -> None:
@@ -2051,6 +1927,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
     def drop_live(self, block: QtLiveBlock) -> None:
         if block in self.live_blocks:
             self.live_blocks.remove(block)
+            self.clear_live_seen((block.fragment().source_identity,))
             self.live_changed()
 
     def retire_live(self, blocks) -> None:
@@ -2059,6 +1936,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         kept = [block for block in self.live_blocks if block not in retired]
         if len(kept) != len(self.live_blocks):
             self.live_blocks = kept
+            self.clear_live_seen(block.fragment().source_identity for block in retired)
             self.show_pages()
 
     def live_in_viewport(self, candidates) -> bool:
@@ -2184,11 +2062,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         top = self.visualRect(model_rows.index(row, 0)).top()
         if top >= 0:
             return False
-        if self.head_reveal is not None:
-            self.head_reveal.cancel()
-        start = self.scroll_y
-        self.head_reveal = HeadReveal(self, start, max(0.0, start + top))
-        return True
+        return self.start_head_reveal(self.scroll_y + top)
 
     def _on_scroller_state(self, state) -> None:
         """A finger taking the rows stops a head reveal; a press that stops a fling is
@@ -2198,8 +2072,8 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         self.animation_clock.set_scrolling(
             self, state in (QScroller.State.Dragging, QScroller.State.Scrolling)
         )
-        if state in (QScroller.State.Pressed, QScroller.State.Dragging) and self.head_reveal is not None:
-            self.head_reveal.cancel()
+        if state in (QScroller.State.Pressed, QScroller.State.Dragging):
+            self.cancel_head_reveal()
         if state == QScroller.State.Pressed:
             self._fling_stopped = self._flinging
         self._flinging = state == QScroller.State.Scrolling
@@ -2234,8 +2108,7 @@ class QtHistoryWindow(ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWi
         the same rows at the same speed. QScroller prepares again from the moved origin: a
         fling it had planned to end at the loaded edge is planned again at its present
         speed, into the rows that landed."""
-        if self.head_reveal is not None:
-            self.head_reveal.shifted(rows)
+        self.shift_arrival_motion(rows)
         scroller = QScroller.scroller(self.viewport())
         if scroller.state() != QScroller.State.Inactive:
             self._travel_origin += rows

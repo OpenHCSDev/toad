@@ -723,6 +723,16 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                              if part.source_identity == fragment.source_identity)
         if not head_placement.head_hidden(window, message_height):
             return fragment
+        # When the head is already laid out on the current page and animations are enabled,
+        # glide its head smoothly into view through the shared `HeadReveal` transition.
+        if head_placement.draws and window.animation_clock.enabled:
+            placed_head = page.fragment_row(head.key, 0)
+            if placed_head.located and placed_head.laid_out(window):
+                target_y = placed_head.destination(window, 0.0)
+                if target_y < window.scroll_y:
+                    window.release_anchor()
+                    window.start_head_reveal(target_y)
+                    return head
         # A head with no drawn child has no row to place the reader on.
         return await head.lines_for(width, theme).block_span(lambda span: span.drawn).placed_by(
             partial(self._place_reader_at_head, head, fragment, page, staged, current),
@@ -881,6 +891,12 @@ class LineHistory(DrawsBusMessages, SourceNotifications, OpensLinks, TranscriptS
                                      if fragment.arrival_position in positions)
             if previous or page.arrivals:
                 page.refresh()
+        if (fragments and self.is_attached and self.window.follows_tail
+                and self.window.reader_position.joins_tail(self.window)
+                and not self.unrevealed_rows()):
+            # Short arrivals that `unrevealed_rows()` does not hold back glide smoothly
+            # down through the shared `FOLLOW_ARRIVAL` transition on Textual too.
+            self.window.arrive((), glide_keys=tuple(fragment.key for fragment in fragments))
 
     @on(Hide)
     def on_hide(self) -> None:

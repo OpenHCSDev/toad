@@ -125,7 +125,9 @@ def test_qt_jump_to_latest_cancels_active_scroller_momentum(monkeypatch):
         def cancel(self):
             events.append("head_reveal.cancel")
 
-    class _FakeWindow:
+    from toad.arrivals import AnimatesArrivals
+
+    class _FakeWindow(AnimatesArrivals):
         head_reveal = _FakeHeadReveal()
         glide = None
         _arrived = ("k1",)
