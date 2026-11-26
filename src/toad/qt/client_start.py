@@ -6,12 +6,15 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from collections import deque
 from pathlib import Path
+from time import monotonic
 from typing import TYPE_CHECKING
 
 import qasync
 from agent_comms.projects.checkouts import Checkout
 from objectstate import set_base_config_type
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication
 from ui_theme.scheme import ColourScheme
 
@@ -78,6 +81,69 @@ async def serve(connection: CoreConnection, project: Checkout, scheme: ColourSch
     await app.close_client()
 
 
+class CoalescedQEventLoop(qasync.QEventLoop):
+    """A `qasync.QEventLoop` that coalesces zero-delay callbacks (`call_soon`,
+    `call_soon_threadsafe`, `Future` completions, `Task.__step`) onto one reusable
+    single-shot `QTimer(0)` draining a `deque` snapshot per event-loop turn.
+
+    Stock `qasync._SimpleTimer.add_callback` calls `startTimer(0)` and `killTimer()`
+    for every single `call_soon` handle (1,779 OS timer events in 5s during scroll,
+    driving `QTimerInfoList::activateTimers()` to 45.3% of Pixel 8a's UI thread).
+    """
+
+    def __init__(self, app=None, set_running_loop: bool = False, already_running: bool = False) -> None:
+        super().__init__(app, set_running_loop=set_running_loop, already_running=already_running)
+        self._ready: deque[asyncio.Handle] = deque()
+        self._ready_armed = False
+        self._ready_timer = QTimer()
+        self._ready_timer.setSingleShot(True)
+        self._ready_timer.setInterval(0)
+        self._ready_timer.timeout.connect(self._drain_ready)
+
+    def _add_callback(self, handle, delay: float = 0):
+        if delay <= 0:
+            self._ready.append(handle)
+            if not self._ready_armed:
+                self._ready_armed = True
+                self._ready_timer.start()
+            return handle
+        return super()._add_callback(handle, delay)
+
+    _DRAIN_BUDGET_SECONDS = 0.002
+    _DRAIN_MAX_PASSES = 8
+
+    def _drain_ready(self) -> None:
+        self._ready_armed = False
+        ready = self._ready
+        deadline = monotonic() + self._DRAIN_BUDGET_SECONDS
+        passes = 0
+        try:
+            while ready and passes < self._DRAIN_MAX_PASSES:
+                passes += 1
+                for _ in range(len(ready)):
+                    handle = ready.popleft()
+                    if not handle._cancelled:
+                        handle._run()
+                if monotonic() >= deadline:
+                    break
+        finally:
+            if ready and not self._ready_armed and not self.is_closed():
+                self._ready_armed = True
+                self._ready_timer.start()
+
+    def close(self) -> None:
+        if not self.is_running() and not self.is_closed():
+            self._ready_timer.stop()
+            self._ready.clear()
+            self._ready_armed = False
+        super().close()
+
+
+def run_qt_loop(coro) -> None:
+    """Run ``coro`` on `CoalescedQEventLoop` bound to the active `QApplication`."""
+    asyncio.run(coro, loop_factory=lambda: CoalescedQEventLoop(QApplication.instance()))
+
+
 def serve_launch(launch: ClientLaunch, own: list[str], scheme: ColourScheme) -> None:
     """Serve the Core the desktop entry's ``launch`` selected from its arguments, opening the
     conversation it named, with the project and ``-a`` agent the rest of ``own`` name, until
@@ -86,4 +152,4 @@ def serve_launch(launch: ClientLaunch, own: list[str], scheme: ColourScheme) -> 
     parser.add_argument("project", type=Path, nargs="?", default=Path.home())
     parser.add_argument("-a", "--agent", default="", help="The agent New Session starts, as Toad's -a.")
     options = parser.parse_args(own)
-    qasync.run(serve(launch.connection, Checkout(options.project), scheme, options.agent, launch.opening))
+    run_qt_loop(serve(launch.connection, Checkout(options.project), scheme, options.agent, launch.opening))

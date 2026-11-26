@@ -648,7 +648,8 @@ def test_composer_docked_buttons_and_nav_separators_and_ime_inset_file(monkeypat
     from toad.qt.composer import Composer
     from toad.qt.window import QtToadApp
 
-    # 1. Docked box buttons sit in `button_row` inside `button_box` (Attach before Send).
+    # 1. Docked box buttons sit in `button_row` (with leading stretch) inside `button_box`
+    #    under `self.editor` (Attach before Send, right-aligned, full width for text above).
     frame = QFrame()
     frame.resize(300, 80)
     layout = QHBoxLayout(frame)
@@ -657,6 +658,7 @@ def test_composer_docked_buttons_and_nav_separators_and_ime_inset_file(monkeypat
     layout.addWidget(editor, 1)
     button_box = QWidget(frame)
     button_row = QHBoxLayout(button_box)
+    button_row.addStretch(1)
     layout.addWidget(button_box, 0)
 
     send_btn = QPushButton("➤")
@@ -677,8 +679,8 @@ def test_composer_docked_buttons_and_nav_separators_and_ime_inset_file(monkeypat
     Composer.add_box_button(composer, send_btn)
     Composer.add_box_button(composer, attach_btn)
     assert composer.box_buttons == (attach_btn, send_btn)
-    assert button_row.indexOf(attach_btn) == 0
-    assert button_row.indexOf(send_btn) == 1
+    assert button_row.indexOf(attach_btn) == 1
+    assert button_row.indexOf(send_btn) == 2
     assert send_btn.parentWidget() is button_box and attach_btn.parentWidget() is button_box
 
     # 2. Navigation bar separator helper returns a 1 px QFrame styled via #toad-nav-separator.
@@ -971,3 +973,117 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
     assert fake_app._safe_area_resync_pending is False
     assert fake_app.setContentsMargins.call_args[0][0].bottom() == 24
     assert fake_app._keyboard_open is False
+
+
+def test_wave2_scroll_perf_coalesced_loop_holds_async_opaque_scrollbar_and_row_fit(monkeypatch) -> None:
+    """Covers wave-2 scroll optimizations: `CoalescedQEventLoop` coalesces zero-delay
+    callbacks onto one QTimer drain, `RemoteCoreConnection.holds_async` skips `run_thread`,
+    `OverlayScrollBar` sets `WA_OpaquePaintEvent`, and `RowFittedTree.fit_rows` skips
+    redundant `doItemsLayout()` calls when tree structure is unchanged."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import asyncio
+    import inspect
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QScrollArea, QTreeWidget, QTreeWidgetItem
+    from toad.client.connection import RemoteCoreConnection
+    from toad.markdown_links import ReferenceContext
+    from toad.qt.client_start import CoalescedQEventLoop
+    from toad.qt.window import RowFittedTree
+
+    # 1. CoalescedQEventLoop drains multiple call_soon handles in one QTimer tick.
+    loop = CoalescedQEventLoop(app)
+    try:
+        ran: list[int] = []
+        starts = 0
+        orig_start = loop._ready_timer.start
+
+        def count_start(*args):
+            nonlocal starts
+            starts += 1
+            return orig_start(*args)
+
+        loop._ready_timer.start = count_start
+        for i in range(10):
+            loop.call_soon(ran.append, i)
+        assert starts == 1
+        loop.run_until_complete(asyncio.sleep(0.01))
+        assert ran == list(range(10))
+    finally:
+        loop.close()
+
+    # 2. RemoteCoreConnection.holds_async checks in-memory observation without run_thread.
+    fake_runtime = MagicMock()
+    fake_access = MagicMock()
+    fake_access.observation.observed.return_value.observes.return_value = True
+    fake_remote = MagicMock(spec=RemoteCoreConnection)
+    fake_remote.holds.side_effect = lambda acc, src: RemoteCoreConnection.holds(fake_remote, acc, src)
+    assert asyncio.run(RemoteCoreConnection.holds_async(fake_remote, fake_runtime, fake_access, "/bus")) is True
+    fake_runtime.run_thread.assert_not_called()
+
+    # 3. OverlayScrollBar sets WA_OpaquePaintEvent and supports watch_geometry=False.
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    clock = AnimationClock(lambda _interval: None)
+    area = QScrollArea()
+    bar = OverlayScrollBar.follow(area, clock, renderer, 6, watch_geometry=False)
+    assert bar is not None
+    assert bar.testAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent) is True
+    assert bar.geometry_watch is None
+    area.deleteLater()
+
+    # 4. RowFittedTree.fit_rows skips doItemsLayout when structure and width are unchanged.
+    class _TestFittedTree(RowFittedTree, QTreeWidget):
+        most_rows = 4
+
+    tree = _TestFittedTree()
+    tree.setHeaderHidden(True)
+    tree.resize(200, 40)
+    tree.addTopLevelItem(QTreeWidgetItem(["#comms"]))
+    layouts = 0
+    orig_layout = tree.doItemsLayout
+
+    def count_layout():
+        nonlocal layouts
+        layouts += 1
+        return orig_layout()
+
+    tree.doItemsLayout = count_layout
+    tree.fit_rows()
+    tree.fit_rows()
+    tree.fit_rows()
+    assert layouts == 1
+    tree.addTopLevelItem(QTreeWidgetItem(["#model"]))
+    tree.fit_rows()
+    assert layouts == 2
+    tree.deleteLater()
+
+    # 5. Same-height receipt updates keep `_moves_rows == False` (zero full relayout flicker)
+    #    even when QTextDocument height is fractional (ceil == ceil, keep_row_size populated).
+    from PySide6.QtCore import QModelIndex, QSizeF
+    from PySide6.QtGui import QFont
+    from pyqt_reactive.widgets.virtual_rows import HtmlRow
+    from toad.qt.history import HistoryRowDelegate, RowPictures
+
+    delegate = HistoryRowDelegate(renderer, RowPictures(1024 * 1024), MagicMock())
+    delegate._row_sizes_for = (1, 300)
+    delegate._row_sizes = [None]
+    old_key = (("k1", "sent", 1), 0, "f", 300)
+    new_key = (("k1", "read", 1), 0, "f", 300)
+    delegate._prepared[old_key] = HtmlRow("<p>hello</p>")
+    delegate.last_shown[delegate.row_identity(old_key)] = old_key
+    fake_doc = MagicMock()
+    fake_doc.size.return_value = QSizeF(300.0, 42.3)  # fractional height: ceil=43, int=42
+    delegate.laid_out = lambda _k, _f, _w, _fmt: fake_doc
+    delegate.preparation_key = lambda _idx, _f, _w: new_key
+    delegate.row_preparation = lambda _frag, _f, _w: (lambda: None)
+    delegate.keyed_formatting = lambda _k, _t, _p: MagicMock(final=False)
+    fake_index = MagicMock(spec=QModelIndex)
+    fake_index.row.return_value = 0
+    fake_index.data.return_value = MagicMock(has_blocks=True, clipboard_text="hello")
+    size = delegate.measured_size(fake_index, QFont(), 300)
+    assert size.height() == 43 + delegate.ROW_PADDING
+    assert new_key not in delegate._metrics
+    assert delegate._moves_rows(new_key, HtmlRow("<p>hello</p>"), awaited=True) is False
+    app.processEvents()

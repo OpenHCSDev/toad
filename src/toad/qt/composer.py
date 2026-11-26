@@ -347,15 +347,20 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.glyph = QLabel()
         self.frame = QFrame()
         self.frame.setObjectName("prompt-frame")
-        self.editor_row = editor_row = QHBoxLayout(self.frame)
+        self.frame_layout = frame_layout = QVBoxLayout(self.frame)
+        frame_layout.setSpacing(UiGap.tight)
+        self.editor_row = editor_row = QHBoxLayout()
+        editor_row.setContentsMargins(0, 0, 0, 0)
         editor_row.setSpacing(UiGap.tight)
         editor_row.addWidget(self.glyph, 0, Qt.AlignmentFlag.AlignTop)
-        editor_row.addWidget(self.editor, 1, Qt.AlignmentFlag.AlignVCenter)
+        editor_row.addWidget(self.editor, 1)
         self.button_box = QWidget(self.frame)
         self.button_row = QHBoxLayout(self.button_box)
         self.button_row.setContentsMargins(0, 0, 0, 0)
         self.button_row.setSpacing(UiGap.tight)
-        editor_row.addWidget(self.button_box, 0, Qt.AlignmentFlag.AlignBottom)
+        self.button_row.addStretch(1)
+        frame_layout.addLayout(editor_row)
+        frame_layout.addWidget(self.button_box)
         self.info_bar = QtInfoBar(host, renderer, self)
         renderer.themed(self, self.paint_colours)
         # Textual's QueueSummary + DeliveryControls, reading the shared submissions owner.
@@ -444,11 +449,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             return spacing.left * cell, spacing.top * line, spacing.right * cell, spacing.bottom * line
 
         self.frame_row.setContentsMargins(*cells(box.frame_margin))
-        # The box's touch room sits evenly above and below the text, so one line is centred in
-        # the box as Textual's prompt is; the editor itself is exactly its lines' height.
+        # The editor spans the full frame width above a compact bottom-right action strip
+        # (`button_box`), so wrapped lines have zero dead space above `+`/`➤` and adding or
+        # removing characters never bounces composer height.
         left, top, right, bottom = cells(box.frame_padding)
         room = self.TOUCH_ROOM // 2
-        self.frame.layout().setContentsMargins(left, top + room, right, bottom + room)
+        self.frame.layout().setContentsMargins(left, top + room, right, bottom + max(2, room // 2))
         left, top, right, bottom = cells(box.label_padding)
         # The glyph's text sits on the editor's first line, below the document's own margin.
         self.glyph.setContentsMargins(left, top + self.document_margin(), right, bottom)
@@ -457,16 +463,17 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.fit_height()
 
     def one_line_box_height(self) -> int:
-        """The input box's height holding one line: the taller of one editor line or the docked
-        buttons, plus the box's padding and border."""
+        """The input box's height holding one line: one editor line above the docked action
+        strip, plus the box's padding and border."""
         padding = self.frame.layout().contentsMargins()
         border = self.settings.ui.input.box.qt_border_pixels
         btn_h = max((button.height() for button in self.box_buttons if not button.isHidden()), default=0)
-        return max(self.editor_height(1), btn_h) + padding.top() + padding.bottom() + border
+        strip_h = (btn_h + UiGap.tight) if btn_h else 0
+        return self.editor_height(1) + strip_h + padding.top() + padding.bottom() + border
 
     def add_box_button(self, button: QPushButton) -> None:
-        """Dock a compact symbol button at the bottom-right beside `self.editor` (Send last,
-        Attach before it)."""
+        """Dock a compact symbol button in the bottom-right strip under `self.editor` (Send
+        last, Attach before it)."""
         button.setParent(self.button_box)
         # Send is added first and stays last; every later button goes before it.
         if self.box_buttons:

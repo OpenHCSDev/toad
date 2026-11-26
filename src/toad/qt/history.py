@@ -21,6 +21,7 @@ from dataclasses import dataclass, replace
 from functools import cached_property, partial
 from math import ceil, copysign
 from pathlib import Path
+from time import monotonic
 from typing import ClassVar
 from weakref import WeakSet
 
@@ -446,10 +447,26 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
             return self.laid_out(shown, font, width, self._prepared[shown])
         return None
 
+    def measured_height(self, key: Hashable, font: QFont, width: int, formatting: RowFormatting) -> int:
+        """Use the same `ceil` height rounding as `measured_size` so `_moves_rows` never
+        sees a phantom 1 px mismatch on fractional-DPI fonts and triggers a relayout flicker
+        on every same-height receipt update."""
+        size = self.measured_size_for(key, width)
+        if size is not None:
+            return size.height()
+        formatting = formatting.resolved()
+        if not formatting.final:
+            return formatting.estimated_height(font, self.text_width(width)) + self.ROW_PADDING
+        document = self.laid_out(key, font, width, formatting)
+        size = QSize(width, ceil(document.size().height()) + self.ROW_PADDING)
+        self._record_measured_size(key, width, size)
+        return size.height()
+
     def measured_size(self, index: QModelIndex, font: QFont, width: int) -> QSize:
-        """Measure row height with `ceil` (avoiding 1 px truncation on fractional DPI fonts),
-        and never record a fallback `last_shown` document's height as the permanent measured
-        size of a pending key so `_row_prepared` always triggers relayout when the new look lands."""
+        """Measure row height with `ceil` (avoiding 1 px truncation on fractional DPI fonts).
+        For a pending key falling back to `last_shown`, keep the row size under `key` (so
+        `_moves_rows` skips relayout when the new receipt has the same height) without
+        polluting `_metrics[key]`."""
         fragment = index.data(HistoryRows.FRAGMENT)
         if fragment is not None and not fragment.has_blocks:
             return QSize(0, 0)
@@ -463,9 +480,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
                 return self.estimated_size(index, font, width)
             height = ceil(document.size().height()) + self.ROW_PADDING
             size = QSize(width, height)
-            if key not in self._prepared:
-                return size
-            self._record_measured_size(key, width, size)
+            if key in self._prepared:
+                self._record_measured_size(key, width, size)
         self.keep_row_size(index.row(), key, size, font)
         return size
 
@@ -1145,6 +1161,9 @@ class QtTopRow(TopPage):
     def reader_position(self, window: QtHistoryWindow) -> RowPosition:
         return RowPosition(window.scroll_y)
 
+    def row_index(self, model_rows: HistoryRows) -> int:
+        return -1
+
 
 @dataclass(frozen=True)
 class QtRowUnderTop(QtTopRow):
@@ -1158,6 +1177,9 @@ class QtRowUnderTop(QtTopRow):
     width: int
     into: int
     height: int
+
+    def row_index(self, model_rows: HistoryRows) -> int:
+        return model_rows.row_of(self.fragment.key)
 
     @cached_property
     def under(self) -> FragmentRowUnderTop:
@@ -1402,9 +1424,16 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._viewport_resize_pending: bool = False
         self._vbar = self.verticalScrollBar()
         self._viewport = self.viewport()
+        self._overlay_scrollbar = None
         self._top_page_cache: tuple[int, int, int, QtTopRow] | None = None
         self._visible_cache: tuple[int, int, int, tuple[HistoryFragment, ...]] | None = None
+        self._last_scroll_at: float = 0.0
         self.actively_scrolling = False
+        # Mark the history window opaque with the theme's background colour so repainting
+        # floating overlays (`QtJumpBar`, `QtStickyHeader`) or the viewport stops here instead
+        # of walking up 5 ancestor widgets to `QtToadApp` on every scroll frame.
+        self.setAutoFillBackground(True)
+        self._apply_opaque_background()
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
@@ -1429,7 +1458,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._prepare_timer.timeout.connect(self.prepare_viewport)
         self._settle_timer = QTimer(self)
         self._settle_timer.setSingleShot(True)
-        self._settle_timer.timeout.connect(self._settle)
+        self._settle_timer.timeout.connect(self._on_settle_timer)
+        self._viewport_resize_timer = QTimer(self)
+        self._viewport_resize_timer.setSingleShot(True)
+        self._viewport_resize_timer.setInterval(0)
+        self._viewport_resize_timer.timeout.connect(self._apply_viewport_width_change)
         self._tap_flash_timer = QTimer(self)
         self._tap_flash_timer.setSingleShot(True)
         self._tap_flash_timer.setInterval(140)
@@ -1469,7 +1502,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         # every tap, and one that fights a drag starting on a row. A tap's reveal is the
         # explicit `reveal_head_at`.
         self.setAutoScroll(False)
-        self.viewport().installEventFilter(self)
+        # Viewport Resize/Move/Scroll events are handled directly in `viewportEvent` (zero
+        # Python `eventFilter` installed on `self.viewport()`).
         # Block menu: a right-click, or a held finger (`FingerPress` delivers it as one), on a
         # message row emits `block_menu_requested` with the row's fragment. QtConversation
         # mounts the handler and runs the resulting commands across all view kinds.
@@ -1560,33 +1594,30 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def _apply_viewport_width_change(self) -> None:
         """Re-measure rows once after a viewport-only width change (e.g. `setViewportMargins`
-        from `OverlayScrollBar.follow`). Deferred off `eventFilter` so Qt's own scrollbar
+        from `OverlayScrollBar.follow`). Deferred off `viewportEvent` so Qt's own scrollbar
         geometry updates inside `doItemsLayout` can never recurse back into `rows_changed`."""
         self._viewport_resize_pending = False
         if self.widget_gone:
             return
-        width = self.viewport().width()
+        width = self._viewport.width()
         if width > 0 and width != self._last_viewport_width:
             self._last_viewport_width = width
             self.rows.width_changed()
             self.rows_changed()
 
-    def eventFilter(self, obj: QWidget, event: QEvent) -> bool:  # type: ignore[override]
-        if obj is self.viewport():
-            if event.type() == QEvent.Type.Resize:
-                width = self.viewport().width()
-                if width > 0 and width != self._last_viewport_width:
-                    if self._last_viewport_width == 0:
-                        self._last_viewport_width = width
-                    elif not self._viewport_resize_pending:
-                        self._viewport_resize_pending = True
-                        QTimer.singleShot(0, self, self._apply_viewport_width_change)
-                if self.jump_bar.isVisible():
-                    self._place_jump_bar()
-                self.repin_header()
-            elif event.type() == QEvent.Type.Scroll:
-                self.overshot(event.overshootDistance().y())
-        return super().eventFilter(obj, event)
+    def floating_over(self) -> list[QRect]:
+        """Only this window's two floating overlays (`sticky_header` and `jump_bar`),
+        avoiding `self.children()` wrapping ~20 C++ children into Python on every
+        `scrollContentsBy` tick."""
+        area = self._viewport.geometry()
+        top_left = area.topLeft()
+        result: list[QRect] = []
+        for child in (self.sticky_header, self.jump_bar):
+            if child.isVisible():
+                geo = child.geometry()
+                if geo.intersects(area):
+                    result.append(geo.intersected(area).translated(-top_left))
+        return result
 
     def _row_tapped(self, press: Press) -> None:
         """A tap on a row: a link drawn there opens; tapping anywhere on a bus message's
@@ -1922,13 +1953,19 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         cached = self._visible_cache
         if cached is not None and cached[0] == scroll_val and cached[1] == self.geometry_revision and cached[2] == height:
             return cached[3]
-        top = self.indexAt(area.topLeft())
-        if not top.isValid():
+        model_rows = self.model_rows
+        start = -1
+        top_cached = self._top_page_cache
+        if (top_cached is not None and top_cached[0] == scroll_val
+                and top_cached[1] == self.geometry_revision):
+            start = top_cached[3].row_index(model_rows)
+        if start < 0:
+            top = self.indexAt(area.topLeft())
+            start = top.row() if top.isValid() else -1
+        if start < 0:
             result: tuple[HistoryFragment, ...] = ()
         else:
-            model_rows = self.model_rows
             total = model_rows.rowCount()
-            start = top.row()
             row = start
             bottom_edge = area.bottom()
             while row + 1 < total:
@@ -2093,9 +2130,21 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.history.note_sent_references(self.history.pages[-1].shown_fragments)
         self.show_pages()
 
+    def _apply_opaque_background(self) -> None:
+        """Keep `QPalette.Window` and `QPalette.Base` opaque on the window and viewport so
+        `QWidgetPrivate::isOpaque()` stays True across theme switches."""
+        bg = QColor(BackgroundColour.rgb(self.rows.renderer.scheme).hex)
+        for widget in (self, self._viewport):
+            palette = widget.palette()
+            palette.setColor(palette.ColorRole.Window, bg)
+            palette.setColor(palette.ColorRole.Base, bg)
+            widget.setPalette(palette)
+
     def restyle_rows(self) -> None:
-        self.rows.restyle()
-        self.rows_changed()
+        if not self.widget_gone:
+            self._apply_opaque_background()
+            self.rows.restyle()
+            self.rows_changed()
 
     def rows_repainted(self) -> None:
         """Prepared rows, or a header the pin waited on, landed at the height they had."""
@@ -2170,15 +2219,23 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self._scroll_frame_timer.start(interval)
 
     def _scroll_frame(self) -> None:
-        """One display frame's scroll response: reader position, pin, and lookahead/page
-        requests. Runs at frame rate regardless of touch input rate."""
+        """One display frame's scroll response: reader position, pin, lookahead, and viewport
+        preparation. Runs `prepare_viewport` inline instead of arming a second 0ms `_prepare_timer`
+        on every scroll frame (~212 redundant timer starts in 5s)."""
         self._scroll_frame_pending = False
         if self._reader_scrolled:
             self._reader_scrolled = False
             moved, self._reader_moved = self._reader_moved, 0
             self.record_reader_scroll(moved)
             self.repin_header()
-            self.respond_to_scroll(self._vbar.value())
+            was_preparing = self._preparing
+            self._preparing = True
+            try:
+                self.respond_to_scroll(self._vbar.value())
+            finally:
+                if not was_preparing:
+                    self._prepare_timer.stop()
+            self.prepare_viewport()
         else:
             self.repin_header()
 
@@ -2228,16 +2285,42 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     origin, which layout does not move (`viewportEvent`, `shift_travel`)."""
 
     def viewportEvent(self, event: QEvent) -> bool:  # type: ignore[override]
-        """QScroller's two events, in the travelling finger's own offsets: it is told where
-        the rows are less the origin, and what it asks for is shown at that plus the origin."""
+        """Handle viewport Resize/Move (keeping the overlay scrollbar, jump bar, and pinned
+        header aligned with zero Python `eventFilter` on the viewport) and QScroller's Scroll
+        events (overshoot detection plus travelling-finger origin offset)."""
+        kind = event.type()
+        if kind == QEvent.Type.Resize:
+            width = self._viewport.width()
+            if width > 0 and width != self._last_viewport_width:
+                if self._last_viewport_width == 0:
+                    self._last_viewport_width = width
+                elif not self._viewport_resize_pending:
+                    self._viewport_resize_pending = True
+                    self._viewport_resize_timer.start()
+            if self.jump_bar.isVisible():
+                self._place_jump_bar()
+            self.repin_header()
+            overlay = self._overlay_scrollbar
+            if overlay is not None and overlay.thickness:
+                overlay.place()
+            return super().viewportEvent(event)
+        if kind == QEvent.Type.Move:
+            overlay = self._overlay_scrollbar
+            if overlay is not None and overlay.thickness:
+                overlay.place()
+            return super().viewportEvent(event)
+        if kind == QEvent.Type.Scroll:
+            self.overshot(event.overshootDistance().y())
+            origin = self._travel_origin
+            if origin:
+                return super().viewportEvent(QScrollEvent(
+                    event.contentPos() + QPointF(0, origin), event.overshootDistance(), event.scrollState()))
+            return super().viewportEvent(event)
         origin = self._travel_origin
         if not origin:
             return super().viewportEvent(event)
-        if event.type() == QEvent.Type.Scroll:
-            return super().viewportEvent(QScrollEvent(
-                event.contentPos() + QPointF(0, origin), event.overshootDistance(), event.scrollState()))
         handled = super().viewportEvent(event)
-        if handled and event.type() == QEvent.Type.ScrollPrepare:
+        if handled and kind == QEvent.Type.ScrollPrepare:
             event.setContentPosRange(event.contentPosRange().translated(0, -origin))
             event.setContentPos(event.contentPos() - QPointF(0, origin))
         return handled
@@ -2303,7 +2386,20 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             history.prepare_viewport()
 
     def _schedule_settle(self) -> None:
-        self._settle_timer.start(int(self.lookahead.idle_seconds * 1000))
+        """Record the latest scroll timestamp and arm the settle timer once instead of
+        mutating Qt's C++ timer heap on every scroll frame (~187 restarts in 5s)."""
+        self._last_scroll_at = monotonic()
+        if not self._settle_timer.isActive():
+            self._settle_timer.start(int(self.lookahead.idle_seconds * 1000))
+
+    def _on_settle_timer(self) -> None:
+        if self.widget_gone:
+            return
+        remaining_ms = round(self.lookahead.idle_seconds * 1000 - (monotonic() - self._last_scroll_at) * 1000)
+        if remaining_ms > 15:
+            self._settle_timer.start(remaining_ms)
+            return
+        self._settle()
 
     def after_source_presented(self, callback, *arguments) -> None:
         QTimer.singleShot(0, partial(callback, *arguments))
