@@ -4,6 +4,7 @@ in the same roles and the same theme colours, through the same `LineBlockPainter
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from html import escape
 
 from markdown_it import MarkdownIt
@@ -225,10 +226,20 @@ class QtLineRenderer(LineBlockPainter[str]):
 
     @handles(SpanColumns)
     def span_columns(self, block: SpanColumns) -> str:
-        """Cells flow into columns at the drawing width, as Qt rich text wraps inline cells."""
-        cells = "&nbsp;&nbsp;".join(
-            '<span style="white-space:pre">' + "".join(self.span(span, span.role) for span in cell) + "</span>"
-            for cell in block.cells)
+        """Cells flow into columns at the drawing width, wrapping only between whole cells.
+
+        Qt's `QTextDocument` ignores `white-space:pre` on inline `<span>` elements, so using
+        `&nbsp;&nbsp;` between cells with ordinary spaces inside them inverted wrapping: Qt
+        glued cells together and broke inside `name: Read 20:18` / `name: Sent`. Using
+        non-breaking spaces and hyphens inside each cell with `&nbsp; ` between cells keeps
+        every `name: status` pair intact and wraps flush-left between pairs."""
+        def unbroken(span: Span) -> Span:
+            return replace(span, text=span.text.replace(" ", "\u00a0").replace("-", "\u2011"))
+
+        cells = "&nbsp; ".join(
+            "".join(self.span(unbroken(span), span.role) for span in cell)
+            for cell in block.cells
+        )
         return f'<p style="margin-left:{block.indent}ch">{cells}</p>'
 
     @handles(Spans)
