@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QStyle, QStyleOptionTab, QStylePainter, QTabBar, QToolButton, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
@@ -115,22 +115,79 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         # font or width changes, and a changed one is another object.
         self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
         self._banded_prepared: dict[tuple[int, int, int], tuple[PreparedTextLayout, PreparedTextLayout]] = {}
+        self._row_images: dict[tuple[int, tuple[int, int] | None, int, int, int, bool, float], tuple[object, QImage]] = {}
+        self._active_wave: tuple[object, tuple[int, int] | None] | None = None
 
     def _set_wave_accent(self, accent: QColor) -> None:
         super()._set_wave_accent(accent)
         self._banded_prepared.clear()
+        self._row_images.clear()
+
+    def forget_rows(self, *_changed) -> None:
+        self._row_images.clear()
+        super().forget_rows(*_changed)
+
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem, index) -> None:
+        row = self._rows.get((index.row(), index.column(), index.internalId()))
+        if row is None or index.model() is not self._rows_model:
+            row = self.prepared_row(index)
+        if row.object_state_path and self._manager is not None:
+            super().paint(painter, option, index)
+            return
+        view = self.parent()
+        wraps = view.wordWrap() if row.wrap_mode is None else row.wrap_mode.wrapped
+        frame = QRect(option.rect)
+        if wraps:
+            frame.setLeft(0)
+            frame.setWidth(view.viewport().width())
+        width, height = frame.width(), frame.height()
+        if width <= 0 or height <= 0:
+            return
+        item = view.itemFromIndex(index)
+        running = item is not None and item.wave_running()
+        span = item.painted_span if running else None
+        dpr = painter.device().devicePixelRatioF()
+        key = (id(row), span, width, height, option.state._value_, wraps, dpr)
+        cached = self._row_images.get(key)
+        if cached is not None and cached[0] is row:
+            painter.drawImage(frame.topLeft(), cached[1])
+            return
+        if len(self._row_images) >= self.BANDED_KEPT:
+            self._row_images.clear()
+        image = QImage(
+            max(1, round(width * dpr)),
+            max(1, round(height * dpr)),
+            QImage.Format.Format_ARGB32_Premultiplied,
+        )
+        image.setDevicePixelRatio(dpr)
+        image.fill(Qt.GlobalColor.transparent)
+        local_option = QStyleOptionViewItem(option)
+        local_option.rect = QRect(0, 0, width, height)
+        local_painter = QPainter(image)
+        self._active_wave = (running, span)
+        try:
+            super().paint(local_painter, local_option, index)
+        finally:
+            self._active_wave = None
+            local_painter.end()
+        self._row_images[key] = (row, image)
+        painter.drawImage(frame.topLeft(), image)
 
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
-        item = self.parent().itemFromIndex(index)
-        if item is None or not item.wave_running():
+        if self._active_wave is not None:
+            running, span = self._active_wave
+        else:
+            item = self.parent().itemFromIndex(index)
+            running = item is not None and item.wave_running()
+            span = item.painted_span if running else None
+        if not running:
             return prepared
         pid = id(prepared)
         kept = self.bold.get(pid)
         if kept is None or kept[0] is not prepared:
             kept = self.bold_titled(prepared)
         titled, length = kept[1], kept[2]
-        span = item.painted_span
         if span is None:
             return titled
         start, end = min(length, max(0, span[0])), min(length, max(0, span[1]))

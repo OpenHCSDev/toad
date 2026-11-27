@@ -2535,3 +2535,59 @@ def test_every_history_fragment_subclass_supports_retain_painted():
     assert owner._painted_reads == {}
     assert owner.marked == 0
     assert "retain_painted" in EvidencedFragment.__dict__
+
+
+def test_coalesced_loop_defers_drain_during_reentrant_process_events(monkeypatch):
+    """Re-entrant QApplication.processEvents() inside an asyncio Task must defer
+    CoalescedQEventLoop._drain_ready instead of stepping another Task and dropping its wakeup."""
+    import asyncio
+    from PySide6.QtCore import QEventLoop
+    from toad.qt.client_start import CoalescedQEventLoop
+
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    app.setQuitOnLastWindowClosed(False)
+    loop = CoalescedQEventLoop(app)
+    errors: list[dict] = []
+    loop.set_exception_handler(lambda _loop, ctx: errors.append(ctx))
+    try:
+        async def drive() -> bool:
+            sibling_done = False
+
+            async def sibling() -> None:
+                nonlocal sibling_done
+                sibling_done = True
+
+            task = asyncio.create_task(sibling())
+            # Trigger Qt timer delivery synchronously while `drive` is still active on the stack.
+            app.processEvents(QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
+            await task
+            return sibling_done
+
+        assert loop.run_until_complete(drive()) is True
+        assert errors == []
+    finally:
+        loop.close()
+
+
+def test_line_block_triggers_header_collapse_and_channel_row_tones():
+    """Divider declares triggers_header_collapse=True (replacing isinstance checks in QtHistoryWindow),
+    and ChannelRowFace.row_tones derives from ChannelRowTone.__subclasses__()."""
+    from toad.client.line_blocks import Body, Divider, Gap, LineBlock, Summary
+    from toad.client.theme_tones import (
+        ChannelAlternateRowToneColour,
+        ChannelRowTone,
+        ChannelRowToneColour,
+        SidebarToggleToneColour,
+    )
+    from toad.sidebar_rows import ChannelRowFace
+
+    assert LineBlock.triggers_header_collapse is False
+    assert Divider.triggers_header_collapse is True
+    assert Summary.triggers_header_collapse is False
+    assert Gap.triggers_header_collapse is False
+    assert Body.triggers_header_collapse is False
+    assert issubclass(ChannelRowToneColour, ChannelRowTone)
+    assert issubclass(ChannelAlternateRowToneColour, ChannelRowTone)
+    assert not issubclass(SidebarToggleToneColour, ChannelRowTone)
+    assert ChannelRowFace.row_tones == (ChannelRowToneColour, ChannelAlternateRowToneColour)

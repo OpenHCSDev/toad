@@ -347,6 +347,8 @@ class LineBlock:
     renders_inline: ClassVar[bool] = False
     """Lightweight non-Markdown blocks (headers, single-line summaries, gaps) can render
     directly in-process on interactive collapse/toggle without a worker-pool round-trip."""
+    triggers_header_collapse: ClassVar[bool] = False
+    """Whether tapping this block toggles the enclosing message's collapse link."""
 
     @property
     def retained_bytes(self) -> int:
@@ -382,6 +384,7 @@ class Divider(SharedStandaloneBlock):
     """
 
     renders_inline: ClassVar[bool] = True
+    triggers_header_collapse: ClassVar[bool] = True
 
     spans: tuple[Span, ...]
     role: type[LineRole]

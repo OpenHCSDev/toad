@@ -114,6 +114,14 @@ class CoalescedQEventLoop(qasync.QEventLoop):
 
     def _drain_ready(self) -> None:
         self._ready_armed = False
+        if asyncio.current_task(self) is not None:
+            # Re-entrant QApplication.processEvents() or modal exec() inside a running
+            # asyncio Task: defer ready callbacks until the outer Task yields, otherwise
+            # stepping another Task raises RuntimeError and drops its wakeup handle.
+            if self._ready and not self.is_closed():
+                self._ready_armed = True
+                self._ready_timer.start()
+            return
         ready = self._ready
         deadline = monotonic() + self._DRAIN_BUDGET_SECONDS
         passes = 0

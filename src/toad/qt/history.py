@@ -1730,7 +1730,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         width = self.rows.layout_width(rect.width())
         block_index, _line = self.rows.block_row(fragment, self.font(), width, y_in_row)
         blocks = fragment.line_blocks
-        if block_index < len(blocks) and isinstance(blocks[block_index], Divider):
+        if block_index < len(blocks) and blocks[block_index].triggers_header_collapse:
             return collapse
         return None
 
