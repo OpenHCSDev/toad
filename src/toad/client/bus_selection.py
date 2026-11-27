@@ -166,9 +166,14 @@ class BusChoice(PickerRow):
         """A bus is opened by switching this session onto it."""
         app.open_bus(self)
 
-    @abstractmethod
     def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
         """``argv`` rewritten so the next launch opens this bus."""
+        without_profile = self.without_profile(argv)
+        return self._arguments_step(argv, without_profile)
+
+    @abstractmethod
+    def _arguments_step(self, argv: Sequence[str], without_profile) -> tuple[str, ...]:
+        ...
 
     @staticmethod
     def without_profile(argv: Sequence[str]) -> tuple[str, ...]:
@@ -197,8 +202,8 @@ class LocalBus(BusChoice):
     def label(self) -> str:
         return "This machine"
 
-    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
-        return self.without_profile(argv)
+    def _arguments_step(self, argv: Sequence[str], without_profile) -> tuple[str, ...]:
+        return without_profile
 
 
 @dataclass(frozen=True)
@@ -215,8 +220,8 @@ class HeldBus(BusChoice):
         is the address the tailnet reports for that machine."""
         return self.profile.profile.route.reaches(found.peer.address)
 
-    def arguments(self, argv: Sequence[str]) -> tuple[str, ...]:
-        return (*self.without_profile(argv),
+    def _arguments_step(self, argv: Sequence[str], without_profile) -> tuple[str, ...]:
+        return (*without_profile,
                 ProfileArgument.argument, str(self.profile.path))
 
     def held_actions(self, listing: BusListing) -> tuple[MenuEntry, ...]:

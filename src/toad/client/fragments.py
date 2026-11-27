@@ -608,6 +608,12 @@ class EvidencedFragment(DeclaredViews, MessageLines, ABC):
     def clipboard_text(self) -> str:
         return self.message.body
 
+    def retain_painted(self, owner) -> None:
+        """Keep actual painted evidence until its original page is acknowledged."""
+        if self.evidence is not None and owner._painted_reads.get(self.key) is not self:
+            owner._painted_reads[self.key] = self
+            owner.mark_visible_after_paint()
+
 
 
 class MembershipText(EvidencedFragment):
