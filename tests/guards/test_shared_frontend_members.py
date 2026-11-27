@@ -308,7 +308,14 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
     from contextlib import nullcontext
     from dataclasses import dataclass
     from ui_theme.clock import AnimationClock
-    from toad.arrivals import AnimatesArrivals, ArrivalFadeRun, ArrivalGlide, HeadReveal
+    from toad.arrivals import (
+        AnimatesArrivals,
+        ArrivalTransition,
+        HeadReveal,
+        ViewportArrival,
+        ViewportArrivalState,
+    )
+    from toad.client.reader_position import TailPosition
     from toad.qt.history import QtHistoryWindow
     from toad.widgets.history_anchor import HistoryWindow
 
@@ -327,19 +334,19 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
         "has_active_arrivals",
         "has_arrival",
         "arrival_keys",
+        "arrival_state",
         "arrival_frame",
         "arrival_opacity",
     ):
         _owned_by(AnimatesArrivals, member, HistoryWindow, QtHistoryWindow)
 
+    assert issubclass(ViewportArrival, ArrivalTransition)
+    assert issubclass(HeadReveal, ArrivalTransition)
+
     @dataclass(frozen=True)
     class _Frag:
         key: str
         source_identity: str
-
-    class _ProbeReader:
-        def joins_tail(self, _window) -> bool:
-            return True
 
     class _ProbeWindow(AnimatesArrivals):
         def __init__(self) -> None:
@@ -347,7 +354,7 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
             self.follows_tail = True
             self.scroll_y = 100.0
             self.tail_scroll_y = 140.0
-            self.reader_position = _ProbeReader()
+            self.reader_position = TailPosition()
             self.repainted: list[tuple[object, ...]] = []
 
         @property
@@ -372,14 +379,16 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
     saved_tool = _Frag(key="saved-1", source_identity="src-tool")
     saved_thought = _Frag(key="saved-2", source_identity="src-thought")
 
-    # Live arrival fades in and starts a tail-follow glide.
+    # Live arrival runs ONE unified `ViewportArrival` (lockstep glide + fade).
     win.arrive_fragments((live_tool,), live=True)
-    assert len(win.arrivals) == 1 and isinstance(win.arrivals[0], ArrivalFadeRun)
-    assert isinstance(win.glide, ArrivalGlide)
-    assert win.arrival_opacity("live-1") is not None
+    assert len(win.arrivals) == 1 and isinstance(win.arrivals[0], ViewportArrival)
+    assert win.glide is win.arrivals[0]
+    state = win.arrival_state("live-1")
+    assert isinstance(state, ViewportArrivalState) and state.active is True
+    assert win.arrival_opacity("live-1") == state.opacity
 
-    # Saved commit of that same live source does not double-fade it, while a genuinely
-    # new sibling fragment (e.g. thinking trace / bus message) in the same batch DOES fade.
+    # Saved commit of that same live source does not double-animate it, while a genuinely
+    # new sibling fragment (e.g. thinking trace / bus message) in the same batch DOES animate.
     win.arrive_fragments((saved_tool, saved_thought), live=False)
     assert win.arrival_opacity("saved-1") is None
     assert win.arrival_opacity("saved-2") is not None

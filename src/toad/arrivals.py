@@ -1,15 +1,18 @@
-"""Unified semantic arrival fades and scroll glides shared by both frontends.
+"""Unified viewport arrival animation shared by both frontends.
 
-Every arriving item — bus message, tool call, thinking trace, CLI draft, or live
-stream block — flows through one coordinator (`AnimatesArrivals`) over the frontend's
-shared `AnimationClock`:
+Every arriving item drawn in a viewport — bus message, tool call, thinking trace, CLI draft,
+or live stream block — undergoes one simple animation (`ViewportArrival`) on the frontend's
+shared `AnimationClock` along `FOLLOW_ARRIVAL`:
 
-- `ArrivalFadeRun`: fades a burst of newly arrived keys along `ARRIVAL` (`Cascade`),
-  asking the window to repaint only those keys on each clock tick.
-- `ArrivalGlide`: smoothly glides a tail-following reader down to arrived rows along
-  `FOLLOW_ARRIVAL` instead of snapping in one frame.
-- `HeadReveal`: smoothly glides a tapped/selected message's head up to the top of the
-  viewport along `HEAD_REVEAL`, tracking layout shifts and cancelling on reader input.
+- Opacity rises (`0 -> 1`) in lockstep with translating upward into the viewport.
+- Both short tail-following messages (`TailArrivalTarget`) and tall messages gliding up to
+  their head (`HeadArrivalTarget`) use this same single transition, so tall messages glide
+  smoothly in from the bottom edge instead of popping in and slowly fading motionless text.
+- When viewport scroll travel is shorter than `arrival_slide_distance` (e.g. an empty or
+  partially filled conversation), `ViewportArrivalState.offset_y` carries the remaining
+  upward translation so every item entering the viewport slides and fades in together.
+- `HeadReveal` shares `ArrivalTransition(TransitionTarget)` to glide a tapped message's head
+  to the top of the viewport.
 
 Plain mixin (`AnimatesArrivals`), no `ABC` metaclass and no toolkit imports, so both
 Textual's `HistoryWindow` and Qt's `QtHistoryWindow` inherit it cleanly and supply
@@ -20,91 +23,132 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
 from ui_theme.clock import AnimationClock
-from ui_theme.effects import Mix
+from ui_theme.effects import Mix, NEW_TEXT
 
 from toad.client.fragments import HistoryFragment
-from toad.motion import ARRIVAL, FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
+from toad.client.reader_position import ArrivalTarget
+from toad.motion import FOLLOW_ARRIVAL, HEAD_REVEAL, TransitionTarget
 
 
-class ArrivalFadeRun:
-    """Keys that arrived together, rising row after row along `ARRIVAL` on the shared clock."""
+@dataclass(frozen=True, slots=True)
+class ViewportArrivalState:
+    """One frame of an item entering a viewport: its opacity (0..1) and vertical slide offset
+    (distance below its resting position, shrinking to 0 as it lands)."""
+
+    opacity: float = 1.0
+    offset_y: float = 0.0
+    active: bool = False
+
+    def mix(self) -> Mix:
+        return Mix(NEW_TEXT.start, NEW_TEXT.end, self.opacity)
+
+
+SETTLED_ARRIVAL = ViewportArrivalState()
+
+
+class ArrivalTransition(TransitionTarget):
+    """One finite arrival or scroll transition owned by an `AnimatesArrivals` window."""
+
+    owner: AnimatesArrivals
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.owner.arrival_animation_visible
+
+
+class ViewportArrival(ArrivalTransition):
+    """One unified arrival animation: items fade in (`0 -> 1`) as they translate upward into
+    the viewport along `FOLLOW_ARRIVAL` on a single clock."""
 
     def __init__(self, owner: AnimatesArrivals, keys: tuple[object, ...]) -> None:
         self.owner = owner
-        count = max(1, len(keys))
-        self.positions: dict[object, tuple[int, int]] = {
-            key: (index, count) for index, key in enumerate(keys)
-        }
-        self.animation = owner.animation_clock.start(ARRIVAL, self)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.owner.arrival_animation_visible
-
-    def frame(self, key: object, row_position: float = 0.0) -> Mix | None:
-        slot = self.positions.get(key)
-        if slot is None:
-            return None
-        index, count = slot
-        return self.animation.at((index + row_position) / count)
-
-    def opacity(self, key: object, row_position: float = 0.0) -> float | None:
-        mix = self.frame(key, row_position)
-        return None if mix is None else mix.amount
-
-    def stop(self) -> None:
-        self.animation.stop()
-
-    def repaint(self) -> None:
-        owner = self.owner
-        if self.animation.finished:
-            owner.arrival_landed(self)
-        owner.repaint_arrival_keys(tuple(self.positions))
-
-
-class ArrivalGlide(TransitionTarget):
-    """A reader following the end glides down to rows that arrived (`FOLLOW_ARRIVAL`)
-    instead of jumping their height in one frame, landing on the end however far the rows
-    grew meanwhile."""
-
-    def __init__(self, owner: AnimatesArrivals, start: float) -> None:
-        self.owner = owner
-        self.start = start
-        self.at = start
+        self.keys: tuple[object, ...] = keys
+        self._key_set: frozenset[object] = frozenset(keys)
+        self.amount: float = 0.0
+        self.target: ArrivalTarget | None = None
+        self.scroll_start: float = 0.0
+        self.scroll_at: float = 0.0
+        self.scroll_travel: float = 0.0
         self.start_transition(owner.animation_clock, FOLLOW_ARRIVAL)
 
-    @property
-    def animation_visible(self) -> bool:
-        return self.owner.arrival_animation_visible
+    def attach_scroll(self, start: float, target: ArrivalTarget, destination: float) -> None:
+        """Bind viewport scrolling to this arrival's clock so translation and fade finish together."""
+        self.target = target
+        self.scroll_start = start
+        self.scroll_at = start
+        self.scroll_travel = max(0.0, destination - start)
+
+    def slide_distance(self, row_height: float) -> float:
+        """Remaining upward slide when viewport scroll travel alone is shorter than the slide span."""
+        span = self.owner.arrival_slide_distance
+        if span <= 0.0:
+            return 0.0
+        desired = min(float(row_height), span) if row_height > 0.0 else span
+        return max(0.0, desired - self.scroll_travel)
+
+    def state(self, key: object, row_height: float = 0.0) -> ViewportArrivalState | None:
+        if key not in self._key_set:
+            return None
+        slide = self.slide_distance(row_height)
+        return ViewportArrivalState(
+            opacity=self.amount,
+            offset_y=(1.0 - self.amount) * slide,
+            active=True,
+        )
 
     def apply_amount(self, amount: float) -> None:
+        self.amount = amount
         owner = self.owner
-        if not owner.follows_tail:
-            self.cancel()
-            return
-        # Only ever down: a row that lands mid-glide moves the end, never the reader back up.
-        self.at = max(self.at, owner.scroll_y, self.start + (owner.tail_scroll_y - self.start) * amount)
-        with owner.layout_scroll():
-            owner.scroll_y = self.at
+        target = self.target
+        if target is not None:
+            if not owner.follows_tail:
+                self.detach_scroll()
+            else:
+                goal = target.goal(owner)
+                self.scroll_travel = max(self.scroll_travel, goal - self.scroll_start)
+                next_y = self.scroll_start + (goal - self.scroll_start) * amount
+                self.scroll_at = target.step(owner, self.scroll_at, next_y)
+                with owner.layout_scroll():
+                    owner.scroll_y = self.scroll_at
+        if self.keys:
+            owner.repaint_arrival_keys(self.keys)
+
+    def detach_scroll(self) -> None:
+        self.target = None
+        if self.owner.glide is self:
+            self.owner.glide = None
 
     def land(self) -> None:
         owner = self.owner
+        target = self.target
+        self.target = None
+        self.amount = 1.0
         if owner.glide is self:
             owner.glide = None
-        if owner.follows_tail:
+        owner.arrival_landed(self)
+        if target is not None and owner.follows_tail:
             with owner.layout_scroll():
-                owner.follow_end()
+                target.land(owner)
+        if self.keys:
+            owner.repaint_arrival_keys(self.keys)
 
     def cancel(self) -> None:
-        owner = self.owner
-        if owner.glide is self:
-            owner.glide = None
+        """Stop scrolling immediately (reader took over scrolling or jumped to latest)."""
+        self.detach_scroll()
+        if not self.keys:
+            self.owner.arrival_landed(self)
+            self.animation.stop()
+
+    def stop(self) -> None:
+        self.detach_scroll()
+        self.owner.arrival_landed(self)
         self.animation.stop()
 
 
-class HeadReveal(TransitionTarget):
+class HeadReveal(ArrivalTransition):
     """A message whose head sits above the viewport glides its head down into view at the
     top edge (`HEAD_REVEAL`). Layout insertions above it shift both endpoints; reader
     scrolling cancels it immediately."""
@@ -114,10 +158,6 @@ class HeadReveal(TransitionTarget):
         self.start = start
         self.target = target
         self.start_transition(owner.animation_clock, HEAD_REVEAL)
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.owner.arrival_animation_visible
 
     def apply_amount(self, amount: float) -> None:
         self.owner.apply_head_reveal_scroll(self.start + (self.target - self.start) * amount)
@@ -142,21 +182,23 @@ class HeadReveal(TransitionTarget):
 
 
 class AnimatesArrivals:
-    """Shared semantic owner of arrival fades, tail-follow glides, and head reveals.
+    """Shared semantic owner of unified viewport arrivals and head reveals.
 
     Listed before `ReaderPlacement` on both `HistoryWindow` (Textual) and
-    `QtHistoryWindow` (Qt), so both frontends share one arrival state machine and
-    one `gliding_to_end()` answer.
+    `QtHistoryWindow` (Qt), so both frontends share one arrival state machine,
+    one `ViewportArrivalState` interface, and one `gliding_to_end()` answer.
     """
 
-    glide: ArrivalGlide | None = None
+    glide: ViewportArrival | None = None
     head_reveal: HeadReveal | None = None
     _arrived: tuple[object, ...] = ()
+    _pending_arrival: ViewportArrival | None = None
     _applying_head_reveal: bool = False
+    arrival_slide_distance: float = 0.0
 
     @property
-    def arrivals(self) -> list[ArrivalFadeRun]:
-        """Active arrival fade bursts for this window (lazy per-instance list)."""
+    def arrivals(self) -> list[ViewportArrival]:
+        """Active viewport arrivals for this window (lazy per-instance list)."""
         existing = self.__dict__.get("_arrivals")
         if existing is None:
             existing = []
@@ -165,11 +207,11 @@ class AnimatesArrivals:
 
     @property
     def live_seen_sources(self) -> set[object]:
-        """Exact `source_identity` values already faded in as live blocks or drafts.
+        """Exact `source_identity` values already animated in as live blocks or drafts.
 
         When saved history commits those exact items they stay steady in place instead
-        of double-fading, while any genuinely new bus message, tool call, or thinking
-        trace arriving alongside an unrelated live block still fades and glides cleanly.
+        of double-animating, while any genuinely new bus message, tool call, or thinking
+        trace arriving alongside an unrelated live block still slides and fades in cleanly.
         """
         existing = self.__dict__.get("_live_seen_sources")
         if existing is None:
@@ -195,11 +237,11 @@ class AnimatesArrivals:
         `None` when none of `keys` are laid out yet."""
 
     def prepare_arrival_layout(self) -> None:
-        """Flush any deferred item layout before reading `tail_scroll_y` (Qt overrides)."""
+        """Flush any deferred item layout before reading scroll geometry (Qt overrides)."""
 
     @abstractmethod
     def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
-        """Repaint only the rows/pages carrying `keys` after a fade tick."""
+        """Repaint only the rows/pages carrying `keys` after an arrival tick."""
 
     def follow_end(self) -> None:
         """Place the window at its followed tail (toolkits with a specialized jump override)."""
@@ -233,44 +275,54 @@ class AnimatesArrivals:
             seen.difference_update(sources)
 
     def arrive(self, keys: tuple[object, ...], *, glide_keys: tuple[object, ...] | None = None) -> None:
-        """Fade `keys` in row after row along `ARRIVAL`, and smoothly glide a tail-following
-        reader down to `glide_keys` (defaulting to `keys`) along `FOLLOW_ARRIVAL`."""
+        """Animate `keys` into the viewport (synchronized upward translation + fade-in along
+        `FOLLOW_ARRIVAL`) and glide a following reader smoothly to `glide_keys`."""
         if not self.animation_clock.enabled:
             return
+        arrival: ViewportArrival | None = None
         if keys:
-            self.arrivals.append(ArrivalFadeRun(self, keys))
+            arrival = ViewportArrival(self, keys)
+            self.arrivals.append(arrival)
         moved = keys if glide_keys is None else glide_keys
         if moved and self.follows_tail:
             self._arrived += moved
+            if arrival is not None:
+                self._pending_arrival = arrival
             self.glide_to_end()
 
     def glide_to_end(self) -> bool:
-        """Glide to the end from where it stood before `_arrived` landed, once laid out.
-        A running glide turns smoothly toward the new end from its current position."""
+        """Bind a unified scroll glide to the current arrival once `_arrived` is laid out.
+        Works identically for short tail-following messages and tall head-placed messages."""
         if not self._arrived:
             return False
         height = self.arrival_rows_height(self._arrived)
         if height is None:
             return False
         self._arrived = ()
+        pending = self._pending_arrival
+        self._pending_arrival = None
         self.prepare_arrival_layout()
-        if not self.reader_position.joins_tail(self):
-            # An arrival taller than the window is read from its head (`ArrivalPosition`).
+        target = self.reader_position.arrival_target(self)
+        if target is None:
             return False
-        tail = self.tail_scroll_y
-        start = max(0.0, tail - height)
-        if self.glide is not None:
-            self.glide.animation.stop()
-            start = max(start, self.glide.at)
+        destination = target.goal(self)
+        start = min(max(0.0, self.tail_scroll_y - height), destination)
+        previous = self.glide
+        if previous is not None:
+            previous.detach_scroll()
+            start = min(destination, max(start, previous.scroll_at))
         with self.layout_scroll():
-            self.scroll_y = min(start, tail)
-            self.glide = ArrivalGlide(self, self.scroll_y)
+            self.scroll_y = start
+            arrival = pending if pending is not None and pending in self.arrivals else ViewportArrival(self, ())
+            arrival.attach_scroll(self.scroll_y, target, destination)
+            self.glide = arrival
         return True
 
     def gliding_to_end(self) -> bool:
-        """Whether an active arrival glide owns the way to the tail."""
+        """Whether an active arrival transition owns viewport scrolling."""
         if self._arrived and not self.glide_to_end():
             self._arrived = ()
+            self._pending_arrival = None
         return self.glide is not None
 
     def start_head_reveal(self, target: float) -> bool:
@@ -310,50 +362,58 @@ class AnimatesArrivals:
         if self.glide is not None:
             self.glide.cancel()
         self._arrived = ()
+        self._pending_arrival = None
 
     def stop_arrival_motion(self) -> None:
-        """Stop every active fade, arrival glide, and head reveal (on unmount/destroy/park)."""
+        """Stop every active viewport arrival and head reveal (on unmount/destroy/park)."""
         self.cancel_head_reveal()
         self.cancel_arrival_glide()
         active = self.__dict__.get("_arrivals")
         if active:
-            for fade in tuple(active):
-                fade.stop()
+            for arrival in tuple(active):
+                arrival.stop()
             active.clear()
 
-    def arrival_landed(self, fade: ArrivalFadeRun) -> None:
+    def arrival_landed(self, arrival: ViewportArrival) -> None:
+        if self._pending_arrival is arrival:
+            self._pending_arrival = None
         active = self.__dict__.get("_arrivals")
-        if active and fade in active:
-            active.remove(fade)
+        if active and arrival in active:
+            active.remove(arrival)
 
     @property
     def has_active_arrivals(self) -> bool:
-        """Whether any arrival fade burst is currently running (avoids lazy-allocating `_arrivals`)."""
+        """Whether any viewport arrival is currently animating (avoids lazy-allocating `_arrivals`)."""
         return bool(self.__dict__.get("_arrivals"))
 
     def has_arrival(self, key: object) -> bool:
-        """Whether `key` is part of any currently rising arrival fade burst."""
+        """Whether `key` is currently animating into the viewport."""
         active = self.__dict__.get("_arrivals")
-        return bool(active) and any(key in fade.positions for fade in active)
+        return bool(active) and any(key in arrival._key_set for arrival in active)
 
     def arrival_keys(self) -> frozenset[object]:
-        """All keys currently rising across active arrival fade bursts."""
+        """All keys currently animating into the viewport."""
         active = self.__dict__.get("_arrivals")
         if not active:
             return frozenset()
-        return frozenset(key for fade in active for key in fade.positions)
+        return frozenset(key for arrival in active for key in arrival._key_set)
 
-    def arrival_frame(self, key: object, row_position: float = 0.0) -> Mix | None:
-        """Current `ARRIVAL` cascade `Mix` for `key` at `row_position` (0..1), or `None` when settled."""
+    def arrival_state(self, key: object, row_height: float = 0.0) -> ViewportArrivalState:
+        """Current unified arrival state (`opacity`, `offset_y`, `active`) for `key`."""
         active = self.__dict__.get("_arrivals")
         if not active:
-            return None
-        for fade in active:
-            if (mix := fade.frame(key, row_position)) is not None:
-                return mix
-        return None
+            return SETTLED_ARRIVAL
+        for arrival in active:
+            if (state := arrival.state(key, row_height)) is not None:
+                return state
+        return SETTLED_ARRIVAL
+
+    def arrival_frame(self, key: object, row_position: float = 0.0) -> Mix | None:
+        """Current fade `Mix` for `key`, or `None` when settled."""
+        state = self.arrival_state(key)
+        return state.mix() if state.active else None
 
     def arrival_opacity(self, key: object, row_position: float = 0.0) -> float | None:
-        """How far `key` (at `row_position`, 0..1) has risen (0..1), or `None` once settled."""
-        mix = self.arrival_frame(key, row_position)
-        return None if mix is None else mix.amount
+        """Current opacity (0..1) for `key`, or `None` once settled."""
+        state = self.arrival_state(key)
+        return state.opacity if state.active else None

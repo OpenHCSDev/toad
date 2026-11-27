@@ -32,20 +32,23 @@ FIRST_TURN = TurnId("f1e2d3c4b5a697881726354453627180")
 
 async def test_every_live_conversation_block_runs_the_arrival_cascade_on_mount(workspace):
     """A live block runs through the window's unified `AnimatesArrivals` coordinator on mount,
-    the same `ARRIVAL` cascade saved rows run — no parallel `CascadingRows` copy."""
+    the same `ViewportArrival` transition saved rows run — no parallel `CascadingRows` copy."""
     async with workspace.app(size=(120, 40)) as ui:
         conversation = ui.conversation
         window = conversation.window
         streamed = await conversation.post(AgentResponse(""))
         await streamed.append_fragment("Streamed agent text")
+        await ui.step()
+        assert window.has_arrival(streamed)
+        assert window.arrival_frame(streamed, 0.0) is not None
+        assert window.arrival_frame(streamed, 1.0) is not None
         tool = await conversation.post(ToolCall(tool_status({
             "toolCallId": "read-1", "title": "Read notes", "kind": "read", "status": "completed",
             "content": [{"type": "content", "content": {"type": "text", "text": "notes"}}]})))
         await ui.step()
-        blocks = (streamed, tool)
-        assert [window.has_arrival(block) for block in blocks] == [True, True]
-        assert all(window.arrival_frame(block, 0.0) is not None for block in blocks)
-        assert all(window.arrival_frame(block, 1.0) is not None for block in blocks)
+        assert window.has_arrival(tool)
+        assert window.arrival_frame(tool, 0.0) is not None
+        assert window.arrival_frame(tool, 1.0) is not None
 
 
 async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(workspace):

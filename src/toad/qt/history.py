@@ -41,7 +41,7 @@ from toad.qt.virtual_scroll import (
     TapHighlight,
     VirtualRowCanvas,
 )
-from toad.arrivals import AnimatesArrivals
+from toad.arrivals import AnimatesArrivals, SETTLED_ARRIVAL, ViewportArrivalState
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
@@ -161,11 +161,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     """Each fragment's line blocks as Qt rich text, rendered on the worker pool at the row's
     width (dividers fill it); a row paints plain text until prepared, and cached `QImage` tiles
     once prepared. Active tap highlights paint the tapped row's live `QTextDocument` with
-    inverted character selections directly over the clicked text instead of drawing boxes."""
-
-    ROW_PADDING = 0
-    """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
-    meet, so its accent bar runs unbroken from part to part."""
+    inverted character selections directly over the clicked text instead of drawing boxes.
+    `ROW_PADDING = 0` is inherited from `RowDocumentStore` so message parts meet seamlessly."""
 
     def __init__(self, renderer: QtLineRenderer, pictures: RowPictures, processes: Renderer) -> None:
         super().__init__()
@@ -501,7 +498,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         document: QTextDocument,
         rect: QRect,
         clip_region: QRegion | None,
-        opacity: float | None,
+        arrival: ViewportArrivalState,
         highlight: TapHighlight,
     ) -> None:
         """Paint `document` directly into `painter` through `highlight.paint_document`,
@@ -513,9 +510,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         device = self.view.backing_device()
         palette = device.palette() if device is not None else QPalette()
         painter.save()
-        if opacity is not None:
-            painter.setOpacity(opacity)
-        painter.fillRect(shown, bg_color)
+        if arrival.active:
+            painter.setOpacity(arrival.opacity)
+        else:
+            painter.fillRect(shown, bg_color)
         painter.translate(rect.topLeft())
         local_clip = QRectF(
             shown.left() - rect.left(),
@@ -528,34 +526,41 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         painter.restore()
 
     def _paint_plain_row(
-        self, painter: QPainter, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
+        self,
+        painter: QPainter,
+        fragment: HistoryFragment,
+        rect: QRect,
+        clip_region: QRegion | None,
+        arrival: ViewportArrivalState = SETTLED_ARRIVAL,
     ) -> None:
         device = self.view.backing_device()
         font = device.font() if device is not None else QFont()
         document = self.new_document(font, self.layout_width(rect.width()))
         document.setPlainText(self.row_text(fragment))
-        self._paint_document_direct(painter, document, rect, clip_region, None, NO_TAP_HIGHLIGHT)
+        self._paint_document_direct(painter, document, rect, clip_region, arrival, NO_TAP_HIGHLIGHT)
 
     def paint_row(
         self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
     ) -> None:
         """Paint one history row from cached `QImage` tiles (or directly with inverted text
-        and divider rules when this row carries the active `TapHighlight`)."""
+        and divider rules when this row carries the active `TapHighlight`), applying the
+        viewport's unified `ViewportArrivalState` (synchronized upward slide + fade-in)."""
         if not fragment.has_blocks:
             return
-        opacity = self.view.arrival_opacity(fragment.key) if self.view.has_active_arrivals else None
+        arrival = self.view.arrival_state(fragment.key, rect.height()) if self.view.has_active_arrivals else SETTLED_ARRIVAL
+        paint_rect = rect.translated(0, round(arrival.offset_y)) if arrival.offset_y else rect
         highlight = self.view.tap_highlight
         if highlight.matches_row(fragment.key):
             device = self.view.backing_device()
             font = device.font() if device is not None else QFont()
-            document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
+            document = self.final_document_for(fragment, font, self.layout_width(paint_rect.width()))
             if document is not None:
-                self._paint_document_direct(painter, document, rect, clip_region, opacity, highlight)
-                self.view.row_painted(fragment, rect)
+                self._paint_document_direct(painter, document, paint_rect, clip_region, arrival, highlight)
+                self.view.row_painted(fragment, paint_rect)
                 return
-        if not self.paint_pictures(painter, fragment, rect, clip_region, opacity):
-            self._paint_plain_row(painter, fragment, rect, clip_region)
-        self.view.row_painted(fragment, rect)
+        if not self.paint_pictures(painter, fragment, paint_rect, clip_region, arrival):
+            self._paint_plain_row(painter, fragment, paint_rect, clip_region, arrival)
+        self.view.row_painted(fragment, paint_rect)
 
     def paint_pictures(
         self,
@@ -563,14 +568,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         fragment: HistoryFragment,
         rect: QRect,
         clip_region: QRegion | None,
-        opacity: float | None,
+        arrival: ViewportArrivalState = SETTLED_ARRIVAL,
     ) -> bool:
         """The tiles of the row that this paint shows, each drawn once into a backing-store-matched
         `QImage` and blitted with `CompositionMode_Source` on subsequent frames."""
         device = self.view.backing_device()
         font = device.font() if device is not None else QFont()
         document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
-        if document is None and opacity is None:
+        if document is None and not arrival.active:
             return False
         effective_clip = clip_region
         if painter.hasClipping():
@@ -589,8 +594,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         look = (rect.width(), rect.height(), ratio, bg_hex, img_format)
         row_id = id(document) if document is not None else (id(self), fragment.key)
         painter.save()
-        if opacity is not None:
-            painter.setOpacity(opacity)
+        if arrival.active:
+            painter.setOpacity(arrival.opacity)
         else:
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         plain_doc: QTextDocument | None = None
@@ -1377,6 +1382,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
+    arrival_slide_distance: float = 36.0
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1457,10 +1463,6 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._reader_shortcuts = scope.app.action_keys.bind_family(self, ReaderAction, self)
 
     @property
-    def geometry_revision(self) -> int:
-        return self._geometry_revision
-
-    @property
     def animation_clock(self):
         return self.configuration_scope.app.animation_clock
 
@@ -1483,13 +1485,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.execute_layout()
 
     def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
-        """Only the rising rows: a whole-viewport update every tick flickers the pinned header."""
+        """Only the rising rows (plus any local upward slide band): a whole-viewport update
+        every tick flickers the pinned header."""
         if self.widget_gone:
             return
         model_rows = self.model_rows
+        extra = ceil(self.arrival_slide_distance)
         for key in keys:
             if (row := model_rows.row_of(key)) >= 0:
-                self.update_row(row)
+                self.update_row(row, extra_bottom=extra)
 
     def _on_widget_destroyed(self, *_args) -> None:
         self.stop_arrival_motion()
@@ -1561,14 +1565,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         return result
 
     def _invalidate_tap_highlight(self, highlight: TapHighlight) -> None:
-        if self.widget_gone:
-            return
-        if highlight.is_pinned():
-            self.sticky_header.update()
-        elif (key := highlight.row_key()) is not None:
-            row = self.model_rows.row_of(key)
-            if row >= 0:
-                self.update_row(row)
+        if not self.widget_gone:
+            highlight.invalidate_in(self)
 
     def _set_tap_highlight(self, highlight: TapHighlight) -> None:
         previous = self.tap_highlight
