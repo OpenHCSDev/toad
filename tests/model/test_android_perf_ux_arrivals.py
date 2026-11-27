@@ -2237,3 +2237,190 @@ def test_block_row_and_pinned_header_share_one_cached_document_and_prepare_inlin
         assert new_doc_calls == 3
     finally:
         delegate.cleanup()
+
+
+def test_observation_attach_rebinds_notification_views_across_resume_and_reconnect():
+    from types import SimpleNamespace
+    from weakref import WeakKeyDictionary
+    from agent_comms.messaging.notification_reads import LiveNotificationRead
+    from agent_comms.ui_model.observation import ObserveNotifications, ReadNotifications
+    from toad.client.connection import FailedObservation, Observation, Observing
+    from toad.client.subscribers import NotificationSubscriber
+
+    class _View(NotificationSubscriber):
+        def __init__(self) -> None:
+            self.rebound = 0
+            self.failed: list[Exception] = []
+
+        def notifications_observed(self, outcomes) -> None:
+            pass
+
+        def notifications_failed(self, error: Exception) -> None:
+            self.failed.append(error)
+
+        def notifications_reload(self) -> None:
+            pass
+
+        def rebind_notifications(self) -> None:
+            self.rebound += 1
+
+    class _FakeObserving(Observing):
+        root = Path("/tmp/fake-bus")
+
+        def activate(self, access) -> None:
+            pass
+
+        @property
+        def core(self):
+            raise AssertionError("unused")
+
+        def opened_selection(self):
+            return None
+
+        def user_identity(self, project):
+            raise AssertionError("unused")
+
+    access = SimpleNamespace(
+        observation=None,
+        sidebar_waiters=[],
+        sidebar_views=(),
+        revision=None,
+        sidebar_interest=None,
+        sidebar_current=None,
+        team_interest=None,
+        thread_status=MagicMock(),
+        views_interest=None,
+        notification_views=WeakKeyDictionary(),
+        notification_known={},
+        notification_interest=ObserveNotifications(frozenset()),
+        events=MagicMock(),
+    )
+
+    obs1 = _FakeObserving(sidebar=MagicMock(), process=MagicMock(), access=access)
+    obs2 = _FakeObserving(sidebar=MagicMock(), process=MagicMock(), access=access)
+    failed = FailedObservation(RuntimeError("socket reset"), None, access=access)
+    obs3 = _FakeObserving(sidebar=MagicMock(), process=MagicMock(), access=access)
+
+    view_live = _View()
+    view_closed = _View()
+    read = ReadNotifications("/tmp/fake-bus", LiveNotificationRead(()))
+
+    # 1. Android resume (Observing -> Observing) rebinds every active notification view.
+    access.observation = obs2
+    access.notification_views[view_live] = read
+    access.notification_views[view_closed] = read
+    obs2.attach(access, obs1)
+    assert view_live.rebound == 1
+    assert view_closed.rebound == 1
+    assert len(access.notification_views) == 0
+
+    # 2. Disconnect -> reconnect (Observing -> FailedObservation -> Observing) preserves
+    #    live views and drops views closed during the outage.
+    access.notification_views[view_live] = read
+    access.notification_views[view_closed] = read
+    access.observation = failed
+    failed.attach(access, obs2)
+    assert len(view_live.failed) == 1
+    assert len(view_closed.failed) == 1
+    failed.discard_notification_view(view_closed)
+
+    access.observation = obs3
+    obs3.attach(access, failed)
+    assert view_live.rebound == 2
+    assert view_closed.rebound == 1
+
+
+def test_arrival_glide_and_layout_scroll_request_preparation():
+    from toad.arrivals import AnimatesArrivals, ViewportArrival
+    from toad.client.history_pager import ReaderPlacement
+    from toad.client.reader_position import TAIL_ARRIVAL_TARGET
+
+    class _Window(AnimatesArrivals, ReaderPlacement):
+        def __init__(self) -> None:
+            self._restoring = False
+            self.scroll_y = 0.0
+            self.scroll_target_y = 0.0
+            self.tail_scroll_y = 240.0
+            self.follows_tail = True
+            self.lookahead = MagicMock()
+            self.preparations = 0
+            self._clock = AnimationClock(lambda _interval: None)
+
+        @property
+        def animation_clock(self) -> AnimationClock:
+            return self._clock
+
+        @property
+        def arrival_animation_visible(self) -> bool:
+            return True
+
+        def arrival_rows_height(self, keys):
+            return 80.0
+
+        def repaint_arrival_keys(self, keys) -> None:
+            pass
+
+        def shift_travel(self, rows: float, destination: float) -> None:
+            pass
+
+        def request_preparation(self) -> None:
+            self.preparations += 1
+
+    win = _Window()
+    # Non-glide programmatic layout scroll requests preparation once.
+    with win.layout_scroll():
+        win.scroll_y = 100.0
+    assert win.preparations == 1
+
+    # Mid-glide ticks must NOT spam preparation, while landing requests it once.
+    arrival = ViewportArrival(win, ("row-1",))
+    win.arrivals.append(arrival)
+    arrival.attach_scroll(100.0, TAIL_ARRIVAL_TARGET, 240.0)
+    win.glide = arrival
+    arrival.apply_amount(0.5)
+    assert win.preparations == 1
+    arrival.land()
+    assert win.scroll_y == 240.0
+    assert win.preparations >= 2
+
+
+def test_qt_goal_bar_fit_document_uses_wrapped_height_for_width(monkeypatch):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtWidgets import QScrollArea, QVBoxLayout
+    from toad.qt.goal import QtGoalBar, WrappedText
+
+    win = QWidget()
+    win.resize(412, 915)
+    bar = QWidget(win)
+    bar.resize(412, 200)
+    lay = QVBoxLayout(bar)
+    lay.setContentsMargins(8, 4, 8, 4)
+    doc = QScrollArea(bar)
+    doc.setWidgetResizable(True)
+    body = QWidget(doc)
+    body_lay = QVBoxLayout(body)
+    body_lay.setContentsMargins(0, 0, 0, 0)
+    obj = WrappedText()
+    obj.setText(
+        "Objective: Ship Android/Qt Toad mobile UX fixes (IME adjustResize/safe-area, "
+        "tab close, sidebar bands), profile & fix Pixel 8a scroll FPS with FrameProbe"
+    )
+    body_lay.addWidget(obj)
+    body_lay.addStretch(1)
+    doc.setWidget(body)
+    lay.addWidget(doc)
+    bar.document = doc
+    bar.document_share = QtGoalBar.document_share
+    try:
+        win.show()
+        app.processEvents()
+        unwrapped_h = body.sizeHint().height()
+        QtGoalBar.fit_document(bar)
+        assert doc.height() > unwrapped_h
+        assert doc.height() == min(
+            body.heightForWidth(doc.viewport().width()),
+            int(win.height() * QtGoalBar.document_share),
+        )
+    finally:
+        win.deleteLater()

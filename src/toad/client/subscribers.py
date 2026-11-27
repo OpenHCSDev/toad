@@ -185,3 +185,7 @@ class NotificationSubscriber:
 
     def notifications_reload(self) -> None:
         raise NotImplementedError
+
+    def rebind_notifications(self) -> None:
+        """Core's observation changed or reconnected; subscribe this view's visible reads again."""
+        raise NotImplementedError
