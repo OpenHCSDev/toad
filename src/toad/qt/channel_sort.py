@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QToolButton, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
+from toad.client.line_blocks import MutedRole
 from toad.client.menu_entry import MenuEntry
 from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, ChannelSortForm, CommsSortWrite, SortControlBase, ThreadSortForm
 
@@ -85,7 +86,7 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], QtSortButton[Ord
         super().__init__(form_type, scope, parent)
         plain = self.styleSheet()
         app.renderer.themed(self, lambda: self.setStyleSheet(
-            plain + f"QToolButton {{ background-color: {app.theme.color_scheme.to_hex(app.theme.color_scheme.panel_bg)}; }}"))
+            plain + f"QToolButton {{ background-color: transparent; color: {app.renderer.colour(MutedRole)}; }}"))
 
     def saved_settings(self):
         return self._app.saved_settings

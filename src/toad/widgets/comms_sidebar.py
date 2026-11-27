@@ -53,7 +53,6 @@ from toad.widgets.sidebar_tree import (
     SearchFollower,
     TargetTreeMember,
 )
-from toad.textual_colours import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from textual import on
 from toad.native_style import (
@@ -177,16 +176,10 @@ class ChannelGroup(ChannelGroupRows, SidebarGroup["ThreadRow"]):
         self.reconcile_rows(changed=changed)
 
 
-class ChannelRow(ListedRow):
-    """A channel's row. Channels alternate on their own hue-stepped pair, so the channel
-    list and the thread rows under it read as two families."""
-
-    row_tones = (ChannelRowToneColour, ChannelAlternateRowToneColour)
-
-
-class ChannelHeaderRow(ChannelRowFace, DetailedRow, GroupHeaderLine, ChannelRow):
+class ChannelHeaderRow(ChannelRowFace, DetailedRow, GroupHeaderLine, ListedRow):
     """A channel group's header line: disclosure, the channel's name, unread and order,
-    over a second line carrying how many of its agents are up and which tags it covers."""
+    over a second line carrying how many of its agents are up and which tags it covers.
+    Alternating channel row tones come from the shared `ChannelRowFace.row_tones`."""
 
     line_text = ChannelLineText("", "", "", "")
 

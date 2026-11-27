@@ -506,3 +506,92 @@ def test_composer_pool_is_shared_by_both_frontends():
     comp_c, reused_c = pool.acquire(_FakeComposer, tab_c, lambda: _build(tab_c))
     assert reused_c and comp_c is comp_a and built == 1 and comp_c.text == ""
 
+
+def test_gui_and_tui_share_theme_tones_and_resolve_identical_colours() -> None:
+    """Every surface tone, divider rule, sidebar row pair, tab chrome role, and editing
+    badge colour must be owned once in `toad.client.theme_tones` / `toad.sidebar_rows` /
+    `toad.client.prompt_stack` and resolve identically on Textual and Qt."""
+    from pathlib import Path
+
+    from agent_comms.messaging.display_references import ProjectReferences
+    from ui_theme.catalog import SCHEMES
+    from ui_theme.colour import Rgb, TerminalPalette
+    from ui_theme.scheme import scheme_of_palette
+
+    from toad.client.line_blocks import Divider, IncomingRole, OutgoingRole, Span
+    from toad.client.prompt_stack import EditingModeBadge
+    from toad.client.theme_tones import (
+        ChannelAlternateRowToneColour,
+        ChannelRowToneColour,
+        FloatSurfaceTones,
+        ScrollbarTones,
+        SidebarToggleToneColour,
+        TabHoverToneColour,
+        WorkspaceTabTones,
+    )
+    from toad.markdown_links import LinkContext
+    from toad.patch import DiffSettings
+    from toad.qt.lines import QtLineRenderer
+    from toad.qt.prompt_stack import QtEditingModeBadge
+    from toad.qt.window import ChannelEntry, ThreadLine
+    from toad.sidebar_rows import ChannelRowFace, ThreadRowFace
+    from toad.widgets.comms_sidebar import ChannelHeaderRow, ThreadStatusRow
+    from toad.widgets.prompt import EditingModeLabel
+    from toad.workspace_chrome import WorkspaceHeader
+
+    # 1. Shared row-tone ownership across Textual and Qt sidebar rows.
+    _owned_by(ChannelRowFace, "row_tones", ChannelHeaderRow, ChannelEntry)
+    _owned_by(ThreadRowFace, "row_tones", ThreadStatusRow, ThreadLine)
+    assert ChannelEntry.row_tones == (ChannelRowToneColour, ChannelAlternateRowToneColour)
+    assert ChannelHeaderRow.row_tones == ChannelEntry.row_tones
+    assert ThreadLine.row_tones == ThreadStatusRow.row_tones
+
+    # 2. Workspace tab chrome & editing badge ownership.
+    assert WorkspaceHeader.tone is WorkspaceTabTones.bar_tone
+    _owned_by(EditingModeBadge, "badge_foreground", EditingModeLabel, QtEditingModeBadge)
+    _owned_by(EditingModeBadge, "badge_background", EditingModeLabel, QtEditingModeBadge)
+
+    # 3. Every hoisted tone resolves identically on both catalog and pywal palettes.
+    wal_palette = TerminalPalette(
+        background=Rgb(0x0B, 0x0B, 0x1A),
+        foreground=Rgb(0xC2, 0xC2, 0xC5),
+        cursor=Rgb(0xC2, 0xC2, 0xC5),
+        ansi=tuple(
+            Rgb.parse(hex_str)
+            for hex_str in (
+                "#0b0b1a", "#857870", "#788d27", "#77866f",
+                "#90a827", "#8f9466", "#797e87", "#c2c2c5",
+                "#5a5a6f", "#857870", "#788d27", "#77866f",
+                "#90a827", "#8f9466", "#797e87", "#c2c2c5",
+            )
+        ),
+    )
+    wal_scheme = scheme_of_palette("wal", wal_palette)
+    links = LinkContext(Path("."), ProjectReferences())
+    for scheme in (SCHEMES[0], wal_scheme):
+        renderer = QtLineRenderer(scheme, links, DiffSettings())
+        # Channel rows step toward PrimaryColour (not flat neutral sidebar).
+        assert renderer.theme(ChannelRowToneColour) != renderer.theme(ThreadRowFace.row_tones[0])
+        assert renderer.theme(ChannelAlternateRowToneColour) != renderer.theme(ChannelRowToneColour)
+        # Toggle bar, tab hover, scrollbar, and float tones resolve cleanly.
+        for tone in (
+            SidebarToggleToneColour,
+            TabHoverToneColour,
+            WorkspaceTabTones.bar_tone,
+            WorkspaceTabTones.selected_tab_tone,
+            WorkspaceTabTones.underline_colour,
+            WorkspaceTabTones.close_hover_colour,
+            ScrollbarTones.track_colour,
+            ScrollbarTones.thumb_colour,
+            ScrollbarTones.active_colour,
+            FloatSurfaceTones.background_tone,
+            EditingModeBadge.badge_foreground,
+            EditingModeBadge.badge_background,
+        ):
+            assert renderer.theme(tone).startswith("#")
+        # Divider rule colour matches block.role (IncomingRole / OutgoingRole), matching Textual.
+        for role in (IncomingRole, OutgoingRole):
+            html = renderer.divider(Divider((Span("hdr", role),), role=role))
+            assert f"background-color:{renderer.colour(role)}" in html
+
+

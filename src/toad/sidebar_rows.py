@@ -13,10 +13,13 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
+from typing import ClassVar
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
+from ui_theme.scheme import AlternateRowToneColour, SidebarToneColour, ThemeColour
 
 from toad.client.sidebar_lines import DetailedLine
+from toad.client.theme_tones import ChannelAlternateRowToneColour, ChannelRowToneColour
 from toad.setting_choices import UnreadCount
 
 
@@ -39,6 +42,11 @@ class ThreadLineText:
 
 class ThreadRowFace:
     """A thread's line in a sidebar list."""
+
+    row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
+        SidebarToneColour,
+        AlternateRowToneColour,
+    )
 
     @staticmethod
     def thread_busy(row: ThreadRowModel, action_status: str | None) -> bool:
@@ -73,6 +81,11 @@ class ChannelLineText:
 
 class ChannelRowFace:
     """A channel's line in a sidebar list."""
+
+    row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
+        ChannelRowToneColour,
+        ChannelAlternateRowToneColour,
+    )
 
     def present_channel(self, channel: ChannelRowModel, *, counts: type[UnreadCount]) -> None:
         """`counts` is the reader's unread-count setting, which says how the badge reads."""

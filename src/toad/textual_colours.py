@@ -92,6 +92,13 @@ except ModuleNotFoundError:
 from toad.colour_ink import ColourInk
 from toad.client.host import NoticeHost
 from toad.client.line_blocks import LineRole
+from toad.client.theme_tones import (
+    ChannelAlternateRowToneColour,
+    ChannelRowToneColour,
+    HueToneColour,
+    SidebarToggleToneColour,
+    TabHoverToneColour,
+)
 from toad.client.view_settings import ApplicationSettings
 from toad.preferences import SavedSettings
 from toad.render_tasks import TextEffectRenderTask
@@ -110,35 +117,6 @@ class _WalFileClosed(FileSystemEventHandler):
     def on_any_event(self, event: FileSystemEvent) -> None:
         if isinstance(event, FileClosedEvent) and os.path.basename(event.src_path) == WalFile.NAME:
             self.colours.app.call_from_thread(self.colours.read_wal)
-
-
-class HueToneColour(ToneColour):
-    """A sidebar surface stepped toward a theme hue instead of toward the foreground.
-
-    Rows on it read as a different family from rows on the neutral sidebar
-    tones. Without RGB (a native ANSI palette) it is the background, like
-    every derived tone.
-    """
-
-    hue: ClassVar[type[ThemeColour]] = PrimaryColour
-
-    @classmethod
-    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
-        return SidebarToneColour.resolve_rgb(read).blend(read(cls.hue), cls.amount)
-
-
-class ChannelRowToneColour(HueToneColour):
-    """A channel row of the channel list."""
-
-    name = "tone-channel-row"
-    amount = 0.13
-
-
-class ChannelAlternateRowToneColour(HueToneColour):
-    """Every other channel row, one more step toward the hue."""
-
-    name = "tone-channel-row-alternate"
-    amount = 0.2
 
 
 class ClockCadence:

@@ -31,7 +31,7 @@ from agent_comms.ui_model.status import ThreadStatusModel
 from metaclass_registry import AbstractHooksMeta
 from metaclass_registry.mro_dispatch import handles
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
-from ui_theme.scheme import BackgroundColour
+from ui_theme.scheme import BackgroundColour, ForegroundColour, PromptToneColour, ThemeColour
 
 from toad.client.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.core.projection import MroProjection
@@ -165,7 +165,13 @@ class SettingVisible:
 
 class EditingModeBadge(metaclass=AbstractHooksMeta):
     """The info bar's editing-mode badge: the editor's mode while it has focus, else the
-    standard mode, as the TUI shows ``STANDARD`` under an unfocused prompt."""
+    standard mode, as the TUI shows ``STANDARD`` under an unfocused prompt.
+
+    Both frontends paint the badge in reverse video over the prompt surface:
+    `PromptToneColour` ink on `ForegroundColour` background."""
+
+    badge_foreground: ClassVar[type[ThemeColour]] = PromptToneColour
+    badge_background: ClassVar[type[ThemeColour]] = ForegroundColour
 
     def present_editing_mode(self, mode, focused: bool) -> None:
         self.show_mode_label((mode if focused else Standard()).label)

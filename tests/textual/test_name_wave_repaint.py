@@ -77,15 +77,22 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 
     from toad.qt.name_wave import QtNameWaveDelegate
+    from toad.sidebar_rows import ThreadRowFace
+    from ui_theme.catalog import SCHEMES
 
     app = QApplication.instance() or QApplication([])
     tree = QTreeWidget()
     tree.setColumnCount(1)
     accent = QColor(255, 80, 0)
-    delegate = QtNameWaveDelegate(accent, QColor("#eeeeee"), QColor("#888888"), QColor("#ffffff"), tree)
+    scheme = SCHEMES[0]
+    delegate = QtNameWaveDelegate(
+        accent, scheme, QColor("#eeeeee"), QColor("#888888"), QColor("#ffffff"), tree,
+    )
     tree.setItemDelegateForColumn(0, delegate)
 
     class WavingItem(QTreeWidgetItem):
+        row_tones = ThreadRowFace.row_tones
+
         def __init__(self) -> None:
             super().__init__()
             self.painted_span: tuple[int, int] | None = (0, 3)

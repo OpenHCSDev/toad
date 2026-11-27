@@ -25,14 +25,9 @@ from textual.renderables.bar import Bar
 from textual.style import Style
 from textual.widget import Widget
 from ui_theme.effects import NEW_TEXT, Amount, Transition
-from ui_theme.scheme import (
-    AccentColour,
-    ErrorColour,
-    ForegroundColour,
-    HeaderToneColour,
-    MutedColour,
-    SelectedTabToneColour,
-)
+from ui_theme.scheme import ForegroundColour
+
+from toad.client.theme_tones import WorkspaceTabTones
 
 from toad.core import events as core_events
 from toad.core import session_requests
@@ -58,7 +53,7 @@ class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, Changin
     # TonePaint declares a class tone; the open tab is raised a tier off the bar, the rest sit on it.
     @property
     def tone(self):  # type: ignore[override]
-        return SelectedTabToneColour if self.current else None
+        return WorkspaceTabTones.selected_tab_tone if self.current else None
 
     def paint_current(self) -> None:
         """The tab opened or closed: its tone is part of its cached paint."""
@@ -71,7 +66,7 @@ class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, Changin
 
     @property
     def background_tint(self):
-        return (self.app.colours.colour(ForegroundColour).multiply_alpha(0.1)
+        return (self.app.colours.colour(ForegroundColour).multiply_alpha(WorkspaceTabTones.hover_tone.amount)
                 if self.mouse_hover else TRANSPARENT)
 
     def __init__(self, tab: OpenTab):
@@ -83,7 +78,7 @@ class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, Changin
         """The label owns activity, unread ink and native text width."""
         content = self.activity_content(tab.label(), tab.busy, prefix=Content())
         if suffix := tab.unread_suffix(self.app.settings.sidebar.unread_counts.badge):
-            badge = (Style(foreground=self.app.colours.colour(AccentColour))
+            badge = (Style(foreground=self.app.colours.colour(WorkspaceTabTones.unread_badge_colour))
                      if tab.unread.highlighted else Style())
             content = Content.assemble(content, (suffix, badge))
         # Every sidebar observation re-presents every open tab; one whose ink
@@ -147,7 +142,11 @@ class SessionTabClose(KeepsFocusOnClick, WidgetView, ActivationKeys, widgets.Sta
 
     @property
     def paint_foreground(self):
-        return self.app.colours.colour(ErrorColour if self.mouse_hover or self.has_focus else MutedColour)
+        return self.app.colours.colour(
+            WorkspaceTabTones.close_hover_colour
+            if self.mouse_hover or self.has_focus
+            else WorkspaceTabTones.close_idle_colour
+        )
 
     @property
     def text_style(self):
@@ -211,12 +210,12 @@ class Underline(EffectInContent, WidgetView, Animated[Amount]):
     @property
     def bar_style(self) -> RichStyle:
         """The paint of the selected tab's cells."""
-        return RichStyle.from_color(self.app.colours.colour(AccentColour).rich_color)
+        return RichStyle.from_color(self.app.colours.colour(WorkspaceTabTones.underline_colour).rich_color)
 
     def render(self) -> RenderResult:
         """Render the bar."""
         colours = self.app.colours
-        background = colours.colour(HeaderToneColour) + colours.colour(ForegroundColour).multiply_alpha(0.1)
+        background = colours.colour(WorkspaceTabTones.hover_tone)
         amount = self.effect_frame(TAB_SLIDE).value
         (from_start, from_end), (to_start, to_end) = self._origin, self.selected_cells
         self._drawn = (from_start + (to_start - from_start) * amount,

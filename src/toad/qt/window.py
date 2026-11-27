@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QEvent, QFileSystemWatcher, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPalette, QScreen, QShortcut
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPainter, QPalette, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -55,9 +55,17 @@ from toad.qt.finger_press import FingerPress
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
 from ui_theme.clock import AnimationClock
-from ui_theme.scheme import AccentColour, ColourScheme, MutedColour, PrimaryColour, SurfaceHoverColour
+from ui_theme.scheme import (
+    AlternateRowToneColour,
+    ColourScheme,
+    PrimaryColour,
+    SidebarToneColour,
+    ThemeColour,
+)
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
+
+from toad.client.theme_tones import SidebarToggleToneColour, WorkspaceTabTones
 
 from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
@@ -187,6 +195,10 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
 
     key: str
     drawn: tuple[str, str, str, str] = ("", "", "", "")
+    row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
+        SidebarToneColour,
+        AlternateRowToneColour,
+    )
 
     def draw(self, badge: str, label: str, summary: str, tooltip: str) -> None:
         """Draw this line's text; a line whose text is unchanged is left alone."""
@@ -740,15 +752,11 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self.setColumnCount(1)
         window.renderer.themed(self, self.paint_colours)
         self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        # Alternating row backgrounds come from the shared `generate_tree_widget_style`
-        # stylesheet, which already declares `alternate-background-color:
-        # {cs.alternate_row_bg}` from the scheme. The sidebar tree enables Qt's
-        # alternating flag so that color actually paints — no Qt-local color constant,
-        # the scheme stays the single owner. The earlier removal of this flag (to work
-        # around a kinetic-scroll flicker) was lifted once PR #1952's shared
-        # `respond_to_scroll` throttle landed, which fixed the flicker at its real
-        # owner instead of by removing the scheme-driven stripe.
-        self.setAlternatingRowColors(True)
+        # Row backgrounds come polymorphically from each item's shared `row_tones`
+        # (`ChannelRowFace.row_tones` for channels, `ThreadRowFace.row_tones` for threads)
+        # painted by `QtNameWaveDelegate`, matching Textual's `AlternatingTone` instead of
+        # Qt's single flat alternating colour.
+        self.setAlternatingRowColors(False)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
         # Tap activates (`itemClicked`) and long-press opens `HeldRowMenu`; nothing reads
@@ -784,11 +792,24 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
                            + f"QScrollBar:vertical {{ width: {bar}px; }}"
                            f"QScrollBar:horizontal {{ height: {bar}px; }}")
         previous = self.itemDelegateForColumn(0)
-        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
-            QColor(window.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary), scheme.to_qcolor(scheme.text_secondary),
-            scheme.to_qcolor(scheme.selection_text), self))
+        self._row_delegate = QtNameWaveDelegate(
+            QColor(window.renderer.theme(WorkspaceTabTones.underline_colour)),
+            window.renderer.scheme,
+            scheme.to_qcolor(scheme.text_primary),
+            scheme.to_qcolor(scheme.text_secondary),
+            scheme.to_qcolor(scheme.selection_text),
+            self,
+        )
+        self.setItemDelegateForColumn(0, self._row_delegate)
         if previous is not None:
             previous.deleteLater()
+
+    def drawBranches(self, painter: QPainter, rect: QRect, index) -> None:  # type: ignore[override]
+        """Paint the left disclosure gutter in the same shared row tone as the item."""
+        item = self.itemFromIndex(index)
+        if item is not None:
+            painter.fillRect(rect, self._row_delegate.row_tone_qcolor(item.row_tones[index.row() % 2]))
+        super().drawBranches(painter, rect, index)
 
     def activate(self, item: SidebarItem) -> None:
         item.activate(self.window)
@@ -1678,8 +1699,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
         # pyqt-reactive's tab bar in the theme's tab style; a dragged tab moves in the
         # shared tab order, which the bar then draws again.
-        self.tabs = QtSessionTabBar(self.animation_clock, QColor(self.renderer.theme(AccentColour)),
-                                    self.theme.color_scheme.to_qcolor(self.theme.color_scheme.text_primary))
+        self.tabs = QtSessionTabBar(
+            self.animation_clock,
+            QColor(self.renderer.theme(WorkspaceTabTones.underline_colour)),
+            QColor(self.renderer.theme(WorkspaceTabTones.active_text_colour)),
+        )
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
         # Each tab keeps its own width and the strip scrolls: a swipe moves it on the phone
@@ -1986,9 +2010,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.update()
 
     def paint_chrome_colours(self) -> None:
-        """The sidebars, the tab bar and the navigation band in the current scheme's styles."""
+        """The sidebars, the tab bar and the navigation band in the shared theme tones."""
         scheme = self.theme.color_scheme
-        toggle_bg = SurfaceHoverColour.rgb(self.renderer.scheme).hex
+        renderer = self.renderer
+        toggle_bg = renderer.theme(SidebarToggleToneColour)
         toggle_style = (
             f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
             f" background-color: {toggle_bg}; border: none; padding: 2px 4px; }}"
@@ -1999,24 +2024,33 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                 + scheme.styles.generate_sidebar_bar_style()
                 + toggle_style
             )
-        muted = MutedColour.rgb(self.renderer.scheme).hex
-        ink_hex = scheme.to_hex(scheme.text_primary)
+        bar_bg = renderer.theme(WorkspaceTabTones.bar_tone)
+        selected_bg = renderer.theme(WorkspaceTabTones.selected_tab_tone)
+        hover_bg = renderer.theme(WorkspaceTabTones.hover_tone)
+        underline_hex = renderer.theme(WorkspaceTabTones.underline_colour)
+        active_ink = renderer.theme(WorkspaceTabTones.active_text_colour)
+        inactive_ink = renderer.theme(WorkspaceTabTones.inactive_text_colour)
+        close_idle = renderer.theme(WorkspaceTabTones.close_idle_colour)
+        close_hover = renderer.theme(WorkspaceTabTones.close_hover_colour)
         self.tabs.setStyleSheet(
-            scheme.styles.generate_tab_widget_style()
-            + f"QTabBar::tab {{ padding: 6px 10px 6px 12px; margin-right: {self.tabs.TAB_GAP}px;"
-              " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
-            + f"QToolButton#tab-close-button {{"
-              f" border: none; border-radius: 4px; padding: 0px;"
-              f" background: transparent; color: {muted}; font-weight: bold; }}"
-            + f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
-              f" background: {toggle_bg}; color: {ink_hex}; }}"
+            f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
+            f"QTabBar::tab {{ background-color: {bar_bg}; color: {inactive_ink}; border: none;"
+            f" padding: 6px 10px 6px 12px; margin-right: {self.tabs.TAB_GAP}px;"
+            " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
+            f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
+            f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
+            f" font-weight: bold; border-bottom: 2px solid {underline_hex}; }}"
+            f"QToolButton#tab-close-button {{"
+            f" border: none; border-radius: 4px; padding: 0px;"
+            f" background: transparent; color: {close_idle}; font-weight: bold; }}"
+            f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
+            f" background: {hover_bg}; color: {close_hover}; }}"
         )
-        self.tabs.accent, self.tabs.ink = QColor(self.renderer.theme(AccentColour)), scheme.to_qcolor(scheme.text_primary)
-        self.tabs.update()
+        self.tabs.set_colours(QColor(underline_hex), QColor(active_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         self.navigation.setStyleSheet(
             scheme.styles.generate_frame_style()
-            + "QFrame { padding: 2px 4px; }"
+            + f"QFrame {{ background-color: {bar_bg}; padding: 2px 4px; }}"
             + f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
         )
         self.float_layer.follow_scheme(scheme)
