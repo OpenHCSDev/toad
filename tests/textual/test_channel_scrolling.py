@@ -302,9 +302,14 @@ async def test_the_placement_scan_answers_once_per_publication(workspace):
             # The header is pinned only while a message's own header is scrolled above the
             # top row, so the tail of a republished frame may legitimately pin nothing.
             # Re-establish a known position rather than guess the new geometry.
-            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
-            window.scroll_relative(y=-2, animate=False, immediate=True)
-            await ui.step()
+            # Step upward row-by-row from the tail until the top row sits inside a beta
+            # message body (below its header) instead of relying on a fixed offset whose
+            # modulo alignment with message height changes with initial page count.
+            for offset in range(1, 10):
+                window.scroll_to(y=max(0, window.max_scroll_y - offset), animate=False, immediate=True)
+                await ui.step()
+                if window.sticky_header.display:
+                    break
             await ui.until(lambda: painted_text(window.sticky_header, "beta"),
                            why="the republished frame still pins beta inside beta's message")
         finally:

@@ -1430,7 +1430,9 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self.live_blocks: list[QtLiveBlock] = []  # after the draft, as Textual's live blocks
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
-        self.presentation_budget = PresentationBudget()
+        self.presentation_budget = PresentationBudget(
+            buffer_viewports=self.configuration_state.fields.ui.history_buffer_viewports,
+        )
         self.lookahead = DirectionalPreparation(self)
         self.reader_position = TailPosition()
         self._anchored = True
