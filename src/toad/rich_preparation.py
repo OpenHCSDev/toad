@@ -25,7 +25,13 @@ from textual.selection import Selection
 from textual.visual import RenderOptions
 from textual.text_format import TextFormat, TextFormatSnapshot
 from toad.colour_ink import ColourInk
-from toad.client.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
+from toad.client.line_blocks import (
+    LineBlock,
+    LineRole,
+    MutedRole,
+    TextSelectionSource,
+    ToolOutputRole,
+)
 
 if TYPE_CHECKING:
     from textual.app import App
@@ -259,7 +265,7 @@ class SyntaxSource(RichSource):
 
 
 @dataclass(frozen=True)
-class PreparedRichContent:
+class PreparedRichContent(TextSelectionSource):
     width: int
     lines: tuple[Strip, ...]
 
@@ -270,11 +276,6 @@ class PreparedRichContent:
     @property
     def text(self) -> str:
         return "\n".join(line.text for line in self.lines)
-
-    @property
-    def selection_text(self) -> str:
-        """Rich previews select their prepared terminal rows."""
-        return self.text
 
     def render_lines(self, crop: Region, *, selection=None, selection_style=None) -> list[Strip]:
         """Crop original prepared rows without rebuilding a native subtree."""

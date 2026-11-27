@@ -58,8 +58,7 @@ class ConversationThreadSidebar(ThreadIdentityScope, LazyThreadSidebar):
         return next((references.thread(thread).read(SidebarThreadIdentity(screen.wire_root))
                      for thread in self.threads), NoThreadIdentity())
 
-    def make_panels(self):
-        screen = self._owner()
+    def _make_panels_step(self, screen):
         if screen is None:
             raise ReferenceError("The conversation sidebar owner has retired")
         return (member().compose_panel(screen) for thread in self.threads
@@ -128,8 +127,7 @@ class SessionThreadSidebar(LazyThreadSidebar, NativePresentation):
             owner.capture(panel.widget)
         screen._project_panel = NO_PROJECT_VIEW
 
-    def make_panels(self):
-        screen = self._owner()
+    def _make_panels_step(self, screen):
         if screen is None:
             raise ReferenceError("The session sidebar owner has retired")
         return (owner.compose_panel(screen) for owner in self._panel_owners)

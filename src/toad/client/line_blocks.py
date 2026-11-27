@@ -403,12 +403,16 @@ class Divider(SharedStandaloneBlock):
         return self.label
 
 
-class TextLineBlock(LineBlock):
-    """A line block whose selectable text is its own ``text``."""
+class TextSelectionSource:
+    """Exposes its own ``text`` as selectable text."""
 
     @property
     def selection_text(self) -> str:
         return self.text
+
+
+class TextLineBlock(TextSelectionSource, LineBlock):
+    """A line block whose selectable text is its own ``text``."""
 
 
 @dataclass(frozen=True)
