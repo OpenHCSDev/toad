@@ -133,6 +133,27 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     right = paint_accent_xs()
     assert left and right and max(left) < min(right)
 
+    # Updating a sibling row drops only that sibling's cached QImage bucket, keeping item's intact.
+    sibling = WavingItem()
+    sibling.setData(0, LAYOUT_ROLE, StyledTextLayout(name=Segment("NNNNNNNNNNNNNNNN"), multiline=True))
+    tree.addTopLevelItem(sibling)
+    app.processEvents()
+    sib_opt = QStyleOptionViewItem()
+    sib_opt.initFrom(tree)
+    sib_opt.rect = tree.visualRect(tree.indexFromItem(sibling, 0))
+    img = QImage(tree.viewport().size(), QImage.Format.Format_ARGB32)
+    painter = QPainter(img)
+    delegate.paint(painter, option, tree.model().index(0, 0))
+    delegate.paint(painter, sib_opt, tree.model().index(1, 0))
+    painter.end()
+    kept_item_row = delegate.prepared_row(tree.model().index(0, 0))
+    kept_sib_row = delegate.prepared_row(tree.model().index(1, 0))
+    assert id(kept_item_row) in delegate._row_images
+    assert id(kept_sib_row) in delegate._row_images
+    sibling.setData(0, LAYOUT_ROLE, StyledTextLayout(name=Segment("PPPPPPPPPPPPPPPP"), multiline=True))
+    assert id(kept_item_row) in delegate._row_images
+    assert id(kept_sib_row) not in delegate._row_images
+
     from toad.qt.name_wave import QtSessionTabBar
     from ui_theme.clock import AnimationClock
 

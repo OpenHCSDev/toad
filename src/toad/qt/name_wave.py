@@ -22,15 +22,6 @@ from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 from toad.qt.tap_flash import QtTextButton
 
 
-def band_ink(span: tuple[int, int], length: int, ink: QTextCharFormat) -> QTextLayout.FormatRange:
-    """The characters of ``span`` within a text ``length`` long, in the accent."""
-    start, end = min(length, span[0]), min(length, span[1])
-    band = QTextLayout.FormatRange()
-    band.start, band.length = start, end - start
-    band.format = ink
-    return band
-
-
 class QtWaveBandCache(BandCells):
     """Shared baked accent-band `QTextLayout` cache for Qt widgets waving a band across a bold
     title.
@@ -93,7 +84,10 @@ class QtWaveBandCache(BandCells):
             return hit[1]
         if len(self._banded) >= self.BANDED_KEPT:
             self._banded.clear()
-        baked = self.clone_layout(base, extra_format=band_ink((start, end), length, self.accent_format))
+        band = QTextLayout.FormatRange()
+        band.start, band.length = start, end - start
+        band.format = self.accent_format
+        baked = self.clone_layout(base, extra_format=band)
         self._banded[key] = (base, baked)
         return baked
 
@@ -115,17 +109,34 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         # font or width changes, and a changed one is another object.
         self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
         self._banded_prepared: dict[tuple[int, int, int], tuple[PreparedTextLayout, PreparedTextLayout]] = {}
-        self._row_images: dict[tuple[int, tuple[int, int] | None, int, int, int, bool, float], tuple[object, QImage]] = {}
+        self._row_images: dict[
+            int,
+            tuple[
+                object,
+                dict[tuple[tuple[int, int] | None, int, int, int, bool, int, float], tuple[QImage, bool]],
+            ],
+        ] = {}
+        self._row_image_count = 0
         self._active_wave: tuple[object, tuple[int, int] | None] | None = None
 
     def _set_wave_accent(self, accent: QColor) -> None:
         super()._set_wave_accent(accent)
         self._banded_prepared.clear()
         self._row_images.clear()
+        self._row_image_count = 0
 
     def forget_rows(self, *_changed) -> None:
         self._row_images.clear()
+        self._row_image_count = 0
         super().forget_rows(*_changed)
+
+    def _rows_forgotten(self, rows) -> None:
+        for row in rows:
+            rid = id(row)
+            bucket = self._row_images.get(rid)
+            if bucket is not None and bucket[0] is row:
+                self._row_image_count -= len(bucket[1])
+                self._row_images.pop(rid, None)
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index) -> None:
         row = self._rows.get((index.row(), index.column(), index.internalId()))
@@ -135,25 +146,43 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
             super().paint(painter, option, index)
             return
         view = self.parent()
-        wraps = view.wordWrap() if row.wrap_mode is None else row.wrap_mode.wrapped
-        frame = QRect(option.rect)
+        rect = option.rect
+        item = view.itemFromIndex(index)
+        running = item is not None and item.wave_running()
+        span = item.painted_span if running else None
+        dpr = painter.device().devicePixelRatioF()
+        rid = id(row)
+        variant = (
+            span,
+            rect.width(),
+            rect.height(),
+            option.state._value_,
+            view.wordWrap(),
+            view.viewport().width(),
+            dpr,
+        )
+        bucket = self._row_images.get(rid)
+        if bucket is not None and bucket[0] is row:
+            cached = bucket[1].get(variant)
+            if cached is not None:
+                image, wraps = cached
+                if wraps:
+                    painter.drawImage(0, rect.top(), image)
+                else:
+                    painter.drawImage(rect.topLeft(), image)
+                return
+        wraps = row.wraps(view)
+        frame = QRect(rect)
         if wraps:
             frame.setLeft(0)
             frame.setWidth(view.viewport().width())
         width, height = frame.width(), frame.height()
         if width <= 0 or height <= 0:
             return
-        item = view.itemFromIndex(index)
-        running = item is not None and item.wave_running()
-        span = item.painted_span if running else None
-        dpr = painter.device().devicePixelRatioF()
-        key = (id(row), span, width, height, option.state._value_, wraps, dpr)
-        cached = self._row_images.get(key)
-        if cached is not None and cached[0] is row:
-            painter.drawImage(frame.topLeft(), cached[1])
-            return
-        if len(self._row_images) >= self.BANDED_KEPT:
+        if self._row_image_count >= self.BANDED_KEPT:
             self._row_images.clear()
+            self._row_image_count = 0
+            bucket = None
         image = QImage(
             max(1, round(width * dpr)),
             max(1, round(height * dpr)),
@@ -170,7 +199,11 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         finally:
             self._active_wave = None
             local_painter.end()
-        self._row_images[key] = (row, image)
+        if bucket is None or bucket[0] is not row:
+            self._row_images[rid] = (row, {variant: (image, wraps)})
+        else:
+            bucket[1][variant] = (image, wraps)
+        self._row_image_count += 1
         painter.drawImage(frame.topLeft(), image)
 
     def _prepared_text(self, option, index) -> PreparedTextLayout:
