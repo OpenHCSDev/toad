@@ -580,7 +580,7 @@ def test_scroll_paint_event_clips_offscreen_tiles_and_tiles_horizontally(monkeyp
 
     delegate._paint_tile_document = record_paint
     try:
-        assert delegate.paint_pictures(painter, fake_frag, rect, clip_region, None) is True
+        assert delegate.paint_pictures(painter, fake_frag, rect, clip_region) is True
     finally:
         painter.end()
 
@@ -1194,7 +1194,7 @@ def test_wave3_android_scroll_zero_css_spans_matched_qimage_tiles_and_pause_meas
     painter = QPainter(surface)
     try:
         assert delegate.paint_pictures(
-            painter, fake_frag, QRect(0, 0, 200, 40), QRegion(QRect(0, 0, 200, 100)), None
+            painter, fake_frag, QRect(0, 0, 200, 40), QRegion(QRect(0, 0, 200, 100))
         ) is True
     finally:
         painter.end()
@@ -1487,3 +1487,237 @@ def test_header_tap_highlight_inverts_bars_and_multiline_and_text_buttons_share_
     btn._end_tap_flash()
     assert btn._tap_flashing is False
     btn.deleteLater()
+
+
+def test_unified_viewport_arrival_glides_tall_and_empty_messages_in_lockstep(monkeypatch):
+    """One unified `ViewportArrival` drives BOTH translation and opacity (`0 -> 1`) on
+    `FOLLOW_ARRIVAL`:
+    1. Tall messages (`ArrivalPosition` taller than viewport) glide smoothly from below the
+       viewport up to their head (`destination < tail_scroll_y`) while fading in lockstep,
+       never overshooting to the bottom, and release tail-following on land.
+    2. Empty / non-scrolling viewports (`tail_scroll_y == 0`) translate the arriving row
+       smoothly upward (`offset_y: slide -> 0`) as `opacity` rises `0 -> 1` in lockstep,
+       and `HistoryRowDelegate` + `VirtualRowCanvas` paint it cleanly without ghosting.
+    3. `TapHighlight` crossing targets (`RowTapTarget`/`PinnedTapTarget`) and `ViewportCanvas`
+       (`DetachedCanvas`/`VirtualRowCanvas`) share clean MI bases without restated members."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from contextlib import nullcontext
+    from dataclasses import dataclass
+    from PySide6.QtGui import QColor, QImage, QPainter
+    from toad.arrivals import (
+        AnimatesArrivals,
+        SETTLED_ARRIVAL,
+        ViewportArrival,
+        ViewportArrivalState,
+    )
+    from toad.client.history_changes import NO_HISTORY_CHANGE
+    from toad.client.line_blocks import Span, Summary, TextRole
+    from toad.client.reader_position import (
+        ArrivalPosition,
+        HeadArrivalTarget,
+        RowPosition,
+        TailPosition,
+    )
+    from toad.markdown_links import LinkContext, ReferenceContext
+    from toad.qt.history import HistoryRowDelegate, RowPictures
+    from toad.qt.lines import QtLineRenderer
+    from toad.qt.theme import SCHEMES
+    from toad.qt.virtual_scroll import (
+        DetachedCanvas,
+        PinnedHeaderTapHighlight,
+        PinnedLinkTapHighlight,
+        PinnedTapTarget,
+        RowHeaderTapHighlight,
+        RowLinkTapHighlight,
+        RowTapTarget,
+        ViewportCanvas,
+        VirtualRowCanvas,
+    )
+    import inspect
+
+    # 1. MI lattice checks (TapHighlight crossing + ViewportCanvas).
+    assert issubclass(RowLinkTapHighlight, RowTapTarget)
+    assert issubclass(RowHeaderTapHighlight, RowTapTarget)
+    assert issubclass(PinnedLinkTapHighlight, PinnedTapTarget)
+    assert issubclass(PinnedHeaderTapHighlight, PinnedTapTarget)
+    assert issubclass(DetachedCanvas, ViewportCanvas)
+    assert issubclass(VirtualRowCanvas, ViewportCanvas)
+
+    # 2. Tall arrival glides smoothly from bottom edge (1400) up to its head (2000 < tail 2300)
+    #    while fading 0 -> 1 on ONE `ViewportArrival`, then releases tail anchor on land.
+    @dataclass(frozen=True)
+    class _Frag:
+        key: str
+        source_identity: str
+
+    class _TallLoc:
+        def __init__(self, head_y: float, height: int) -> None:
+            self._head_y = head_y
+            self.fragment = height
+
+        def laid_out(self, _window) -> bool:
+            return True
+
+        def location(self):
+            return self
+
+        def destination(self, _window, _fraction: float) -> float:
+            return self._head_y
+
+    class _TallPage:
+        def __init__(self, head_y: float, height: int) -> None:
+            self._loc = _TallLoc(head_y, height)
+
+        def fragment_row(self, _key, _block: int):
+            return self._loc
+
+        def drawn_height(self, height: int) -> int:
+            return height
+
+    class _ProbeWindow(AnimatesArrivals):
+        arrival_slide_distance = 36.0
+        history_change = NO_HISTORY_CHANGE
+
+        def __init__(self, *, scroll_y: float, tail_scroll_y: float, row_height: float, viewport_h: int) -> None:
+            self._now = 0.0
+            self._clock = AnimationClock(lambda _dt: None, now=lambda: self._now)
+            self.follows_tail = True
+            self.scroll_y = scroll_y
+            self.tail_scroll_y = tail_scroll_y
+            self._row_height = row_height
+            self._viewport_h = viewport_h
+            self.reader_position = TailPosition()
+            self.anchor_released = False
+            self.repainted: list[tuple[object, ...]] = []
+
+        @property
+        def animation_clock(self) -> AnimationClock:
+            return self._clock
+
+        @property
+        def arrival_animation_visible(self) -> bool:
+            return True
+
+        def layout_scroll(self):
+            return nullcontext()
+
+        def arrival_rows_height(self, keys: tuple[object, ...]) -> float | None:
+            return self._row_height * len(keys)
+
+        def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
+            self.repainted.append(keys)
+
+        def message_too_tall(self, height: int) -> bool:
+            return height > self._viewport_h
+
+        def release_anchor(self) -> None:
+            self.follows_tail = False
+            self.anchor_released = True
+
+        def top_page(self):
+            class _Top:
+                def reader_position(self, win):
+                    return RowPosition(win.scroll_y)
+            return _Top()
+
+    tall_win = _ProbeWindow(scroll_y=1400.0, tail_scroll_y=2300.0, row_height=900.0, viewport_h=600)
+    tall_pos = ArrivalPosition(_TallPage(head_y=2000.0, height=900), "tall-1")
+    tall_win.reader_position = tall_pos
+    assert isinstance(tall_pos.arrival_target(tall_win), HeadArrivalTarget)
+
+    tall_win.arrive_fragments((_Frag("tall-1", "src-tall"),), live=False)
+    assert len(tall_win.arrivals) == 1
+    arrival = tall_win.arrivals[0]
+    assert isinstance(arrival, ViewportArrival)
+    assert tall_win.glide is arrival
+    assert tall_win.scroll_y == 1400.0
+    start_state = tall_win.arrival_state("tall-1", row_height=900.0)
+    assert start_state == ViewportArrivalState(opacity=0.0, offset_y=0.0, active=True)
+
+    # Mid-flight: scroll moves smoothly toward head (2000) while opacity rises in lockstep,
+    # never reaching tail_scroll_y (2300).
+    arrival.apply_amount(0.5)
+    assert tall_win.scroll_y == 1700.0
+    assert tall_win.scroll_y < tall_win.tail_scroll_y
+    mid_state = tall_win.arrival_state("tall-1", row_height=900.0)
+    assert mid_state.opacity == 0.5 and mid_state.offset_y == 0.0 and mid_state.active is True
+
+    # Landing: finishes both scroll and fade together at head (2000) and releases tail follow.
+    arrival.land()
+    assert tall_win.scroll_y == 2000.0
+    assert tall_win.anchor_released is True
+    assert tall_win.follows_tail is False
+    assert tall_win.glide is None
+    assert not tall_win.has_active_arrivals
+    assert tall_win.arrival_state("tall-1", row_height=900.0) == SETTLED_ARRIVAL
+
+    # 3. Empty/non-scrolling viewport (`tail_scroll_y == 0`): local upward slide (`offset_y`)
+    #    shrinks `36 -> 18 -> 0` in lockstep with `opacity: 0 -> 0.5 -> 1`.
+    empty_win = _ProbeWindow(scroll_y=0.0, tail_scroll_y=0.0, row_height=48.0, viewport_h=600)
+    empty_win.arrive_fragments((_Frag("first-1", "src-first"),), live=False)
+    empty_arrival = empty_win.arrivals[0]
+    s0 = empty_win.arrival_state("first-1", row_height=48.0)
+    assert s0.active is True and s0.opacity == 0.0 and s0.offset_y == 36.0
+    empty_arrival.apply_amount(0.5)
+    s5 = empty_win.arrival_state("first-1", row_height=48.0)
+    assert s5.active is True and s5.opacity == 0.5 and s5.offset_y == 18.0
+    empty_arrival.land()
+    assert empty_win.arrival_state("first-1", row_height=48.0) == SETTLED_ARRIVAL
+
+    # 4. Qt VirtualRowCanvas + HistoryRowDelegate paints a sliding + fading row cleanly.
+    scheme = SCHEMES[0]
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    class _InlineFrag:
+        key = "row-0"
+        shown = None
+        revision = 0
+        has_blocks = True
+        line_blocks = (Summary((Span("Hello sliding world", TextRole),)),)
+        header_blocks = 0
+        pinned_dividers = ()
+        clipboard_text = "Hello sliding world"
+
+        def row_identity(self):
+            return "row-0"
+
+        def plain_text(self):
+            return "Hello sliding world"
+
+    class _TestCanvas(VirtualRowCanvas):
+        arrival_slide_distance = 36.0
+
+        def __init__(self, store):
+            super().__init__(store)
+            self._state = SETTLED_ARRIVAL
+
+        @property
+        def has_active_arrivals(self) -> bool:
+            return self._state.active
+
+        def arrival_state(self, key: object, row_height: float = 0.0) -> ViewportArrivalState:
+            return self._state if key == "row-0" else SETTLED_ARRIVAL
+
+    delegate = HistoryRowDelegate(renderer, RowPictures(1_000_000), MagicMock())
+    frag = _InlineFrag()
+    canvas = _TestCanvas(delegate)
+    canvas.resize(320, 200)
+    canvas.show()
+    app.processEvents()
+    assert delegate.prepare_inline(frag, canvas.font(), canvas.viewport_width()) is True
+    canvas.model_rows.show((frag,))
+    canvas.do_layout()
+    app.processEvents()
+    try:
+        # Mid-slide (offset_y=18, opacity=0.5): viewport grabs cleanly without crash or clip.
+        canvas._state = ViewportArrivalState(opacity=0.5, offset_y=18.0, active=True)
+        mid_img = canvas.viewport().grab().toImage()
+        # Settled: offset_y=0, opacity=1.0 — resting pixels are clean and distinct from shifted mid-slide.
+        canvas._state = SETTLED_ARRIVAL
+        end_img = canvas.viewport().grab().toImage()
+        assert mid_img != end_img
+    finally:
+        canvas.deleteLater()
+        app.processEvents()

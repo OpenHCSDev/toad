@@ -1379,6 +1379,7 @@ class ConversationPager(HistoryPager):
                     if fragment.key not in previous_keys
                 )
             self.window.arrivals_followed(arrivals)
+            self.hold_arrival(arrivals)
             self.repaint(arrivals, continuing=retained)
         return published
 

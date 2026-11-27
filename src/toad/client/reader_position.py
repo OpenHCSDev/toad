@@ -193,6 +193,61 @@ class UnloadedFragment(FragmentLocation):
         return self
 
 
+class ArrivalTarget(ABC):
+    """Where an arriving message glides a following viewport, and how it lands."""
+
+    @abstractmethod
+    def goal(self, window: ReaderWindow) -> float:
+        """Current scroll destination in `window`'s unit."""
+
+    @abstractmethod
+    def step(self, window: ReaderWindow, current: float, next_y: float) -> float:
+        """Advance the glide position monotonically without overshooting the destination."""
+
+    @abstractmethod
+    def land(self, window: ReaderWindow) -> None:
+        """Finish the arrival glide cleanly at its destination."""
+
+
+class TailArrivalTarget(ArrivalTarget):
+    """Short arrival: tracks live `tail_scroll_y` and stays anchored to the tail."""
+
+    def goal(self, window: ReaderWindow) -> float:
+        return window.tail_scroll_y
+
+    def step(self, window: ReaderWindow, current: float, next_y: float) -> float:
+        # Only ever down: a row that lands mid-glide moves the end, never the reader back up.
+        return max(current, window.scroll_y, next_y)
+
+    def land(self, window: ReaderWindow) -> None:
+        window.follow_end()
+
+
+TAIL_ARRIVAL_TARGET = TailArrivalTarget()
+
+
+@dataclass(frozen=True, slots=True)
+class HeadArrivalTarget(ArrivalTarget):
+    """Tall arrival: glides smoothly from below the viewport up to the message's head,
+    then releases tail-following so the reader reads from the top."""
+
+    position: ArrivalPosition
+    scroll_y: float
+
+    def goal(self, window: ReaderWindow) -> float:
+        return self.position.destination(window) if self.position.laid_out(window) else self.scroll_y
+
+    def step(self, window: ReaderWindow, current: float, next_y: float) -> float:
+        return min(self.goal(window), max(current, window.scroll_y, next_y))
+
+    def land(self, window: ReaderWindow) -> None:
+        destination = self.goal(window)
+        if window.follows_tail:
+            window.release_anchor()
+        window.scroll_y = destination
+        window.reader_position = self.position.placed(window, True)
+
+
 class ReaderPosition(ABC):
     """Where the reader is in a history window, named by what they read.
 
@@ -254,10 +309,9 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
-    def joins_tail(self, window: ReaderWindow) -> bool:
-        """Whether placing this puts the reader on the latest row: a window with its own way
-        there (Qt's glide) takes it only then."""
-        return False
+    def arrival_target(self, window: ReaderWindow) -> ArrivalTarget | None:
+        """Where an arrival glides this reader, or `None` when the reader is reading elsewhere."""
+        return None
 
     def arrived(self, page: ReaderPage, key: FragmentKey) -> ReaderPosition:
         """The position after a message arrived at the followed end: only following hands it the reader."""
@@ -331,8 +385,8 @@ class TailPosition(ReaderPosition):
         window.scroll_y = window.tail_scroll_y
         return True
 
-    def joins_tail(self, window: ReaderWindow) -> bool:
-        return True
+    def arrival_target(self, window: ReaderWindow) -> ArrivalTarget | None:
+        return TAIL_ARRIVAL_TARGET
 
     def joined_tail(self) -> ReaderPosition:
         return self
@@ -500,9 +554,11 @@ class ArrivalPosition(NativeReaderHolder, OffsetPosition):
         """Whether the message is taller than the window, in the layout just made."""
         return window.message_too_tall(self.page.drawn_height(self.location().location().fragment))
 
-    def joins_tail(self, window: ReaderWindow) -> bool:
-        """An arrival not drawn yet, or one that fits in the window, follows the tail."""
-        return not (self.laid_out(window) and self.tall(window))
+    def arrival_target(self, window: ReaderWindow) -> ArrivalTarget | None:
+        """A tall arrival glides smoothly up to its head; one that fits follows the tail."""
+        if self.laid_out(window) and self.tall(window):
+            return HeadArrivalTarget(self, self.destination(window))
+        return TAIL_ARRIVAL_TARGET
 
     def place(self, window: ReaderWindow) -> bool:
         if self.tall(window):

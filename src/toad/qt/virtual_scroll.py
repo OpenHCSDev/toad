@@ -43,6 +43,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QAbstractScrollArea, QWidget
 from pyqt_reactive.widgets.virtual_rows import PendingRow, RowFormatting, RowPreparer, ThreadRowPreparer
 
+from toad.arrivals import SETTLED_ARRIVAL, ViewportArrivalState
 from toad.client.tap_flash import TapFeedback
 
 
@@ -178,6 +179,9 @@ class TapHighlight(TapFeedback, ABC):
     def is_pinned(self) -> bool:
         return False
 
+    def invalidate_in(self, window) -> None:
+        """Repaint whichever surface of `window` shows this highlight (no-op for none)."""
+
     def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
         return []
 
@@ -249,58 +253,66 @@ class HeaderTapHighlight(TapHighlight):
                     painter.fillRect(QRectF(brect.left(), brect.center().y() - 0.5, brect.width(), 1.5), bg)
 
 
+class RowTapTarget(TapHighlight):
+    """Tap target located on an in-flow history row."""
+
+    key: object
+
+    def matches_row(self, key: object) -> bool:
+        return key == self.key
+
+    def row_key(self) -> object:
+        return self.key
+
+    def invalidate_in(self, window) -> None:
+        row = window.model_rows.row_of(self.key)
+        if row >= 0:
+            window.update_row(row)
+
+
+class PinnedTapTarget(TapHighlight):
+    """Tap target located on a pinned sticky header."""
+
+    index: int
+
+    def matches_pinned(self, index: int) -> bool:
+        return index == self.index
+
+    def is_pinned(self) -> bool:
+        return True
+
+    def invalidate_in(self, window) -> None:
+        window.sticky_header.update()
+
+
 @dataclass(frozen=True, slots=True)
-class RowLinkTapHighlight(LinkTapHighlight):
+class RowLinkTapHighlight(RowTapTarget, LinkTapHighlight):
     """Invert the tapped `<a href>` text span inside one history row."""
 
     key: object
     href: str
 
-    def matches_row(self, key: object) -> bool:
-        return key == self.key
-
-    def row_key(self) -> object:
-        return self.key
-
 
 @dataclass(frozen=True, slots=True)
-class RowHeaderTapHighlight(HeaderTapHighlight):
+class RowHeaderTapHighlight(RowTapTarget, HeaderTapHighlight):
     """Invert the tapped message header divider (text + horizontal bars) inside one history row."""
 
     key: object
 
-    def matches_row(self, key: object) -> bool:
-        return key == self.key
-
-    def row_key(self) -> object:
-        return self.key
-
 
 @dataclass(frozen=True, slots=True)
-class PinnedLinkTapHighlight(LinkTapHighlight):
+class PinnedLinkTapHighlight(PinnedTapTarget, LinkTapHighlight):
     """Invert the tapped `<a href>` text span inside a pinned sticky header."""
 
     index: int
     href: str
 
-    def matches_pinned(self, index: int) -> bool:
-        return index == self.index
-
-    def is_pinned(self) -> bool:
-        return True
-
 
 @dataclass(frozen=True, slots=True)
-class PinnedHeaderTapHighlight(HeaderTapHighlight):
+class PinnedHeaderTapHighlight(PinnedTapTarget, HeaderTapHighlight):
     """Invert the tapped pinned sticky header (text + horizontal bars)."""
 
     index: int
-
-    def matches_pinned(self, index: int) -> bool:
-        return index == self.index
-
-    def is_pinned(self) -> bool:
-        return True
 
 
 class RowMetrics:
@@ -326,11 +338,27 @@ class RowSize:
         self.row = row
 
 
-class DetachedCanvas:
-    """Rows no canvas draws yet: nothing to lay out again or repaint, and no viewport width."""
+class ViewportCanvas:
+    """Shared canvas surface exposed to row delegates for tap highlights and unified viewport
+    arrival animation (`ViewportArrivalState`). Both `DetachedCanvas` and `VirtualRowCanvas`
+    inherit it; `QtHistoryWindow` overrides arrivals via `AnimatesArrivals` ahead in its MRO."""
 
     tap_highlight: TapHighlight = NO_TAP_HIGHLIGHT
     has_active_arrivals: bool = False
+    arrival_slide_distance: float = 0.0
+
+    def arrival_state(self, key: object, row_height: float = 0.0) -> ViewportArrivalState:
+        return SETTLED_ARRIVAL
+
+    def arrival_opacity(self, key: object) -> float | None:
+        return None
+
+    def row_painted(self, fragment, rect: QRect) -> None:
+        pass
+
+
+class DetachedCanvas(ViewportCanvas):
+    """Rows no canvas draws yet: nothing to lay out again or repaint, and no viewport width."""
 
     def rows_changed(self) -> None:
         pass
@@ -352,12 +380,6 @@ class DetachedCanvas:
 
     def backing_device(self) -> QWidget | None:
         return None
-
-    def arrival_opacity(self, key: object) -> float | None:
-        return None
-
-    def row_painted(self, fragment, rect: QRect) -> None:
-        pass
 
 
 class RowDocumentStore(ABC):
@@ -830,7 +852,7 @@ class FragmentRowList:
             self._canvas._rows_data_changed(indices)
 
 
-class VirtualRowCanvas(QAbstractScrollArea):
+class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
     """Direct-paint, O(log N) prefix-sum virtual scroll area for variable-height rows.
 
     Scrolls the uncovered viewport rectangle in place (`viewport.scroll(dx, dy, clear)`)
@@ -840,14 +862,6 @@ class VirtualRowCanvas(QAbstractScrollArea):
 
     END_SLACK = 10
     MEASURED_VIEWPORTS = 2
-    tap_highlight: TapHighlight = NO_TAP_HIGHLIGHT
-    has_active_arrivals: bool = False
-
-    def arrival_opacity(self, key: object) -> float | None:
-        return None
-
-    def row_painted(self, fragment, rect: QRect) -> None:
-        pass
 
     def __init__(self, rows: RowDocumentStore, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -1003,10 +1017,13 @@ class VirtualRowCanvas(QAbstractScrollArea):
         left = -self.horizontalScrollBar().value()
         return QRect(left, top, w, h)
 
-    def update_row(self, row: int) -> None:
-        """Invalidate only `row`'s visible rectangle in the viewport."""
+    def update_row(self, row: int, extra_bottom: int = 0) -> None:
+        """Invalidate only `row`'s visible rectangle in the viewport (plus `extra_bottom`
+        pixels below it while a local upward arrival slide is running)."""
         rect = self.row_rect(row)
         if not rect.isEmpty():
+            if extra_bottom > 0:
+                rect = rect.adjusted(0, 0, 0, extra_bottom)
             clipped = rect.intersected(self.viewport().rect())
             if not clipped.isEmpty():
                 self.viewport().update(clipped)
@@ -1211,11 +1228,17 @@ class VirtualRowCanvas(QAbstractScrollArea):
         total_h = self._offsets[count]
         top_y = scroll_y + clip.top()
         bot_y = scroll_y + clip.bottom()
-        if top_y >= total_h:
+        animating = self.has_active_arrivals
+        slide_pad = int(math.ceil(self.arrival_slide_distance)) if animating else 0
+        if top_y >= total_h + slide_pad:
             painter.fillRect(clip, bg_color)
             painter.end()
             return
-        first = max(0, bisect_right(self._offsets, max(0, top_y)) - 1)
+        if animating:
+            # Clear once before painting arriving rows so semi-transparent tiles and local
+            # upward slide offsets never ghost or erase sibling rows in the same burst.
+            painter.fillRect(clip, bg_color)
+        first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
         last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
         last_bottom = -1
         for row in range(first, last + 1):
@@ -1225,17 +1248,19 @@ class VirtualRowCanvas(QAbstractScrollArea):
             y = self._offsets[row] - scroll_y
             if y > clip.bottom():
                 break
-            if y + h - 1 < clip.top():
+            if y + h + slide_pad - 1 < clip.top():
                 continue
             row_w = max(vp_w, self._extents[row])
             rect = QRect(-scroll_x, y, row_w, h)
             self.rows.paint_row(painter, row, fragments[row], rect, dirty)
             last_bottom = y + h
-        # Fill any empty area below the final row (or above row 0 on overscroll)
-        if last_bottom >= 0 and last_bottom <= clip.bottom():
-            painter.fillRect(QRect(clip.left(), max(clip.top(), last_bottom), clip.width(), clip.bottom() - max(clip.top(), last_bottom) + 1), bg_color)
-        elif last_bottom < 0:
-            painter.fillRect(clip, bg_color)
+        # Fill any empty area below the final row (or above row 0 on overscroll) when
+        # not already pre-cleared for an active arrival.
+        if not animating:
+            if last_bottom >= 0 and last_bottom <= clip.bottom():
+                painter.fillRect(QRect(clip.left(), max(clip.top(), last_bottom), clip.width(), clip.bottom() - max(clip.top(), last_bottom) + 1), bg_color)
+            elif last_bottom < 0:
+                painter.fillRect(clip, bg_color)
         painter.end()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
