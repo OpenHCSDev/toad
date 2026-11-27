@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 )
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine, WrappedText
-from ui_theme.scheme import AccentColour, SecondaryColour
+from ui_theme.scheme import AccentColour, BackgroundColour, SecondaryColour
 
 from toad.client.line_blocks import FailureRole, MutedRole
 from toad.client.prompt_stack import (

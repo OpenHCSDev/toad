@@ -180,6 +180,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self.links_revision = 0
         self._colour_cache: tuple[ColourScheme, str, QColor, QColor] | None = None
         self._font_metrics_cache: tuple[QFont, float, int] | None = None
+        self._font_spec_cache: tuple[QFont, str, float] | None = None
+        self._frame_paint: tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor] | None = None
 
     @staticmethod
     def _backing_image_format(widget: QWidget | None, painter: QPainter) -> QImage.Format:
@@ -286,8 +288,18 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         """A header's place in a key, where a row's has its fragment, look and revision."""
         return header, None, 0
 
+    def _font_spec(self, font: QFont) -> tuple[str, float]:
+        cached = self._font_spec_cache
+        if cached is not None and cached[0] == font:
+            return cached[1], cached[2]
+        family = font.family()
+        size = round(font.pointSizeF(), 2)
+        self._font_spec_cache = (QFont(font), family, size)
+        return family, size
+
     def drawn_key(self, shown: tuple, font: QFont, width: int):
-        return shown, self.links_revision, font.family(), round(font.pointSizeF(), 2), width
+        family, size = self._font_spec(font)
+        return shown, self.links_revision, family, size, width
 
     def row_preparation(self, fragment: HistoryFragment, font: QFont, width: int) -> QtRowPreparation:
         """Data-only row work: Qt measures its monospace cell once; the worker owns HTML, of
@@ -546,6 +558,23 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         document.setPlainText(self.row_text(fragment))
         self._paint_document_direct(painter, document, rect, clip_region, arrival, NO_TAP_HIGHLIGHT)
 
+    def _resolve_frame_paint(
+        self, painter: QPainter,
+    ) -> tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor]:
+        device = self.view.backing_device()
+        font = device.font() if device is not None else QFont()
+        palette = device.palette() if device is not None else QPalette()
+        ratio = painter.device().devicePixelRatioF()
+        img_format = self._backing_image_format(device, painter)
+        bg_hex, bg_color, fg_color = self._theme_colours()
+        return device, font, palette, ratio, img_format, bg_hex, bg_color, fg_color
+
+    def begin_paint(self, painter: QPainter, viewport_rect: QRect) -> None:
+        self._frame_paint = self._resolve_frame_paint(painter)
+
+    def end_paint(self) -> None:
+        self._frame_paint = None
+
     def paint_row(
         self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
     ) -> None:
@@ -558,8 +587,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         paint_rect = rect.translated(0, round(arrival.offset_y)) if arrival.offset_y else rect
         highlight = self.view.tap_highlight
         if highlight.matches_row(fragment.key):
-            device = self.view.backing_device()
-            font = device.font() if device is not None else QFont()
+            frame = self._frame_paint
+            font = frame[1] if frame is not None else (
+                self.view.backing_device().font() if self.view.backing_device() is not None else QFont()
+            )
             document = self.final_document_for(fragment, font, self.layout_width(paint_rect.width()))
             if document is not None:
                 self._paint_document_direct(painter, document, paint_rect, clip_region, arrival, highlight)
@@ -579,8 +610,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     ) -> bool:
         """The tiles of the row that this paint shows, each drawn once into a backing-store-matched
         `QImage` and blitted with `CompositionMode_Source` on subsequent frames."""
-        device = self.view.backing_device()
-        font = device.font() if device is not None else QFont()
+        frame = self._frame_paint
+        if frame is None:
+            frame = self._resolve_frame_paint(painter)
+        _device, font, palette, ratio, img_format, bg_hex, bg_color, _fg_color = frame
         document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
         if document is None and not arrival.active:
             return False
@@ -594,10 +627,6 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             shown = rect
         if shown.isEmpty():
             return True
-        ratio = painter.device().devicePixelRatioF()
-        img_format = self._backing_image_format(device, painter)
-        bg_hex, bg_color, _fg_color = self._theme_colours()
-        palette = device.palette() if device is not None else QPalette()
         look = (rect.width(), rect.height(), ratio, bg_hex, img_format)
         row_id = id(document) if document is not None else (id(self), fragment.key)
         painter.save()
@@ -1939,6 +1968,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def show_rows(self) -> None:
         """Read the rows again from the history's shown pages, then the draft after them."""
+        self._flush_reader_scroll()
         history = self.history
         self.model_rows.show(tuple(fragment for page in history.pages if page.display
                                    for fragment in page.shown_fragments) + self.draft
@@ -1953,6 +1983,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         """One prefix-sum layout now, keeping the reader on their message and answering the
         change that asked for it. Wrapping layout and reader placement in one `layout_scroll()`
         keeps scrollbar clamping from firing `scrolled()` as a fake reader move."""
+        self._flush_reader_scroll()
         answered = self.history_change.layout_requests
         with self.layout_scroll():
             self.schedule_layout()
@@ -2096,11 +2127,22 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if not self.at_end and self.follows_tail:
             self.release_anchor()
         self._reader_moved += moved
+        self._reader_position_dirty = True
         self._reader_scrolled = True
 
     _reader_scrolled = False
+    _reader_position_dirty = False
     _reader_moved = 0
     _scrolled_to = 0
+
+    def _flush_reader_scroll(self) -> None:
+        """Commit pending scroll movement into `reader_position` before a row splice or layout
+        runs `place_layout_reader()`, so an arrival or worker batch landing inside the 16 ms
+        `_scroll_frame_timer` window cannot snap the reader back to their pre-scroll position."""
+        if self._reader_position_dirty:
+            self._reader_position_dirty = False
+            moved, self._reader_moved = self._reader_moved, 0
+            self.record_reader_scroll(moved)
 
     def _schedule_scroll_frame(self) -> None:
         if not self._scroll_frame_pending:
@@ -2115,8 +2157,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._scroll_frame_pending = False
         if self._reader_scrolled:
             self._reader_scrolled = False
-            moved, self._reader_moved = self._reader_moved, 0
-            self.record_reader_scroll(moved)
+            self._flush_reader_scroll()
             self.repin_header()
             was_preparing = self._preparing
             self._preparing = True
@@ -2247,22 +2288,22 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def row_painted(self, fragment: HistoryFragment, rect: QRect) -> None:
         """A row whose text is on screen, beyond its header line, was seen.
 
-        Reads a cached `lineSpacing` so the delegate's per-row `paint` doesn't allocate
-        a fresh `QFontMetrics` on every visible row during scroll — on a long transcript
-        this was hundreds of allocations per frame."""
-        shown = rect.intersected(self.viewport().rect())
+        Reads a cached `lineSpacing` (invalidated in `changeEvent(FontChange)`) so the
+        delegate's per-row `paint` skips both `QFontMetrics` allocations and C++ `QFont`
+        comparisons on every visible row during scroll."""
+        shown = rect.intersected(self._viewport.rect())
         if shown == rect or shown.height() > 2 * self._font_line_spacing():
             self.history.retain_painted(fragment)
 
     def _font_line_spacing(self) -> int:
-        """Cached `QFontMetrics(self.font()).lineSpacing()`; refreshed on a font change."""
-        font = self.font()
+        """Cached `QFontMetrics(self.font()).lineSpacing()`; invalidated on `FontChange`."""
         cached = self._cached_font_line_spacing
-        if cached is None or cached[0] != font:
-            spacing = QFontMetrics(font).lineSpacing()
-            self._cached_font_line_spacing = (QFont(font), spacing)
-            return spacing
-        return cached[1]
+        if cached is not None:
+            return cached[1]
+        font = self.font()
+        spacing = QFontMetrics(font).lineSpacing()
+        self._cached_font_line_spacing = (QFont(font), spacing)
+        return spacing
 
     # Frames
 
