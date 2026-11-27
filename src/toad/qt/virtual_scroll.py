@@ -902,6 +902,15 @@ class VirtualRowCanvas(QAbstractScrollArea):
             if not clipped.isEmpty():
                 self.viewport().update(clipped)
 
+    def scroll_to_row(self, row: int) -> None:
+        """Scroll so `row` starts at the top of the viewport."""
+        if row < 0 or row >= len(self._heights):
+            return
+        self.execute_layout()
+        self._ensure_offsets()
+        bar = self.verticalScrollBar()
+        bar.setValue(min(bar.maximum(), max(bar.minimum(), self._offsets[row])))
+
     def schedule_layout(self) -> None:
         self._layout_pending = True
 
