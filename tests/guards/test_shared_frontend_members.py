@@ -573,11 +573,15 @@ def test_gui_and_tui_share_theme_tones_and_resolve_identical_colours() -> None:
         # Channel rows step toward PrimaryColour (not flat neutral sidebar).
         assert renderer.theme(ChannelRowToneColour) != renderer.theme(ThreadRowFace.row_tones[0])
         assert renderer.theme(ChannelAlternateRowToneColour) != renderer.theme(ChannelRowToneColour)
+        # Tab strip / inactive tab / selected tab are three distinct stepped tiers so inter-tab gaps stay visible.
+        assert renderer.theme(WorkspaceTabTones.bar_tone) != renderer.theme(WorkspaceTabTones.inactive_tab_tone)
+        assert renderer.theme(WorkspaceTabTones.inactive_tab_tone) != renderer.theme(WorkspaceTabTones.selected_tab_tone)
         # Toggle bar, tab hover, scrollbar, and float tones resolve cleanly.
         for tone in (
             SidebarToggleToneColour,
             TabHoverToneColour,
             WorkspaceTabTones.bar_tone,
+            WorkspaceTabTones.inactive_tab_tone,
             WorkspaceTabTones.selected_tab_tone,
             WorkspaceTabTones.underline_colour,
             WorkspaceTabTones.close_hover_colour,

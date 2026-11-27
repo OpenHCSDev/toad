@@ -437,6 +437,31 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     def is_prepared(self, key) -> bool:
         return key in self._prepared
 
+    def prepare_inline(self, fragment: HistoryFragment, font: QFont, width: int) -> bool:
+        """Prepare a lightweight non-Markdown row (e.g. a collapsed message's header +
+        1-line summary) immediately using the already-warm `self.renderer` so first
+        collapse lays out in one frame (< 1 ms) without a RenderProcessPool round-trip."""
+        if width <= 0 or not fragment.has_blocks:
+            return False
+        blocks = fragment.line_blocks
+        if not blocks or not all(block.renders_inline for block in blocks):
+            return False
+        key = self.fragment_key(fragment, font, width)
+        if key in self._prepared:
+            return True
+        cell, _line = self._font_metrics(font)
+        cols = max(1, int((width - 8) / cell))
+        html = self.renderer.at_width(cols).html
+        headed = fragment.header_blocks + 1
+        pinned = fragment.pinned_dividers
+        rendered = RenderedRow(
+            html(blocks),
+            tuple(html((block,)) for block in blocks[:headed]),
+            tuple((header, html((header,))) for header in pinned),
+        )
+        self._row_prepared(key, rendered)
+        return True
+
     TILE = 256
     """Pixels of a row's height one picture holds. A row is as tall as its message, and a
     long message's whole picture would take most of what the app may retain; in 256px tiles
@@ -872,24 +897,32 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
     def hold_row(self, waiting, row) -> None:
         self.window.rows.hold_row(waiting, row)
 
-    async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
-        """A status or collapse/expand change repaints only the rows it changed. If a new look
-        is not yet prepared, painting asks the delegate for it and its arrival lays out rows
-        (`_row_prepared`); if a changed row now has empty blocks or its new look is already
-        cached in `_prepared` (e.g. re-expanding a collapsed block), relayout runs immediately."""
+    def apply_shown(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
+        """Apply a status or collapse/expand change synchronously. Lightweight inline
+        looks (e.g. first collapse of a message to its header + summary) prepare directly
+        with the warm renderer so first collapse lays out in one frame instead of waiting
+        on a RenderProcessPool round-trip."""
         changed = tuple(fragment for fragment, shown in changes if fragment.request_show(shown))
         if changed:
             self.window.model_rows.changed(changed)
             font, width = self.window.font(), self.window.viewport_width()
-            needs_layout = any(
-                not fragment.has_blocks
-                or (width > 0 and self.window.rows.is_prepared(self.window.rows.fragment_key(fragment, font, width)))
-                for fragment in changed
-            )
+            rows = self.window.rows
+            needs_layout = False
+            for fragment in changed:
+                if not fragment.has_blocks:
+                    needs_layout = True
+                elif width > 0 and (
+                    rows.is_prepared(rows.fragment_key(fragment, font, width))
+                    or rows.prepare_inline(fragment, font, width)
+                ):
+                    needs_layout = True
             if needs_layout:
                 self.window.rows_changed()
             else:
                 self.repaint(continuing=changed)
+
+    async def _show(self, changes: list[tuple[HistoryFragment, Shown]]) -> None:
+        self.apply_shown(changes)
 
     def repaint(self, fragments: tuple[HistoryFragment, ...] = (), *, continuing=()) -> None:
         """Repaint only the rows the pager named. The shared contract already says which
@@ -1711,7 +1744,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             for fragment in self.model_rows.fragments
             if fragment.source_identity == target.source_identity
         ]
-        self.history.run_worker(lambda: self.history._show(changes))
+        self.history.apply_shown(changes)
 
     @handles(FragmentCollapse)
     def toggle_collapse(self, link: FragmentCollapse) -> None:
@@ -1725,7 +1758,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             for fragment in self.model_rows.fragments
             if fragment.source_identity == target.source_identity
         ]
-        self.history.run_worker(lambda: self.history._show(changes))
+        self.history.apply_shown(changes)
 
     def _emit_block_menu_at(self, point: QPoint) -> None:
         """Right-click or long-press at ``point`` (viewport coordinates): emit the

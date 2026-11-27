@@ -344,6 +344,10 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    renders_inline: ClassVar[bool] = False
+    """Lightweight non-Markdown blocks (headers, single-line summaries, gaps) can render
+    directly in-process on interactive collapse/toggle without a worker-pool round-trip."""
+
     @property
     def retained_bytes(self) -> int:
         """Record plus Unicode payload; not a census of shared theme objects."""
@@ -364,6 +368,8 @@ class Divider(LineBlock):
     Title text without a link is drawn in the rule's role; a linked span keeps
     its own. The frontend formats the time.
     """
+
+    renders_inline: ClassVar[bool] = True
 
     spans: tuple[Span, ...]
     role: type[LineRole]
@@ -443,6 +449,8 @@ class SpanColumns(LineBlock):
 class Summary(SpanText):
     """One clipped row, followed by spans whose space is reserved first."""
 
+    renders_inline: ClassVar[bool] = True
+
     kept: tuple[Span, ...] = ()
 
     @staticmethod
@@ -479,6 +487,8 @@ class Summary(SpanText):
 @dataclass(frozen=True)
 class Gap(LineBlock):
     """One blank line between messages."""
+
+    renders_inline: ClassVar[bool] = True
 
 
 @dataclass(frozen=True)
