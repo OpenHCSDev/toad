@@ -1343,3 +1343,56 @@ def test_wave4_virtual_row_canvas_direct_value_and_tab_chrome_cache(monkeypatch)
         sweep.sweep(False)
         sweep.deleteLater()
     app.processEvents()
+
+
+def test_first_collapse_prepares_inline_without_worker_pool(monkeypatch) -> None:
+    """Collapsing a message prepares its lightweight header + 1-line summary inline with the
+    warm renderer (zero RenderProcessPool submission) and `compact_preview` bounds huge bodies."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from types import SimpleNamespace
+    from agent_comms.messaging.display_references import ProjectReferences
+    from toad.client.line_blocks import Divider, IncomingRole, MarkdownBody, MutedRole, Span, Summary
+    from toad.client.structured_context import compact_preview
+    from toad.qt.history import HistoryRowDelegate, RowPictures
+
+    # 1. compact_preview stays O(1) on huge bodies with leading whitespace.
+    huge = ("   \n\t  ") + ("hello world " * 20000)
+    assert compact_preview(huge, 40) == "hello world hello world hello world hel…"
+
+    # 2. prepare_inline renders collapsed Divider+Summary rows synchronously without touching
+    #    the RenderProcessPool, and skips MarkdownBody rows so heavy bodies stay off-loop.
+    scheme = current_scheme(os.environ)
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), ProjectReferences()), DiffSettings())
+    processes = MagicMock()
+    delegate = HistoryRowDelegate(renderer, RowPictures(1024 * 1024), processes)
+    font = app.font()
+    collapsed_header = Divider((Span("▶ ", IncomingRole), Span("#model", IncomingRole)), role=IncomingRole)
+    collapsed_summary = Summary((Span("preview line", MutedRole),))
+
+    collapsed_frag = SimpleNamespace(
+        key="m-1",
+        shown=("collapsed",),
+        revision=0,
+        has_blocks=True,
+        line_blocks=(collapsed_header, collapsed_summary),
+        header_blocks=1,
+        pinned_dividers=(collapsed_header,),
+    )
+    assert delegate.prepare_inline(collapsed_frag, font, 360) is True
+    assert delegate.is_prepared(delegate.fragment_key(collapsed_frag, font, 360)) is True
+    assert delegate.is_prepared(delegate.header_key(collapsed_header, font, 360)) is True
+    processes.submit.assert_not_called()
+
+    markdown_frag = SimpleNamespace(
+        key="m-2",
+        shown=("expanded",),
+        revision=0,
+        has_blocks=True,
+        line_blocks=(collapsed_header, MarkdownBody("big body")),
+        header_blocks=1,
+        pinned_dividers=(collapsed_header,),
+    )
+    assert delegate.prepare_inline(markdown_frag, font, 360) is False
+    assert delegate.is_prepared(delegate.fragment_key(markdown_frag, font, 360)) is False
+    delegate.cleanup()

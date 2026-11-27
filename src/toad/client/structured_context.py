@@ -46,7 +46,9 @@ _PARAM_TAG = re.compile(r"<parameter=([^>]+)>(.*?)</parameter>", re.DOTALL)
 
 def compact_preview(text: str, limit: int = 64) -> str:
     """Single-line trimmed preview that stays legible on a 50-column phone screen."""
-    collapsed = " ".join(text.split())
+    # Bound input before splitting so collapsing a huge message never scans 100 KB for 72 chars.
+    head = text.lstrip()[: max(limit * 4, 256)]
+    collapsed = " ".join(head.split())
     if len(collapsed) <= limit:
         return collapsed
     return collapsed[: max(1, limit - 1)].rstrip() + "…"

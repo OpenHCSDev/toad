@@ -84,9 +84,13 @@ class TabHoverToneColour(ToneColour):
 class WorkspaceTabTones:
     """Single colour declaration for the workspace navigation bar and session tabs across
     Textual (`WorkspaceHeader`, `SessionLabel`, `SessionTabClose`, `Underline`) and Qt
-    (`QtToadApp.paint_chrome_colours`, `QtSessionTabBar`)."""
+    (`QtToadApp.paint_chrome_colours`, `QtSessionTabBar`).
 
-    bar_tone: ClassVar[type[ThemeColour]] = HeaderToneColour
+    Three stepped tiers keep inter-tab gaps and active/inactive tabs visually distinct:
+    `bar_tone` (strip + gaps) -> `inactive_tab_tone` -> `selected_tab_tone`."""
+
+    bar_tone: ClassVar[type[ThemeColour]] = SidebarToneColour
+    inactive_tab_tone: ClassVar[type[ThemeColour]] = HeaderToneColour
     selected_tab_tone: ClassVar[type[ThemeColour]] = SelectedTabToneColour
     hover_tone: ClassVar[type[ThemeColour]] = TabHoverToneColour
     underline_colour: ClassVar[type[ThemeColour]] = AccentColour

@@ -50,10 +50,14 @@ class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, Changin
     def current(self) -> bool:
         return self.mode_name == self.app.selected_mode
 
-    # TonePaint declares a class tone; the open tab is raised a tier off the bar, the rest sit on it.
+    # TonePaint declares a class tone; inactive tabs sit a tier off the strip and the open tab one higher.
     @property
     def tone(self):  # type: ignore[override]
-        return WorkspaceTabTones.selected_tab_tone if self.current else None
+        return (
+            WorkspaceTabTones.selected_tab_tone
+            if self.current
+            else WorkspaceTabTones.inactive_tab_tone
+        )
 
     def paint_current(self) -> None:
         """The tab opened or closed: its tone is part of its cached paint."""

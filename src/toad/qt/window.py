@@ -2062,6 +2062,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
                 + toggle_style
             )
         bar_bg = renderer.theme(WorkspaceTabTones.bar_tone)
+        inactive_bg = renderer.theme(WorkspaceTabTones.inactive_tab_tone)
         selected_bg = renderer.theme(WorkspaceTabTones.selected_tab_tone)
         hover_bg = renderer.theme(WorkspaceTabTones.hover_tone)
         underline_hex = renderer.theme(WorkspaceTabTones.underline_colour)
@@ -2071,7 +2072,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         close_hover = renderer.theme(WorkspaceTabTones.close_hover_colour)
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
-            f"QTabBar::tab {{ background-color: {bar_bg}; color: {inactive_ink}; border: none;"
+            f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
             f" padding: 6px 10px 6px 12px; margin-right: {self.tabs.TAB_GAP}px;"
             " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
             f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
