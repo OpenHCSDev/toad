@@ -26,13 +26,20 @@ from typing import ClassVar
 from weakref import WeakSet
 
 from metaclass_registry.mro_dispatch import handles
-from PySide6.QtCore import QAbstractListModel, QEvent, QModelIndex, QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QImage, QPainter, QPen, QPixmap, QRegion, QScrollEvent, QTextDocument
-from PySide6.QtWidgets import (
-    QAbstractItemView, QApplication, QPushButton, QScroller, QScrollerProperties, QStyleOptionViewItem, QWidget,
-)
-from pyqt_reactive.widgets.virtual_rows import (
-    HtmlRow, RowDocumentDelegate, RowFormatting, RowPreparer, VirtualRowView,
+from PySide6.QtCore import QEvent, QPoint, QPointF, QRect, QRectF, QSize, Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QImage, QPainter, QPalette, QPen, QPixmap, QRegion, QScrollEvent, QTextDocument
+from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QScrollerProperties, QWidget
+from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowFormatting, RowPreparer
+from toad.qt.virtual_scroll import (
+    FragmentRowList,
+    NO_TAP_HIGHLIGHT,
+    PinnedHeaderTapHighlight,
+    PinnedLinkTapHighlight,
+    RowDocumentStore,
+    RowHeaderTapHighlight,
+    RowLinkTapHighlight,
+    TapHighlight,
+    VirtualRowCanvas,
 )
 from toad.arrivals import AnimatesArrivals
 from toad.client.pending import AwaitsFirstPage
@@ -150,98 +157,11 @@ class QtPage(ReaderPage):
         return self.history.window.fragment_location(key)
 
 
-class HistoryRows(QAbstractListModel):
-    """The shown fragments of a history's loaded pages, one row each."""
-
-    FRAGMENT = Qt.ItemDataRole.UserRole
-    ROLE_ANSWERS: ClassVar[dict[int, Callable[[HistoryFragment], object]]] = {
-        FRAGMENT: lambda fragment: fragment,
-        Qt.ItemDataRole.DisplayRole: lambda fragment: fragment.clipboard_text,
-    }
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.fragments: tuple[HistoryFragment, ...] = ()
-        self._rows: dict = {}
-
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # type: ignore[override]
-        return 0 if parent.isValid() else len(self.fragments)
-
-    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):  # type: ignore[override]
-        """The fragment itself, or its plain text to display; a row answers no other role.
-        Only the asked role's answer is read: Qt asks a row for many roles each time it sizes
-        or paints it, and the plain text is built from the message, not stored."""
-        answer = self.ROLE_ANSWERS.get(role)
-        return None if answer is None else answer(self.fragments[index.row()])
-
-    def show(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        """The rows the pages show now, told to the view as what changed: the rows of pages
-        that did not change are the same fragment objects, so the unchanged rows before and
-        after the change are found by identity, and only the rows between them are inserted,
-        removed or changed. The view keeps every other row's measured height
-        (`RowDocumentDelegate` row sizes); a reset made it measure the whole history again
-        on every arrival (Tristan, Pixel 8a, bursts at 30 ms a frame, 2026-11-18)."""
-        old = self.fragments
-        same = min(len(old), len(fragments))
-        head = next((row for row in range(same) if old[row] is not fragments[row]), same)
-        tail = 0
-        while tail < same - head and old[-1 - tail] is fragments[-1 - tail]:
-            tail += 1
-        removed, added = len(old) - head - tail, len(fragments) - head - tail
-        if removed == added:
-            self._set(fragments, head)
-            if added:
-                self.dataChanged.emit(self.index(head, 0), self.index(head + added - 1, 0))
-            return
-        # The first `changed` rows of the change keep their old content through the removal
-        # and the insertion (rows an insert or removal does not name must not change in it),
-        # then change in place, told as a data change.
-        changed = min(removed, added)
-        kept, end = old[:head + changed], old[len(old) - tail:]
-        if removed > changed:
-            self.beginRemoveRows(QModelIndex(), head + changed, head + removed - 1)
-            self._set(kept + end, head + changed)
-            self.endRemoveRows()
-        if added > changed:
-            self.beginInsertRows(QModelIndex(), head + changed, head + added - 1)
-            self._set(kept + fragments[head + changed:head + added] + end, head + changed)
-            self.endInsertRows()
-        self._set(fragments, head)
-        if changed:
-            self.dataChanged.emit(self.index(head, 0), self.index(head + changed - 1, 0))
-
-    def _set(self, fragments: tuple[HistoryFragment, ...], first: int) -> None:
-        """Hold these rows. Every row a key names is kept with the rows (a lookup is asked per
-        changed row on each receipt update, arrival, glide and reader restore); rows before
-        `first` did not move, so a change at the end indexes only the rows after it."""
-        if fragments is self.fragments:
-            return
-        rows = self._rows if first else {}
-        if first:
-            for key in [key for key, row in rows.items() if row >= first]:
-                del rows[key]
-        for row in range(first, len(fragments)):
-            rows.setdefault(fragments[row].key, row)
-        self.fragments = fragments
-        self._rows = rows
-
-    def row_of(self, key) -> int:
-        return self._rows.get(key, -1)
-
-    def changed(self, fragments: tuple[HistoryFragment, ...]) -> None:
-        """These rows' fragments now show differently (`request_show` changes a fragment in
-        place, so `show` sees the same object): each is told to the view as a data change,
-        which drops its kept height, so it is measured again in its new look."""
-        for fragment in fragments:
-            if (row := self.row_of(fragment.key)) >= 0:
-                index = self.index(row, 0)
-                self.dataChanged.emit(index, index)
-
-
-class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
-    """Each fragment's line blocks as Qt rich text, rendered on the pool at the row's width
-    (dividers fill it); a row paints its plain text until then. A painted row tells the
-    window, which marks what the reader saw."""
+class HistoryRowDelegate(HoldsRows, RowDocumentStore):
+    """Each fragment's line blocks as Qt rich text, rendered on the worker pool at the row's
+    width (dividers fill it); a row paints plain text until prepared, and cached `QImage` tiles
+    once prepared. Active tap highlights paint the tapped row's live `QTextDocument` with
+    inverted character selections directly over the clicked text instead of drawing boxes."""
 
     ROW_PADDING = 0
     """The blocks own their spacing (`Gap`), as Textual's rows do: the parts of one message
@@ -261,23 +181,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         """Replaced, never mutated, when the link context settles or the app's renderer
         restyles: a preparation already on the pool keeps the binding it was handed."""
         self.links_revision = 0
-        self._bg_cache: tuple[ColourScheme, str, QColor] | None = None
+        self._colour_cache: tuple[ColourScheme, str, QColor, QColor] | None = None
         self._font_metrics_cache: tuple[QFont, float, int] | None = None
-        self._scroll_paused: bool = False
-
-    def set_scroll_paused(self, paused: bool) -> None:
-        """Pause background off-screen row measurement while a finger drag or fling is active
-        so 8 ms `_measure_slice` + `rows_changed` layouts never jank active scrolling."""
-        if self._scroll_paused == paused:
-            return
-        self._scroll_paused = paused
-        if not paused and self._unmeasured and not self._measure_timer.isActive():
-            self._measure_timer.start()
-
-    def _measure_slice(self) -> None:
-        if self._scroll_paused:
-            return
-        super()._measure_slice()
 
     @staticmethod
     def _backing_image_format(widget: QWidget | None, painter: QPainter) -> QImage.Format:
@@ -286,13 +191,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         blits hit Qt's zero-conversion memcpy fast path instead of spawning 4-thread raster
         format conversion."""
         device = painter.device()
-        if isinstance(device, QImage):
+        if isinstance(device, QImage) and device.format() != QImage.Format.Format_Invalid:
             return device.format()
         if widget is not None:
             backing = widget.backingStore()
             if backing is not None:
                 paint_device = backing.paintDevice()
-                if isinstance(paint_device, QImage):
+                if isinstance(paint_device, QImage) and paint_device.format() != QImage.Format.Format_Invalid:
                     return paint_device.format()
         return QImage.Format.Format_ARGB32_Premultiplied
 
@@ -307,15 +212,26 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         self._font_metrics_cache = (QFont(font), cell, line)
         return cell, line
 
-    def _background_colour(self) -> tuple[str, QColor]:
+    def _theme_colours(self) -> tuple[str, QColor, QColor]:
         scheme = self.renderer.scheme
-        cached = self._bg_cache
+        cached = self._colour_cache
         if cached is not None and cached[0] is scheme:
-            return cached[1], cached[2]
+            return cached[1], cached[2], cached[3]
         bg_hex = BackgroundColour.rgb(scheme).hex
         bg_color = QColor(bg_hex)
-        self._bg_cache = (scheme, bg_hex, bg_color)
+        fg_color = QColor(ForegroundColour.rgb(scheme).hex)
+        self._colour_cache = (scheme, bg_hex, bg_color, fg_color)
+        return bg_hex, bg_color, fg_color
+
+    def _background_colour(self) -> tuple[str, QColor]:
+        bg_hex, bg_color, _fg = self._theme_colours()
         return bg_hex, bg_color
+
+    def background_qcolor(self) -> QColor:
+        return self._theme_colours()[1]
+
+    def foreground_qcolor(self) -> QColor:
+        return self._theme_colours()[2]
 
     def link(self, links: LinkContext) -> None:
         """Rows draw with these names from now on; rows prepared before are stale."""
@@ -329,11 +245,17 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         with the names they had; rows prepared before are stale."""
         self.link(self.renderer.links)
 
-    def preparation_key(self, index: QModelIndex, font: QFont, width: int):
-        return self.fragment_key(index.data(HistoryRows.FRAGMENT), font, width)
+    def row_key(self, fragment: HistoryFragment):
+        return fragment.key
 
-    def preparation(self, index: QModelIndex, font: QFont, width: int) -> QtRowPreparation:
-        return self.row_preparation(index.data(HistoryRows.FRAGMENT), font, width)
+    def row_text(self, fragment: HistoryFragment) -> str:
+        return fragment.clipboard_text
+
+    def preparation_key_for(self, fragment: HistoryFragment, font: QFont, width: int):
+        return self.fragment_key(fragment, font, width)
+
+    def preparation_for(self, fragment: HistoryFragment, font: QFont, width: int) -> QtRowPreparation:
+        return self.row_preparation(fragment, font, width)
 
     def row_preparer(self) -> AskedRowPreparer:
         """History rows are prepared in the app's render processes and nowhere else: Python
@@ -395,14 +317,6 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         one is prepared; none for a row that never had one."""
         return self._prepared.get(key) or self._prepared.get(self.last_shown.get(self.row_identity(key)))
 
-    def painted_document(self, index: QModelIndex, option: QStyleOptionViewItem) -> QTextDocument | None:
-        # A wide row's paint rect is its intrinsic extent. Layout still uses the
-        # viewport width, or wrapped prose would stop wrapping after scrolling code.
-        # `final_document` returns None while a row is still being prepared so
-        # `paint_pictures` doesn't allocate a fresh throwaway QTextDocument and miss
-        # `RowPictures` on every scroll frame.
-        return self.final_document(index, option.font, self.layout_width(option.rect.width()))
-
     PREFORMATTED_SHEET = f"pre {{ white-space: {PREFORMATTED.css_white_space}; }}"
     """Every `pre` in a row, whoever wrote it (a highlighted fence, Markdown's own for an
     unknown language, a tool's output), is laid out as the shared declaration says."""
@@ -412,32 +326,17 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         document.setDefaultStyleSheet(self.PREFORMATTED_SHEET)
         return document
 
-    def available_width(self, option: QStyleOptionViewItem) -> int:
-        """Rows are laid out at the viewport's width: a wide row's own rect is its extent,
-        and wrapped prose laid out at that would stop wrapping."""
-        return self.layout_width(super().available_width(option))
-
     def layout_width(self, extent: int) -> int:
         """The width a row is laid out and prepared at: the viewport's, whatever the row's
         own extent came out as (a row with an unwrapped block is wider). `extent` only
         before the view has a viewport."""
         return self.view.viewport_width() or extent
 
-    def hinted(self, key, size: QSize) -> QSize:
-        """A row takes its height at the layout width and, across, what the reader's wrap
-        choice makes of how wide its content came out (`row_extent`): the layout width while
-        code wraps, and the content's own while it does not, which is what gives the history
-        one horizontal scrollbar for an unwrapped diff instead of clipping it.
-
-        The measured extent alone decided this, and a measurement holds Qt's rounding: a
-        header's table (rule, title, rule) gives its two rules the room left over rounded up
-        each, so half of all headers lay out one pixel wider than the width they were given.
-        One pixel made the history scrollable sideways, and QScroller lets a scrollable axis
-        be dragged past its edge: a finger moving across the page pulled every wrapped
-        message up to 129 px into empty space (2026-11-22). pyqt-reactive answers this from
-        the row's kept key, so a layout over every loaded row builds no row's key."""
-        layout = size.width()
-        return QSize(self.renderer.diff.wrap.fitted_width(layout, self.row_extent(key, layout)), size.height())
+    def hinted_width(self, key, layout_width: int) -> int:
+        """Horizontal extent for `key` at `layout_width`: `layout_width` while code wraps
+        (preventing 1 px header-table rounding from creating phantom horizontal scroll range),
+        and the document's measured extent when wrapping is off."""
+        return self.renderer.diff.wrap.fitted_width(layout_width, self.row_extent(key, layout_width))
 
     def fragment_height(self, fragment: HistoryFragment, font: QFont, width: int) -> int:
         """How tall a fragment's row is at this width, before the model holds it. The shared
@@ -446,27 +345,19 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         if not fragment.has_blocks:
             return 0
         key = self.fragment_key(fragment, font, width)
-        # The formatting is asked for only when the height is not yet measured at this width.
         formatting = PreparedOnFill(lambda: self.styled_formatting(key, fragment, font, width))
         return self.measured_height(key, font, width, formatting)
 
-    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:  # type: ignore[override]
-        fragment = index.data(HistoryRows.FRAGMENT)
-        if fragment is not None and not fragment.has_blocks:
-            return QSize(0, 0)
-        return super().sizeHint(option, index)
-
-    def final_document(self, index: QModelIndex, font: QFont, width: int) -> QTextDocument | None:
-        """Laid-out document for `index` at `width`. While a new look of a previously drawn row
-        is still being prepared on the worker, returns the previous look's document cached under
-        its own key so the new key's document and height caches are never polluted by stale HTML."""
-        key = self.preparation_key(index, font, width)
+    def final_document_for(self, fragment: HistoryFragment, font: QFont, width: int) -> QTextDocument | None:
+        """Laid-out document for `fragment` at `width`. While a new look of a previously drawn
+        row is still being prepared on the worker, returns the previous look's document cached
+        under its own key so the new key's document and height caches are never polluted."""
+        key = self.preparation_key_for(fragment, font, width)
         cache_key = (key, width)
         document = self._documents.get(cache_key)
         if document is not None:
             self._documents.move_to_end(cache_key)
             return document
-        fragment = index.data(HistoryRows.FRAGMENT)
         if key in self._prepared:
             self._prepared.move_to_end(key)
             return self.laid_out(key, font, width, self._prepared[key])
@@ -477,44 +368,6 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         if shown in self._prepared:
             return self.laid_out(shown, font, width, self._prepared[shown])
         return None
-
-    def measured_height(self, key: Hashable, font: QFont, width: int, formatting: RowFormatting) -> int:
-        """Use the same `ceil` height rounding as `measured_size` so `_moves_rows` never
-        sees a phantom 1 px mismatch on fractional-DPI fonts and triggers a relayout flicker
-        on every same-height receipt update."""
-        size = self.measured_size_for(key, width)
-        if size is not None:
-            return size.height()
-        formatting = formatting.resolved()
-        if not formatting.final:
-            return formatting.estimated_height(font, self.text_width(width)) + self.ROW_PADDING
-        document = self.laid_out(key, font, width, formatting)
-        size = QSize(width, ceil(document.size().height()) + self.ROW_PADDING)
-        self._record_measured_size(key, width, size)
-        return size.height()
-
-    def measured_size(self, index: QModelIndex, font: QFont, width: int) -> QSize:
-        """Measure row height with `ceil` (avoiding 1 px truncation on fractional DPI fonts).
-        For a pending key falling back to `last_shown`, keep the row size under `key` (so
-        `_moves_rows` skips relayout when the new receipt has the same height) without
-        polluting `_metrics[key]`."""
-        fragment = index.data(HistoryRows.FRAGMENT)
-        if fragment is not None and not fragment.has_blocks:
-            return QSize(0, 0)
-        if (kept := self.kept_size(index.row(), measured=True)) is not None:
-            return kept
-        key = self.preparation_key(index, font, width)
-        size = self.measured_size_for(key, width)
-        if size is None:
-            document = self.final_document(index, font, width)
-            if document is None:
-                return self.estimated_size(index, font, width)
-            height = ceil(document.size().height()) + self.ROW_PADDING
-            size = QSize(width, height)
-            if key in self._prepared:
-                self._record_measured_size(key, width, size)
-        self.keep_row_size(index.row(), key, size, font)
-        return size
 
     def block_row(self, fragment: HistoryFragment, font: QFont, width: int, y: int) -> tuple[int, int]:
         """Which of `fragment`'s line blocks its row draws at pixel `y`, and which line of that
@@ -527,14 +380,12 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         key = self.fragment_key(fragment, font, width)
         prepared = self.prepared_look(key)
         if prepared is None:
-            # A row drawn before its formatting arrived has no blocks to measure: its head.
             return 0, 0
         top = 0
         decided = fragment.header_blocks
         for index, html in enumerate(prepared.leading):
             if index == decided and index < len(blocks) - 1:
                 return index, 0
-            # The pin asks on every scroll offset: a block is laid out once per look.
             height = self.measured_height((key, index), font, width, HtmlRow(html))
             if y < top + height or index == len(blocks) - 1:
                 return index, max(0, int((y - top) // line))
@@ -549,17 +400,6 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         key = self.header_key(header, font, width)
         formatting = self.keyed_formatting(key, "", self.block_preparation((header,), font, width))
         return self.laid_out(key, font, width, formatting) if formatting.final else None
-
-    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:  # type: ignore[override]
-        """A history row's style option is the view's own: the row's document draws its text,
-        and the model answers no styling role. Qt's default reads the row's display text into
-        the option on every paint and size, which built the plain text each time; the plain
-        text is read only where it is drawn (`row_text`, while the row is being prepared)."""
-        option.index = index
-
-    def formatting(self, index: QModelIndex, font: QFont, width: int) -> RowFormatting:
-        fragment = index.data(HistoryRows.FRAGMENT)
-        return self.styled_formatting(self.fragment_key(fragment, font, width), fragment, font, width)
 
     def styled_formatting(self, key, fragment: HistoryFragment, font: QFont, width: int) -> RowFormatting:
         """The row's formatting under `key`; while a new look of a drawn row is still being
@@ -588,13 +428,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
             self.last_shown[self.row_identity(key)] = key
             _shown, *look = key
             for header, html in prepared.pinned:
-                # The header this row pins is prepared with it, in the row's look: the pin
-                # waits on none, and each part of a message brings the same one.
                 alone = self.header_shown(header), *look
                 if alone not in self._prepared:
                     super()._row_prepared(alone, RenderedRow(html, (), ()))
         if len(self.last_shown) > 2 * self.MAX_PREPARED_ROWS:
-            # Looks the prepared cache let go of name nothing to draw.
             self.last_shown = {row: shown for row, shown in self.last_shown.items() if shown in self._prepared}
 
     def is_prepared(self, key) -> bool:
@@ -611,34 +448,6 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
     (zero extra tiles); wide unwrapped code/diff rows rasterize only visible columns instead
     of allocating multi-megabyte full-width slabs."""
 
-    def paint(self, painter, option, index) -> None:  # type: ignore[override]
-        """A row is painted from pictures of it (`paint_pictures`): a scroll moves the same
-        rows a few pixels a frame, and laying a row's rich text out and drawing every glyph
-        again each frame was most of the phone's work while scrolling. A rising row's fade
-        paints the same pictures at that frame's opacity."""
-        fragment = index.data(HistoryRows.FRAGMENT)
-        if fragment is None or not fragment.has_blocks:
-            return
-        opacity = self.view.arrival_opacity(fragment.key) if self.view.has_active_arrivals else None
-        if not self.paint_pictures(painter, option, index, fragment.key, opacity):
-            super().paint(painter, option, index)
-        if self.view._tap_flash is not None:
-            band = self.view.tap_flash_band(fragment.key, option.rect)
-            if not band.isEmpty():
-                painter.save()
-                if painter.hasClipping():
-                    painter.setClipRect(option.rect, Qt.ClipOperation.IntersectClip)
-                else:
-                    painter.setClipRect(option.rect)
-                colour = QColor(PrimaryColour.rgb(self.renderer.scheme).hex)
-                colour.setAlpha(64)
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(colour)
-                painter.drawRoundedRect(band, 4, 4)
-                painter.restore()
-                self.view.note_tap_flash_painted(band)
-        self.view.row_painted(fragment, option.rect)
-
     def release_documents(self) -> None:
         """Pictures are drawn from documents and hold them: they go with them (Android
         suspending the app, a new width)."""
@@ -646,75 +455,126 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
         self.pictures.clear()
 
     def _paint_tile_document(
-        self, drawing: QPainter, local: QStyleOptionViewItem, index: QModelIndex,
-        document: QTextDocument, left: int, top: int, width: int, height: int,
+        self, drawing: QPainter, palette: QPalette, document: QTextDocument,
+        left: int, top: int, width: int, height: int,
     ) -> None:
         """Draw only the `[left, left + width] x [top, top + height]` tile of `document`
-        into a tile pixmap.
-
-        `RowDocumentDelegate.paint` leaves `PaintContext.clip` empty, forcing Qt to walk
-        every block of a tall message (e.g. a 6,356px installer receipt) on every tile miss.
-        Setting `context.clip` to the tile band skips off-tile blocks inside Qt's layout."""
-        opt = QStyleOptionViewItem(local)
-        self.initStyleOption(opt, index)
+        into a tile `QImage`. Setting `context.clip` skips off-tile blocks inside Qt's layout."""
         drawing.save()
-        self.paint_background(drawing, opt, index.row())
-        drawing.restore()
-        drawing.save()
-        drawing.translate(opt.rect.topLeft())
+        drawing.translate(-left, -top)
         clip = QRectF(left, top, width, height)
         drawing.setClipRect(clip)
         context = QAbstractTextDocumentLayout.PaintContext()
-        context.palette = opt.palette
+        context.palette = palette
         context.clip = clip
         document.documentLayout().draw(drawing, context)
         drawing.restore()
 
-    def paint_pictures(self, painter: QPainter, option, index, key, opacity: float | None) -> bool:
-        """The tiles of the row that this paint shows, each drawn once and copied by every
-        later frame; a new width, height, pixel ratio or document draws them again. False
-        for a row still being prepared, which paints its plain text itself for the frame or
-        two it lasts; a rising one is painted from pictures all the same, as its fade
-        repaints it every frame."""
-        rect = option.rect
-        document = self.painted_document(index, option)
+    def _paint_document_direct(
+        self,
+        painter: QPainter,
+        document: QTextDocument,
+        rect: QRect,
+        clip_region: QRegion | None,
+        opacity: float | None,
+        selections: list[QAbstractTextDocumentLayout.Selection],
+    ) -> None:
+        """Paint `document` directly into `painter` with optional inverted tap-highlight
+        `selections`, bypassing cached tiles so tile caches stay untouched."""
+        shown = clip_region.boundingRect().intersected(rect) if clip_region is not None else rect
+        if shown.isEmpty():
+            return
+        _bg_hex, bg_color, _fg_color = self._theme_colours()
+        device = self.view.backing_device()
+        palette = device.palette() if device is not None else QPalette()
+        painter.save()
+        if opacity is not None:
+            painter.setOpacity(opacity)
+        painter.fillRect(shown, bg_color)
+        painter.translate(rect.topLeft())
+        local_clip = QRectF(
+            shown.left() - rect.left(),
+            shown.top() - rect.top(),
+            shown.width(),
+            shown.height(),
+        )
+        painter.setClipRect(local_clip)
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.palette = palette
+        context.clip = local_clip
+        context.selections = selections
+        document.documentLayout().draw(painter, context)
+        painter.restore()
+
+    def _paint_plain_row(
+        self, painter: QPainter, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
+    ) -> None:
+        device = self.view.backing_device()
+        font = device.font() if device is not None else QFont()
+        document = self.new_document(font, self.layout_width(rect.width()))
+        document.setPlainText(self.row_text(fragment))
+        self._paint_document_direct(painter, document, rect, clip_region, None, [])
+
+    def paint_row(
+        self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
+    ) -> None:
+        """Paint one history row from cached `QImage` tiles (or directly with inverted text
+        selections when this row carries the active `TapHighlight`)."""
+        if not fragment.has_blocks:
+            return
+        opacity = self.view.arrival_opacity(fragment.key) if self.view.has_active_arrivals else None
+        highlight = self.view.tap_highlight
+        if highlight.matches_row(fragment.key):
+            device = self.view.backing_device()
+            font = device.font() if device is not None else QFont()
+            document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
+            if document is not None:
+                _bg_hex, bg_color, fg_color = self._theme_colours()
+                selections = highlight.selections(document, bg_color, fg_color)
+                self._paint_document_direct(painter, document, rect, clip_region, opacity, selections)
+                self.view.row_painted(fragment, rect)
+                return
+        if not self.paint_pictures(painter, fragment, rect, clip_region, opacity):
+            self._paint_plain_row(painter, fragment, rect, clip_region)
+        self.view.row_painted(fragment, rect)
+
+    def paint_pictures(
+        self,
+        painter: QPainter,
+        fragment: HistoryFragment,
+        rect: QRect,
+        clip_region: QRegion | None,
+        opacity: float | None,
+    ) -> bool:
+        """The tiles of the row that this paint shows, each drawn once into a backing-store-matched
+        `QImage` and blitted with `CompositionMode_Source` on subsequent frames."""
+        device = self.view.backing_device()
+        font = device.font() if device is not None else QFont()
+        document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
         if document is None and opacity is None:
             return False
-        # Inside `QListView::paintEvent`, Qt sets only the paint engine's system clip and
-        # leaves `painter.hasClipping()` False. Combine `view._paint_region` (captured by
-        # `QtHistoryWindow.paintEvent`), the viewport rect, and any explicit user clip so
-        # off-screen tiles of tall or wide rows are never rasterized.
-        paint_region = self.view._paint_region if self.view is not None else None
-        clip_region: QRegion | None = paint_region
+        effective_clip = clip_region
         if painter.hasClipping():
             painter_clip = painter.clipRegion()
-            clip_region = painter_clip if clip_region is None else clip_region.intersected(painter_clip)
-        if paint_region is not None:
-            viewport_rect = self.view.viewport().rect()
-            shown = clip_region.boundingRect().intersected(viewport_rect).intersected(rect)
-        elif clip_region is not None:
-            shown = clip_region.boundingRect().intersected(rect)
+            effective_clip = painter_clip if effective_clip is None else effective_clip.intersected(painter_clip)
+        if effective_clip is not None:
+            shown = effective_clip.boundingRect().intersected(rect)
         else:
             shown = rect
         if shown.isEmpty():
             return True
         ratio = painter.device().devicePixelRatioF()
-        img_format = self._backing_image_format(
-            self.view if isinstance(self.view, QWidget) else None, painter
-        )
-        bg_hex, bg_color = self._background_colour()
+        img_format = self._backing_image_format(device, painter)
+        bg_hex, bg_color, _fg_color = self._theme_colours()
+        palette = device.palette() if device is not None else QPalette()
         look = (rect.width(), rect.height(), ratio, bg_hex, img_format)
-        # A row is its document; one still being prepared has none, and is this view's row.
-        row = id(document) if document is not None else (id(self), key)
+        row_id = id(document) if document is not None else (id(self), fragment.key)
         painter.save()
         if opacity is not None:
             painter.setOpacity(opacity)
         else:
-            # Tile format matches the backing store (`_backing_image_format`) and fills opaque,
-            # so `CompositionMode_Source` hits Qt's raw memcpy path (~7x faster at DPR 2.625,
-            # avoiding 4-thread raster format conversion/blending).
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        local: QStyleOptionViewItem | None = None
+        plain_doc: QTextDocument | None = None
         y_start = (shown.top() - rect.top()) // self.TILE
         y_end = (shown.bottom() - rect.top()) // self.TILE
         x_start = (shown.left() - rect.left()) // self.TILE_X
@@ -725,11 +585,11 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
             for tile_x in range(x_start, x_end + 1):
                 left = tile_x * self.TILE_X
                 width = min(self.TILE_X, rect.width() - left)
-                if clip_region is not None and not clip_region.intersects(
+                if effective_clip is not None and not effective_clip.intersects(
                     QRect(rect.left() + left, rect.top() + top, width, height)
                 ):
                     continue
-                tile_key = (row, tile_y, tile_x)
+                tile_key = (row_id, tile_y, tile_x)
                 picture = self.pictures.kept(tile_key, look, document)
                 if picture is None:
                     picture = QImage(
@@ -739,14 +599,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentDelegate):
                     )
                     picture.setDevicePixelRatio(ratio)
                     picture.fill(bg_color)
-                    if local is None:
-                        local = QStyleOptionViewItem(option)
                     drawing = QPainter(picture)
-                    local.rect = QRect(-left, -top, rect.width(), rect.height())
                     if document is not None:
-                        self._paint_tile_document(drawing, local, index, document, left, top, width, height)
+                        self._paint_tile_document(drawing, palette, document, left, top, width, height)
                     else:
-                        super().paint(drawing, local, index)
+                        if plain_doc is None:
+                            plain_doc = self.new_document(font, self.layout_width(rect.width()))
+                            plain_doc.setPlainText(self.row_text(fragment))
+                        self._paint_tile_document(drawing, palette, plain_doc, left, top, width, height)
                     drawing.end()
                     self.pictures.keep(tile_key, look, document, picture)
                 painter.drawImage(QPoint(rect.left() + left, rect.top() + top), picture)
@@ -1044,7 +904,7 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         for fragment in (*fragments, *continuing):
             row = model_rows.row_of(fragment.key)
             if row >= 0:
-                window.update(model_rows.index(row, 0))
+                window.update_row(row)
 
     def _update_edges(self) -> None:
         """Older and newer rows load as the reader nears an edge: Qt shows no edge controls."""
@@ -1233,8 +1093,11 @@ class QtTopRow(TopPage):
     def reader_position(self, window: QtHistoryWindow) -> RowPosition:
         return RowPosition(window.scroll_y)
 
-    def row_index(self, model_rows: HistoryRows) -> int:
+    def row_index(self, model_rows: FragmentRowList) -> int:
         return -1
+
+    def collapse_link(self) -> FragmentCollapse | None:
+        return None
 
 
 @dataclass(frozen=True)
@@ -1250,8 +1113,11 @@ class QtRowUnderTop(QtTopRow):
     into: int
     height: int
 
-    def row_index(self, model_rows: HistoryRows) -> int:
+    def row_index(self, model_rows: FragmentRowList) -> int:
         return model_rows.row_of(self.fragment.key)
+
+    def collapse_link(self) -> FragmentCollapse | None:
+        return self.fragment.header_collapse_link()
 
     @cached_property
     def under(self) -> FragmentRowUnderTop:
@@ -1279,44 +1145,33 @@ class QtRowLocation(FragmentLocation):
         return True
 
     def destination(self, window: QtHistoryWindow, fraction: float) -> float:
-        rect = window.visualRect(window.model_rows.index(self.row, 0))
+        rect = window.row_rect(self.row)
         return window.scroll_y + rect.top() + round(fraction * rect.height())
 
 
 class QtStickyHeader(HeaderPin, QWidget):
     """`HeaderPin` floated over the history's top edge, drawn by the history rows' own
-    delegate. A child of the window, not the viewport, as `QtJumpBar` is: the viewport's
-    children scroll with its contents, and QScroller's grab on the viewport would take its
-    taps. Opaque, so the row it covers does not show through, as Textual's overlay is. Taps
-    pass through to the row beneath, except on a burst's stacked headers, which open their
-    messages."""
+    delegate. Always `WA_TransparentForMouseEvents` so finger drags starting on the pinned
+    header route straight to `QScroller` on the viewport; taps are dispatched from
+    `QtHistoryWindow._row_tapped` into `handle_tap` (stacked burst opens, `@sender`/`#target`
+    links, and `▼`/divider collapse), with live text-color inversion on the tapped span."""
 
     def __init__(self, window: QtHistoryWindow) -> None:
         super().__init__(window)
-        # It fills its rectangle (paintEvent), so the rows it covers are not painted under it: a
-        # glide repaints only the band it floats over (`VirtualRowView.scrollContentsBy`).
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         self.history_window = window
         self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
-        # Each pinned header's laid-out document, while the pin's width, font, link context and
-        # renderer stay the same.
         self.laid_out: dict[Divider, QTextDocument] = {}
         self.layout_context: tuple = ()
-        self._pixmap_cache: tuple[tuple, QPixmap] | None = None
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._pixmap_cache: tuple[tuple, QImage] | None = None
         self.hide()
 
     def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
         """Every scroll offset pins; only different headers, column, font, link context or
-        renderer (a theme) lay anything out again, and then only the headers not already laid
-        out: a burst's stack changes as each head glides past the top, and laying every stacked
-        header out again from its html (its theme's colours resolved span by span) was a third
-        of the phone's UI thread during a burst (2026-11-18)."""
+        renderer (a theme) lay anything out again, and then only the headers not already laid out."""
         window = self.history_window
-        # Taps reach the stacked headers whenever a stack is pinned, even when its drawing is
-        # unchanged: equal headers can stand for other messages (one sender, one second).
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, not self.stacked.keys)
         context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
         drawn = (headers, x, context)
         if drawn == self.drawn:
@@ -1325,8 +1180,6 @@ class QtStickyHeader(HeaderPin, QWidget):
         laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
                     for header in headers}
         if None in laid_out.values():
-            # A header still being prepared: the pin keeps what it draws and is asked again
-            # when the header lands (`QtHistoryWindow.rows_repainted`).
             return
         self.drawn = drawn
         self.layout_context = context
@@ -1342,25 +1195,55 @@ class QtStickyHeader(HeaderPin, QWidget):
         if self.isVisible() != shown:
             self.setVisible(shown)
 
-    def mouseReleaseEvent(self, event) -> None:  # type: ignore[override]
-        """A tap on a stacked header opens its message; the top row's own passes through."""
-        y, top = event.position().y(), 0
+    def handle_tap(self, local: QPoint) -> bool:
+        """Handle a tap at `local` (widget coordinates) on the pinned header:
+        1. Stacked burst headers open their message (`open_pinned`).
+        2. Explicit anchors (`@sender`, `#target`, `▼` disclosure) dispatch their link and
+           invert the tapped span text.
+        3. Tapping anywhere else on a bus message's pinned header collapses/expands it and
+           inverts the pinned header text."""
+        y, top = local.y(), 0
+        window = self.history_window
         for index, document in enumerate(self.documents):
-            top += int(document.size().height())
-            if y < top:
-                if self.history_window.open_pinned(index):
-                    event.accept()
-                    return
-                break
-        event.ignore()
+            doc_h = int(document.size().height())
+            if y < top + doc_h:
+                if window.open_pinned(index):
+                    window._set_tap_highlight(PinnedHeaderTapHighlight(index))
+                    return True
+                tapped = window._tapped_link_in_document(document, local.x(), y - top, self.width(), doc_h)
+                if tapped is not None:
+                    link, href = tapped
+                    window._set_tap_highlight(PinnedLinkTapHighlight(index, href))
+                    window.dispatch_sync(link)
+                    return True
+                collapse = window.top_page().collapse_link()
+                if collapse is not None:
+                    window._set_tap_highlight(PinnedHeaderTapHighlight(index))
+                    window.toggle_collapse(collapse)
+                    return True
+                return False
+            top += doc_h
+        return False
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         if not self.documents:
             return
         painter = QPainter(self)
+        bg_hex, bg_color, fg_color = self.history_window.rows._theme_colours()
+        highlight = self.history_window.tap_highlight
+        if highlight.is_pinned():
+            painter.fillRect(self.rect(), bg_color)
+            for index, document in enumerate(self.documents):
+                context = QAbstractTextDocumentLayout.PaintContext()
+                context.palette = self.palette()
+                if highlight.matches_pinned(index):
+                    context.selections = highlight.selections(document, bg_color, fg_color)
+                document.documentLayout().draw(painter, context)
+                painter.translate(0, document.size().height())
+            painter.end()
+            return
         dpr = self.devicePixelRatioF()
         img_format = HistoryRowDelegate._backing_image_format(self, painter)
-        bg_hex, bg_color = self.history_window.rows._background_colour()
         key = (self.drawn, self.width(), self.height(), dpr, bg_hex, img_format)
         cached = self._pixmap_cache
         if cached is not None and cached[0] == key:
@@ -1457,25 +1340,18 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 
 class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow,
-                      QtWorkspaceHosted, VirtualRowView, PagingWindow, OpensLineLinks, PinsMessageHeader,
+                      QtWorkspaceHosted, VirtualRowCanvas, PagingWindow, OpensLineLinks, PinsMessageHeader,
                       SettingsReading):
-    """The reader window of one Qt conversation: pyqt-reactive's virtual rows of the
-    history's shown fragments, scrolled by pixel. It answers the shared pager's window
-    contract: reaching the top reads older pages, the bottom newer ones, End and the
-    reader at the end follow the newest row, and rows that arrive or are evicted above the
-    reader leave the row they are reading where it was."""
+    """The reader window of one Qt conversation: prefix-sum virtual rows of the history's
+    shown fragments, scrolled by pixel without `QListView`/`QAbstractListModel` overhead. It
+    answers the shared pager's window contract: reaching the top reads older pages, the bottom
+    newer ones, End and the reader at the end follow the newest row, and rows that arrive or
+    are evicted above the reader leave the row they are reading where it was."""
 
-    # Emitted when the viewer right-clicks or long-presses a message row; carries the
-    # fragment under that point. Consumers (ConversationView) build a block menu from
-    # the shared `MenuCommand` family and offer it through the host's offer panel.
-    #: The row's fragment, and where it was pressed in the window's coordinates.
     block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
-    _paint_region: QRegion | None = None
-    _tap_flash: tuple[object, int, int] | None = None
-    _tap_flash_painted: QRect | None = None
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
     @property
@@ -1503,23 +1379,19 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._visible_cache: tuple[int, int, int, tuple[HistoryFragment, ...]] | None = None
         self._last_scroll_at: float = 0.0
         self.actively_scrolling = False
+        self.tap_highlight: TapHighlight = NO_TAP_HIGHLIGHT
         # Mark the history window opaque with the theme's background colour so repainting
         # floating overlays (`QtJumpBar`, `QtStickyHeader`) or the viewport stops here instead
         # of walking up 5 ancestor widgets to `QtToadApp` on every scroll frame.
         self.setAutoFillBackground(True)
         self._apply_opaque_background()
-        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.configuration_scope = scope  # the view this window reads in
         # Rows draw by the app's renderer: a new scheme or diff marks draws them again.
         renderer.follows_theme(self, self.restyle_rows)
-        self.model_rows = HistoryRows()
         self.draft: tuple[HistoryFragment, ...] = ()  # after the pages, as Textual's `CliDraft`
         self.live_blocks: list[QtLiveBlock] = []  # after the draft, as Textual's live blocks
-        self.setModel(self.model_rows)
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
-        # The view's settings are read once it is shown (`QtViewSettings`): a thread view
-        # is built before its tab is listed, which names the settings it reads.
         self.presentation_budget = PresentationBudget()
         self.lookahead = DirectionalPreparation(self)
         self.reader_position = TailPosition()
@@ -1537,22 +1409,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._viewport_resize_timer.setSingleShot(True)
         self._viewport_resize_timer.setInterval(0)
         self._viewport_resize_timer.timeout.connect(self._apply_viewport_width_change)
-        self._tap_flash_timer = QTimer(self)
-        self._tap_flash_timer.setSingleShot(True)
-        self._tap_flash_timer.setInterval(140)
-        self._tap_flash_timer.timeout.connect(self._clear_tap_flash)
+        self._tap_highlight_timer = QTimer(self)
+        self._tap_highlight_timer.setSingleShot(True)
+        self._tap_highlight_timer.setInterval(160)
+        self._tap_highlight_timer.timeout.connect(self._clear_tap_highlight)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
-        for changed in (self.model_rows.rowsInserted, self.model_rows.rowsRemoved,
-                        self.model_rows.dataChanged, self.model_rows.modelReset):
-            changed.connect(self.rows_moved)
-        # Frame-rate coalescing: QScroller fires valueChanged at touch rate (90Hz
-        # on Pixel 8a, up to 240Hz). The post-scroll chain (repin_header,
-        # lookahead, page requests, tail-follow) runs once per display frame —
-        # the same cadence as the TUI. Each valueChanged records the latest offset
-        # and starts a single-shot timer at the display's frame interval; the
-        # timer fires the full shared response. At frame-rate input (fling,
-        # keyboard), the timer fires on the next event-loop pass (0 ms remaining),
-        # so there is no added latency.
         self._scroll_frame_timer = QTimer(self)
         self._scroll_frame_timer.setSingleShot(True)
         self._scroll_frame_timer.timeout.connect(self._scroll_frame)
@@ -1560,38 +1421,14 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._overshoot = 0.0
         _scroller = QScroller.scroller(self.viewport())
         _scroller.stateChanged.connect(self._on_scroller_state)
-        # The floating "jump to latest" button: child of the window (not the viewport), so
-        # QScroller's gesture grab on the viewport (from FingerScrolling) can't swallow the
-        # tap and prevent `clicked` from firing on Android. Positioned over the viewport
-        # by `_place_jump_bar`. Show/hide is driven by `tail_follow_changed` from `scrolled`.
         self.jump_bar = QtJumpBar(self, renderer)
         self.jump_bar.clicked.connect(self.jump_to_latest)
         self.sticky_header = QtStickyHeader(self)
-        # Stop any active shared arrival fades, glides, or head reveals before Qt frees C++ memory.
         self.destroyed.connect(self._on_widget_destroyed)
-        # A press that stops a fling is not a tap on a row (Android's lists do the same).
         self._fling_stopped = False
-        # A press makes its row Qt's current index, and autoScroll would then scroll that
-        # row into view at once (QAbstractItemView.currentChanged → scrollTo): a jump on
-        # every tap, and one that fights a drag starting on a row. A tap's reveal is the
-        # explicit `reveal_head_at`.
-        self.setAutoScroll(False)
-        # Viewport Resize/Move/Scroll events are handled directly in `viewportEvent` (zero
-        # Python `eventFilter` installed on `self.viewport()`).
-        # Block menu: a right-click, or a held finger (`FingerPress` delivers it as one), on a
-        # message row emits `block_menu_requested` with the row's fragment. QtConversation
-        # mounts the handler and runs the resulting commands across all view kinds.
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._emit_block_menu_at)
-        # A tap on a link opens it, and a tap on a message reveals its head, in place of the
-        # row's own click (`FingerPress.tapped`).
         FingerPress.install(QApplication.instance()).tapped.connect(self._row_tapped)
-        # Reader keys (ctrl+d / ctrl+u / shift+g) come from the `ReaderAction` family
-        # declared in `src/toad/reader_actions.py`. Both backends drive from that one
-        # declaration: Textual through the Action/BindingsMap path, Qt through
-        # `ActionKeys.bind_family`, a QShortcut per member answering its keys in the current
-        # key mode and keymap, firing `apply(self)` (which calls `action_page_down` /
-        # `action_page_up` / `jump_to_latest` on this window).
         self._reader_shortcuts = scope.app.action_keys.bind_family(self, ReaderAction, self)
 
     @property
@@ -1609,12 +1446,12 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         rows = [row for key in keys if (row := model_rows.row_of(key)) >= 0]
         if not rows:
             return None
-        self.executeDelayedItemsLayout()
-        return float(sum(self.visualRect(model_rows.index(row, 0)).height() for row in rows))
+        self.execute_layout()
+        return float(sum(self.row_rect(row).height() for row in rows))
 
     def prepare_arrival_layout(self) -> None:
         if not self.widget_gone:
-            self.executeDelayedItemsLayout()
+            self.execute_layout()
 
     def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
         """Only the rising rows: a whole-viewport update every tick flickers the pinned header."""
@@ -1623,7 +1460,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         model_rows = self.model_rows
         for key in keys:
             if (row := model_rows.row_of(key)) >= 0:
-                self.update(model_rows.index(row, 0))
+                self.update_row(row)
 
     def _on_widget_destroyed(self, *_args) -> None:
         self.stop_arrival_motion()
@@ -1676,6 +1513,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         width = self._viewport.width()
         if width > 0 and width != self._last_viewport_width:
             self._last_viewport_width = width
+            self._layout_width_measured = 0
             self.rows.width_changed()
             self.rows_changed()
 
@@ -1693,12 +1531,39 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
                     result.append(geo.intersected(area).translated(-top_left))
         return result
 
+    def _invalidate_tap_highlight(self, highlight: TapHighlight) -> None:
+        if self.widget_gone:
+            return
+        if highlight.is_pinned():
+            self.sticky_header.update()
+        elif (key := highlight.row_key()) is not None:
+            row = self.model_rows.row_of(key)
+            if row >= 0:
+                self.update_row(row)
+
+    def _set_tap_highlight(self, highlight: TapHighlight) -> None:
+        previous = self.tap_highlight
+        self.tap_highlight = highlight
+        self._invalidate_tap_highlight(previous)
+        self._invalidate_tap_highlight(highlight)
+        if highlight is NO_TAP_HIGHLIGHT:
+            self._tap_highlight_timer.stop()
+        else:
+            self._tap_highlight_timer.start()
+
+    def _clear_tap_highlight(self) -> None:
+        previous = self.tap_highlight
+        if previous is NO_TAP_HIGHLIGHT:
+            return
+        self.tap_highlight = NO_TAP_HIGHLIGHT
+        self._tap_highlight_timer.stop()
+        self._invalidate_tap_highlight(previous)
+
     def _row_tapped(self, press: Press) -> None:
-        """A tap on a row: a link drawn there opens; tapping anywhere on a bus message's
-        header divider (rules, timestamp, arrows) collapses/expands it; otherwise a message
-        whose head is above the viewport glides its head to the top (`reveal_head_at`). Either
-        way the row doesn't also take the tap. A tap on rows still moving (a fling, a reveal)
-        only stops them, as Android's lists do: the reader was catching the rows, not choosing one."""
+        """A tap on a row or pinned sticky header: a tapped link opens and inverts its text;
+        tapping a bus message's header divider collapses/expands it and inverts the header
+        text; otherwise a message whose head is above the viewport glides its head to the top.
+        A tap while rows are still flinging only stops the fling."""
         viewport = self.viewport()
         if not press.within(viewport):
             return
@@ -1708,134 +1573,44 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             scroller.stop()
             press.claim()
             return
+        point_in_window = press.at(self)
+        if self.sticky_header.isVisible() and self.sticky_header.geometry().contains(point_in_window):
+            if self.sticky_header.handle_tap(point_in_window - self.sticky_header.pos()):
+                press.claim()
+                return
         point = press.at(viewport)
-        link = self._tapped_link_at(point)
-        if link is not None:
-            self._flash_tap_at(point)
+        row = self.row_at_point(point)
+        if row < 0:
+            return
+        fragment = self.model_rows.fragments[row]
+        tapped = self._tapped_link_at(row, point)
+        if tapped is not None:
+            link, href = tapped
+            self._set_tap_highlight(RowLinkTapHighlight(fragment.key, href))
             press.claim()
             self.dispatch_sync(link)
-        elif (collapse := self._header_collapse_at(point)) is not None:
-            link, y_in_row, band_h, frag_key = collapse
-            self._flash_tap_row(frag_key, y_in_row, band_h)
+        elif (collapse := self._header_collapse_at(row, point)) is not None:
+            self._set_tap_highlight(RowHeaderTapHighlight(fragment.key))
             press.claim()
-            self.toggle_collapse(link)
+            self.toggle_collapse(collapse)
         elif self.reveal_head_at(point):
             press.claim()
 
-    def _header_collapse_at(self, point: QPoint) -> tuple[FragmentCollapse, int, int, object] | None:
-        """If ``point`` (viewport coordinates) landed on a bus message's header divider lines
-        or timestamp (outside an explicit `@sender`/`#target` anchor), return its collapse
-        link, row-local vertical span, and fragment key."""
-        index = self.indexAt(point)
-        if not index.isValid():
+    def _header_collapse_at(self, row: int, point: QPoint) -> FragmentCollapse | None:
+        """If `point` (viewport coordinates) landed on a bus message's header divider lines
+        or timestamp (outside an explicit `@sender`/`#target` anchor), return its collapse link."""
+        fragment = self.model_rows.fragments[row]
+        collapse = fragment.in_flow_collapse_link()
+        if collapse is None:
             return None
-        fragment = index.data(HistoryRows.FRAGMENT)
-        if not isinstance(fragment, BusMessageHistoryFragment) or fragment.part_position.index > 0:
-            return None
-        rect = self.visualRect(index)
+        rect = self.row_rect(row)
         y_in_row = point.y() - rect.top()
         width = self.rows.layout_width(rect.width())
         block_index, _line = self.rows.block_row(fragment, self.font(), width, y_in_row)
         blocks = fragment.line_blocks
         if block_index < len(blocks) and isinstance(blocks[block_index], Divider):
-            spacing = self._font_line_spacing()
-            band_top = max(0, y_in_row - spacing)
-            band_h = min(rect.height(), spacing * 3)
-            return fragment.collapse_link, band_top, band_h, fragment.key
+            return collapse
         return None
-
-    def _flash_tap_at(self, point: QPoint) -> None:
-        """Briefly highlight the tapped line, tracked by fragment key so expand/collapse
-        never leaves the highlight behind at a stale pixel offset."""
-        index = self.indexAt(point)
-        if not index.isValid():
-            return
-        fragment = index.data(HistoryRows.FRAGMENT)
-        if fragment is None:
-            return
-        rect = self.visualRect(index)
-        line_h = max(18, self._font_line_spacing())
-        y_in_row = max(0, point.y() - rect.top() - line_h // 2)
-        self._flash_tap_row(fragment.key, y_in_row, line_h)
-
-    def _flash_tap_row(self, key: object, y_in_row: int, height: int) -> None:
-        previous = self._tap_flash_painted
-        self._tap_flash = (key, y_in_row, height)
-        self._tap_flash_painted = None
-        if previous is not None and not previous.isEmpty():
-            self.viewport().update(previous)
-        live = self._live_tap_flash_rect()
-        if not live.isEmpty():
-            self.viewport().update(live)
-            self._tap_flash_timer.start()
-
-    def tap_flash_band(self, key: object, row_rect: QRect) -> QRect:
-        """Viewport-coordinate band to highlight inside `row_rect` when `key` owns the active
-        tap flash, clamped to `row_rect` so expand/collapse never overhangs another row."""
-        flash = self._tap_flash
-        if flash is None or flash[0] != key or row_rect.isEmpty():
-            return QRect()
-        _key, y_in_row, height = flash
-        clamped_h = min(height, row_rect.height())
-        top = min(row_rect.bottom() - clamped_h + 1, row_rect.top() + y_in_row)
-        return QRect(row_rect.left(), max(row_rect.top(), top), row_rect.width(), clamped_h)
-
-    def note_tap_flash_painted(self, rect: QRect) -> None:
-        """Record the viewport rect where the delegate just painted the tap highlight so
-        scroll or timer expiry erases those exact backing-store pixels."""
-        if not rect.isEmpty() and not self.widget_gone:
-            self._tap_flash_painted = rect.intersected(self.viewport().rect())
-
-    def _live_tap_flash_rect(self) -> QRect:
-        """Current viewport rect of the active tap highlight, resolved from the row's live
-        geometry so layout shifts from expand/collapse move the highlight with the row."""
-        flash = self._tap_flash
-        if flash is None or self.widget_gone:
-            return QRect()
-        row = self.model_rows.row_of(flash[0])
-        if row < 0:
-            return QRect()
-        rect = self.visualRect(self.model_rows.index(row, 0))
-        return self.tap_flash_band(flash[0], rect).intersected(self.viewport().rect())
-
-    def _clear_tap_flash(self, dx: int = 0, dy: int = 0) -> None:
-        previous = self._tap_flash_painted
-        live = self._live_tap_flash_rect()
-        self._tap_flash = None
-        self._tap_flash_painted = None
-        self._tap_flash_timer.stop()
-        if self.widget_gone:
-            return
-        viewport = self.viewport()
-        vp_rect = viewport.rect()
-        for rect in (
-            previous,
-            previous.translated(dx, dy) if (previous is not None and (dx or dy)) else None,
-            live,
-        ):
-            if rect is not None and not rect.isEmpty():
-                clipped = rect.intersected(vp_rect)
-                if not clipped.isEmpty():
-                    viewport.update(clipped)
-
-    def scrollContentsBy(self, dx: int, dy: int) -> None:  # noqa: N802 - Qt virtual method name
-        """Clear any active tap highlight before scrolling and invalidate both its pre-scroll
-        rect and the destination rect that `viewport.scroll(dx, dy, ...)` blits its
-        backing-store pixels into."""
-        stale = self._tap_flash_painted if (dx or dy) else None
-        had_flash = (dx or dy) and (self._tap_flash is not None or stale is not None)
-        if had_flash:
-            self._tap_flash = None
-            self._tap_flash_painted = None
-            self._tap_flash_timer.stop()
-        super().scrollContentsBy(dx, dy)
-        if had_flash and stale is not None and not stale.isEmpty() and not self.widget_gone:
-            viewport = self.viewport()
-            vp_rect = viewport.rect()
-            for rect in (stale, stale.translated(dx, dy)):
-                clipped = rect.intersected(vp_rect)
-                if not clipped.isEmpty():
-                    viewport.update(clipped)
 
     _TOUCH_LINK_OFFSETS: ClassVar[tuple[tuple[int, int], ...]] = (
         (0, -4), (0, 4), (0, -8), (0, 8), (-3, 0), (3, 0),
@@ -1843,39 +1618,44 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     """Touch-slop offsets probed around a tap so a finger near a 16 px sender/receiver name
     in a header opens that conversation tab instead of falling through to header collapse."""
 
-    def _tapped_link_at(self, point: QPoint) -> LineLink | None:
-        """The link under ``point``, preferring higher ``touch_priority`` links (sender/target
-        names, URLs, files) over header collapse when a touch lands within slop of a name."""
-        index = self.indexAt(point)
-        if not index.isValid():
-            return None
-        rect = self.visualRect(index)
-        width = self.rows.layout_width(rect.width())
-        document = self.rows.row_document(index, self.font(), width)
+    def _tapped_link_in_document(
+        self, document: QTextDocument, local_x: int, local_y: int, width: int, height: int
+    ) -> tuple[LineLink, str] | None:
+        """The `(link, href)` at `(local_x, local_y)` in `document`, preferring higher
+        `touch_priority` links (`@sender`/`#target`, URLs, files) within touch slop."""
         layout = document.documentLayout()
-        local = point - rect.topLeft()
-        href = layout.anchorAt(QPointF(local))
-        exact = LineLink.from_href(href) if href else None
-        if exact is not None and exact.touch_priority > 0:
+        href = layout.anchorAt(QPointF(local_x, local_y))
+        exact = (LineLink.from_href(href), href) if href else None
+        if exact is not None and exact[0].touch_priority > 0:
             return exact
         for dx, dy in self._TOUCH_LINK_OFFSETS:
-            probe_x, probe_y = local.x() + dx, local.y() + dy
-            if 0 <= probe_x < rect.width() and 0 <= probe_y < rect.height():
+            probe_x, probe_y = local_x + dx, local_y + dy
+            if 0 <= probe_x < width and 0 <= probe_y < height:
                 nearby_href = layout.anchorAt(QPointF(probe_x, probe_y))
                 if nearby_href:
                     nearby = LineLink.from_href(nearby_href)
                     if nearby.touch_priority > 0:
-                        return nearby
+                        return nearby, nearby_href
         return exact
+
+    def _tapped_link_at(self, row: int, point: QPoint) -> tuple[LineLink, str] | None:
+        """The `(link, href)` under `point` in `row`."""
+        rect = self.row_rect(row)
+        if rect.isEmpty():
+            return None
+        width = self.rows.layout_width(rect.width())
+        document = self.rows.row_document_for(self.model_rows.fragments[row], self.font(), width)
+        local = point - rect.topLeft()
+        return self._tapped_link_in_document(document, local.x(), local.y(), rect.width(), rect.height())
 
     def anchor_at(self, point: QPoint) -> str:
         """The href of the link drawn at `point` (viewport coordinates), or "" over plain text."""
-        index = self.indexAt(point)
-        if not index.isValid():
+        row = self.row_at_point(point)
+        if row < 0:
             return ""
-        rect = self.visualRect(index)
+        rect = self.row_rect(row)
         width = self.rows.layout_width(rect.width())
-        document = self.rows.row_document(index, self.font(), width)
+        document = self.rows.row_document_for(self.model_rows.fragments[row], self.font(), width)
         return document.documentLayout().anchorAt(QPointF(point - rect.topLeft()))
 
     # The shared link handlers (`OpensLineLinks`) open through this app and warn on this view.
@@ -1904,19 +1684,12 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path))):
             self.warn_link(f"No application opens {path.name}; it is kept at {path}.")
 
-    def paintEvent(self, event) -> None:  # type: ignore[override]
-        """Capture the viewport's dirty region for `HistoryRowDelegate.paint_pictures`."""
-        self._paint_region = event.region()
-        try:
-            super().paintEvent(event)
-        finally:
-            self._paint_region = None
-
     def changeEvent(self, event: QEvent) -> None:  # type: ignore[override]
         """Follow the application-wide text scale (`QApplication.setFont`) automatically."""
         super().changeEvent(event)
         if event.type() == QEvent.Type.FontChange and not self.widget_gone:
             self._cached_font_line_spacing = None
+            self._layout_font_key = ""
             self.rows.release_documents()
             self.rows_changed()
             self.repin_header()
@@ -1953,12 +1726,10 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def _emit_block_menu_at(self, point: QPoint) -> None:
         """Right-click or long-press at ``point`` (viewport coordinates): emit the
         fragment under that row so ConversationView can open the block menu."""
-        index = self.indexAt(point)
-        if not index.isValid():
+        row = self.row_at_point(point)
+        if row < 0:
             return
-        fragment = self.model_rows.data(index, HistoryRows.FRAGMENT)
-        if fragment is None:
-            return
+        fragment = self.model_rows.fragments[row]
         self.block_menu_requested.emit(fragment, self.viewport().mapTo(self.window(), point))
 
     # Geometry, in pixels
@@ -2004,10 +1775,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             return 0
         if self._vbar.maximum() > 0:
             return 0
-        rows = self.model_rows.rowCount()
-        if not rows:
-            return height
-        return max(0, height - self.visualRect(self.model_rows.index(rows - 1, 0)).bottom())
+        return max(0, height - self.total_height())
 
     @property
     def animated_travel(self) -> float:
@@ -2065,8 +1833,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
                 and top_cached[1] == self.geometry_revision):
             start = top_cached[3].row_index(model_rows)
         if start < 0:
-            top = self.indexAt(area.topLeft())
-            start = top.row() if top.isValid() else -1
+            start = self.row_at_y(scroll_val)
         if start < 0:
             result: tuple[HistoryFragment, ...] = ()
         else:
@@ -2074,8 +1841,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             row = start
             bottom_edge = area.bottom()
             while row + 1 < total:
-                next_rect = self.visualRect(model_rows.index(row + 1, 0))
-                if next_rect.top() > bottom_edge:
+                next_rect = self.row_rect(row + 1)
+                if not next_rect.isEmpty() and next_rect.top() > bottom_edge:
                     break
                 row += 1
             result = model_rows.fragments[start:row + 1]
@@ -2146,36 +1913,18 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self.show_rows()
         self.request_reader_layout()
 
-    def rows_moved(self, *_changed) -> None:
-        """The model's rows changed: a change open over this window needs a layout to show it."""
-        self.geometry_revision += 1
-
-    geometry_revision = 0
-
     def request_reader_layout(self) -> None:
-        """Qt has no later frame to lay out in: one layout now, and none left pending (a model
-        insert or removal schedules Qt's own, which a direct `doItemsLayout` would leave to
-        run a second time on the next turn). It puts the reader back on the message they
-        were reading and answers the change that asked for it, as Textual's screen does
-        around each of its layouts. A glide to the end owns the way there.
-
-        Wrapping layout and reader placement in one `layout_scroll()` keeps Qt's own range
-        clamping inside `executeDelayedItemsLayout()` from firing `scrolled()` as a fake
-        reader move and corrupting `lookahead` mid-drag."""
+        """One prefix-sum layout now, keeping the reader on their message and answering the
+        change that asked for it. Wrapping layout and reader placement in one `layout_scroll()`
+        keeps scrollbar clamping from firing `scrolled()` as a fake reader move."""
         answered = self.history_change.layout_requests
-        before_flash = self._tap_flash_painted or self._live_tap_flash_rect()
         with self.layout_scroll():
-            self.scheduleDelayedItemsLayout()
-            self.executeDelayedItemsLayout()
+            self.schedule_layout()
+            self.execute_layout()
             self._top_page_cache = None
             self._visible_cache = None
             self.place_layout_reader()
         self.history_change.finish_layout(answered)
-        if not self.widget_gone:
-            if before_flash is not None and not before_flash.isEmpty():
-                self.viewport().update(before_flash)
-            if not (after_flash := self._live_tap_flash_rect()).isEmpty():
-                self.viewport().update(after_flash)
         self.repin_header()
 
     def show_draft(self, fragments: tuple[HistoryFragment, ...]) -> None:
@@ -2304,8 +2053,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         # arrival's header unpinned and its burst unstacked (Tristan, Android, 2026-11-18).
         self._schedule_scroll_frame()
         moved, self._scrolled_to = value - self._scrolled_to, value
-        if moved and (self._tap_flash is not None or self._tap_flash_painted is not None):
-            self._clear_tap_flash(dy=-moved)
+        if moved and self.tap_highlight is not NO_TAP_HIGHLIGHT:
+            self._clear_tap_highlight()
         if self._restoring:
             return
         if not self.at_end and self.follows_tail:
@@ -2350,15 +2099,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         """A tap at ``point`` (viewport coordinates): when the tapped message's head is above
         the viewport, glide it up to the top. A head already on screen stays where it is,
         as in Textual (`reveal_message_head`). Whether it moved the rows."""
-        index = self.indexAt(point)
-        if not index.isValid():
+        tapped_row = self.row_at_point(point)
+        if tapped_row < 0:
             return False
         model_rows = self.model_rows
-        head = index.data(HistoryRows.FRAGMENT).message_head(model_rows.fragments)
+        head = model_rows.fragments[tapped_row].message_head(model_rows.fragments)
         row = model_rows.row_of(head.key)
         if row < 0:
             return False
-        top = self.visualRect(model_rows.index(row, 0)).top()
+        top = self.row_rect(row).top()
         if top >= 0:
             return False
         return self.start_head_reveal(self.scroll_y + top)
@@ -2525,17 +2274,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if (cached is not None and cached[0] == scroll_val
                 and cached[1] == self.geometry_revision and cached[2] == area.width()):
             return cached[3]
-        top = self.indexAt(area.topLeft())
-        if not top.isValid():
+        top_row = self.row_at_y(scroll_val)
+        if top_row < 0:
             result: QtTopRow = QtTopRow()
         else:
-            rect = self.visualRect(top)
+            rect = self.row_rect(top_row)
             if rect.height() <= 0:
                 result = QtTopRow()
             else:
-                # The row's layout width, not its extent: a row with an unwrapped block is wider than
-                # the viewport, its header is not, and the pin draws that header.
-                result = QtRowUnderTop(self, top.data(HistoryRows.FRAGMENT), rect.left(),
+                result = QtRowUnderTop(self, self.model_rows.fragments[top_row], rect.left(),
                                        self.rows.layout_width(rect.width()), -rect.top(), rect.height())
         self._top_page_cache = (scroll_val, self.geometry_revision, area.width(), result)
         return result
@@ -2550,7 +2297,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         row = model_rows.row_of(key)
         if row < 0:
             return None
-        return self.scroll_y + self.visualRect(model_rows.index(row, 0)).top()
+        return self.scroll_y + self.row_rect(row).top()
 
     def placements(self, bodies) -> Iterator[tuple[object, int]]:
         return iter(())

@@ -42,10 +42,22 @@ class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
         self.working = False
         self.animation: Animation[Ribbon] | None = None
         self.clock = clock
+        self._scheme_rgb_cache: tuple[object, object, QColor, dict[type, object]] | None = None
         self.setFixedHeight(self.fontMetrics().lineSpacing())
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
         WidgetAnimation.bind_widget(self, self, clock)
         renderer.themed(self, self.update)
+
+    def _scheme_colours(self):
+        scheme = self.renderer.scheme
+        cached = self._scheme_rgb_cache
+        if cached is not None and cached[0] is scheme:
+            return cached[1], cached[2], cached[3]
+        bg = BackgroundColour.rgb(scheme)
+        bg_qcolor = QColor(bg.hex)
+        stops_map: dict[type, object] = {}
+        self._scheme_rgb_cache = (scheme, bg, bg_qcolor, stops_map)
+        return bg, bg_qcolor, stops_map
 
     def sweep(self, working: bool) -> None:
         if working == self.working:
@@ -64,23 +76,34 @@ class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QPainter(self)
-        background = BackgroundColour.rgb(self.renderer.scheme)
-        painter.fillRect(event.rect(), QColor(background.hex))
+        background, bg_qcolor, stops_map = self._scheme_colours()
+        painter.fillRect(event.rect(), bg_qcolor)
         if self.animation is None:
             return
         frame = self.animation.frame()
         gradient = QLinearGradient(0, 0, self.width(), 0)
-        # Qt interpolates these samples on the GPU/native paint path.  The samples come
-        # from Ribbon.sample itself, so Qt owns no second taper, palette order or phase.
-        steps = 8 * len(frame.stops)
+        # Qt interpolates linear stops natively in C++. Sampling the taper boundaries and
+        # each palette stop (2*N stops instead of 8*N) preserves the exact ribbon shape
+        # while cutting 120 Hz Python color blending by 4x.
+        scheme = self.renderer.scheme
+        steps = 2 * len(frame.stops)
         span = frame.end - frame.start
         positions = {0.0, 1.0}
         positions.update(frame.start + span * step / steps for step in range(steps + 1))
         for position in sorted(max(0.0, min(1.0, place)) for place in positions):
             start, end, amount, height = frame.sample(position)
-            ink = start.rgb(self.renderer.scheme).blend(end.rgb(self.renderer.scheme), amount)
+            if height <= 0.0:
+                gradient.setColorAt(position, bg_qcolor)
+                continue
+            start_rgb = stops_map.get(start)
+            if start_rgb is None:
+                start_rgb = stops_map[start] = start.rgb(scheme)
+            end_rgb = stops_map.get(end)
+            if end_rgb is None:
+                end_rgb = stops_map[end] = end.rgb(scheme)
+            ink = start_rgb.blend(end_rgb, amount)
             colour = background.blend(ink, height)
-            gradient.setColorAt(position, QColor(colour.hex))
+            gradient.setColorAt(position, QColor(colour.red, colour.green, colour.blue))
         painter.fillRect(self.rect(), gradient)
 
 

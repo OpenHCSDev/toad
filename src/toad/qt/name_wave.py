@@ -9,7 +9,7 @@ while it runs. Nothing here keeps a period, a phase or a timer of its own.
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
-from PySide6.QtGui import QColor, QFont, QPixmap, QTextCharFormat, QTextLayout
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QStyle, QStyleOptionTab, QStylePainter, QTabBar, QToolButton, QWidget
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
@@ -255,6 +255,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         self.accent_format.setForeground(accent)
         self.lines: dict[tuple[str, int], QTextLayout] = {}
         self._shown_titles: dict[tuple[int, str, int], tuple[QRect, str]] = {}
+        self._tab_chrome: dict[tuple, QImage] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
 
@@ -385,10 +386,44 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         _rect, shown = self._cached_title(index)
         return self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
 
+    def _tab_chrome_image(self, index: int, tab_rect: QRect, option: QStyleOptionTab, dpr: float) -> QImage:
+        """Cache each busy tab's empty-text QSS background chrome so 60-120 Hz wave ticks
+        blit one image instead of running Fusion's QSS `drawControl(CE_TabBarTab)` every tick."""
+        key = (
+            tab_rect.width(),
+            tab_rect.height(),
+            option.state.value,
+            option.position.value,
+            option.selectedPosition.value,
+            dpr,
+        )
+        cached = self._tab_chrome.get(key)
+        if cached is not None:
+            return cached
+        if len(self._tab_chrome) >= 32:
+            self._tab_chrome.clear()
+        image = QImage(
+            max(1, round(tab_rect.width() * dpr)),
+            max(1, round(tab_rect.height() * dpr)),
+            QImage.Format.Format_ARGB32_Premultiplied,
+        )
+        image.setDevicePixelRatio(dpr)
+        image.fill(Qt.GlobalColor.transparent)
+        opt = QStyleOptionTab(option)
+        opt.text = ""
+        opt.rect = QRect(0, 0, tab_rect.width(), tab_rect.height())
+        drawing = QPainter(image)
+        self.style().drawControl(QStyle.ControlElement.CE_TabBarTab, opt, drawing, self)
+        drawing.end()
+        self._tab_chrome[key] = image
+        return image
+
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QStylePainter(self)
+        dpr = self.devicePixelRatioF()
         for index in range(self.count()):
-            if not self.tabRect(index).intersects(event.rect()):
+            tab_rect = self.tabRect(index)
+            if not tab_rect.intersects(event.rect()):
                 # A wave repaints its own tab: the other tabs' titles were being measured
                 # and elided again for each of its frames (the paint's largest Python cost
                 # on a phone, 8% of the GUI thread's samples with a few tabs open).
@@ -398,8 +433,8 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
             if wave is None or not wave.wave_running():
                 painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
                 continue
-            option.text = ""
-            painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
+            chrome = self._tab_chrome_image(index, tab_rect, option, dpr)
+            painter.drawImage(tab_rect.topLeft(), chrome)
             span = wave.band_drawn() or self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
             start, end = span
             layout = self.bold_line(shown, rect.width())
@@ -427,10 +462,12 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         self._shown_titles.clear()
+        self._tab_chrome.clear()
         super().resizeEvent(event)
 
     def changeEvent(self, event) -> None:  # type: ignore[override]
-        if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange):
+        if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange, QEvent.Type.PaletteChange):
             self.lines.clear()  # laid out in the font that just changed
             self._shown_titles.clear()
+            self._tab_chrome.clear()
         super().changeEvent(event)

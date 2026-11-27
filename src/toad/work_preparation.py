@@ -95,6 +95,14 @@ class PreparedValue(ABC, Generic[ResultT]):
     def materialize(self) -> ResultT:
         """Return independent mutable data to one consumer."""
 
+    async def deliver(self, scheduler: ThreadScheduler) -> ResultT:
+        """Materialize on a worker thread when isolation copies or deserializes data."""
+        return await scheduler.run_thread(self.materialize)
+
+    async def deliver_accepted(self, task) -> ResultT:
+        """Materialize and validate through `task.accept_result`, offloading only when needed."""
+        return await asyncio.to_thread(lambda: task.accept_result(self.materialize()))
+
 
 @dataclass(frozen=True, slots=True)
 class CopiedValue(PreparedValue[ResultT]):
@@ -108,23 +116,21 @@ class CopiedValue(PreparedValue[ResultT]):
 @dataclass(frozen=True, slots=True)
 class DirectValue(PreparedValue[ResultT]):
     """A one-shot result the caller owns outright: not cached across consumers, so no
-    deepcopy at delivery (`PreparationStorage.retain_result` is False). The runtime still
-    delivers it through its submit contract, but ``materialize`` returns the value the
-    producer handed back, with no isolation step.
-
-    Added for Qt's row-preparation batch: its result goes to one adopt loop, never a
-    second reader, and the deepcopy a ``CopiedValue`` makes for isolation was wall-clock
-    (a full tree copy of every row's formatting) every page the pager prepared. Each copy
-    yielded to the main loop long enough for the delegate's own sizeHint path to queue
-    the same rows for its worker, which then signalled rows_changed through a separate
-    route and the viewport re-laid out once per page (desktop Qt: `full_relayouts` went
-    4 -> 84 on a 231-row scroll-back, 2026-11-20)."""
+    deepcopy at delivery (`PreparationStorage.retain_result` is False). Delivering it
+    directly avoids a gratuitous `asyncio.to_thread` hop (and CPython GIL contention with
+    the GUI thread) just to return an already-owned reference."""
 
     value: ResultT
     size: int = 0
 
     def materialize(self) -> ResultT:
         return self.value
+
+    async def deliver(self, scheduler: ThreadScheduler) -> ResultT:
+        return self.value
+
+    async def deliver_accepted(self, task) -> ResultT:
+        return task.accept_result(self.value)
 
 
 @dataclass(frozen=True, slots=True)
@@ -395,10 +401,10 @@ class PreparationRuntime(ThreadScheduler):
         return self._closed or key.scope.closed
 
     async def _deliver(self, key: WorkKey, result: PreparedValue[ResultT]) -> ResultT:
-        """Validate at the final delivery boundary, including the worker-copy await."""
+        """Validate at the final delivery boundary, offloading isolation only when needed."""
         if self._abandoned(key):
             raise asyncio.CancelledError
-        copied = await self.run_thread(result.materialize)
+        copied = await result.deliver(self)
         if self._abandoned(key):
             raise asyncio.CancelledError
         return copied

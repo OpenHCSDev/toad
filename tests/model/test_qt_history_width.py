@@ -7,8 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from agent_comms.messaging.display_references import ProjectReferences
-from pyqt_reactive.widgets.virtual_rows import HtmlRow, VirtualRowView
-from PySide6.QtCore import QSize
+from pyqt_reactive.widgets.virtual_rows import HtmlRow
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 import pytest
@@ -27,12 +26,12 @@ from toad.patch import (
 from toad.qt.history import (
     RowPictures,
     HistoryRowDelegate,
-    HistoryRows,
     QtHistoryRowBatchRenderTask,
     QtRowPreparation,
 )
 from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import current_scheme
+from toad.qt.virtual_scroll import VirtualRowCanvas
 from toad.render_processes import RenderProcessPool
 
 
@@ -98,7 +97,7 @@ def test_qt_history_width_comes_from_the_rendered_document(monkeypatch) -> None:
     app = QApplication.instance() or QApplication([])
     delegate = HistoryRowDelegate(renderer(DiffSettings()), RowPictures(2 ** 20),
                                   RenderProcessPool(CoreConnection.helper_start))
-    view = VirtualRowView(delegate)
+    view = VirtualRowCanvas(delegate)
     font = QFont()
     try:
         delegate.measured_height("wrapped", font, 200, HtmlRow('<p style="white-space:pre-wrap">' + "x" * 200 + "</p>"))
@@ -133,15 +132,15 @@ def test_a_row_is_hinted_wider_than_the_window_only_while_code_does_not_wrap(mon
     for settings in (DiffSettings(), DiffSettings(wrap=NoWrapMode)):
         delegate = HistoryRowDelegate(renderer(settings), RowPictures(2 ** 20),
                                       RenderProcessPool(CoreConnection.helper_start))
-        view = VirtualRowView(delegate)
+        view = VirtualRowCanvas(delegate)
         try:
             over = [width for width in range(300, 340)
                     if delegate.measured_height(("header", width), font, width, HtmlRow(header)) and
                     delegate.row_extent(("header", width), width) > width]
             assert over, "this test needs a header Qt lays out wider than its width"
             width = over[0]
-            height = delegate.measured_height(("header", width), font, width, HtmlRow(header))
-            hinted[settings.wrap] = delegate.hinted(("header", width), QSize(width, height)).width() - width
+            delegate.measured_height(("header", width), font, width, HtmlRow(header))
+            hinted[settings.wrap] = delegate.hinted_width(("header", width), width) - width
         finally:
             delegate.cleanup()
             view.deleteLater()
@@ -192,26 +191,18 @@ def test_intrinsic_tool_output_gives_the_shared_history_a_horizontal_range(monke
         pool = RenderProcessPool(CoreConnection.helper_start, max_workers=1)
         pool.start()
         delegate = HistoryRowDelegate(line_renderer, RowPictures(2 ** 20), pool)
-        view = VirtualRowView(delegate)
-        # HistoryRowDelegate's paint hook belongs to QtHistoryWindow; this proof
-        # exercises layout only through the generic virtual-row host.
-        view.has_active_arrivals = False
-        view._tap_flash = None
-        view._paint_region = None
-        view.row_painted = lambda *args: None
-        model = HistoryRows()
+        view = VirtualRowCanvas(delegate)
         try:
             # The worker is another process (spawned here), so this reaches only this one.
             monkeypatch.setattr(QtLineRenderer, "html", lambda *args, **kwargs: pytest.fail(
                 "a history row was rendered in the UI process"))
-            model.show((fragment,))
-            view.setModel(model)
+            view.model_rows.show((fragment,))
             view.resize(200, 200)
             view.show()
             async with asyncio.timeout(60):
                 while not view.horizontalScrollBar().maximum():
                     app.processEvents()  # the paint that asks, the one-frame layout timer
-                    view.executeDelayedItemsLayout()
+                    view.execute_layout()
                     await asyncio.sleep(0.01)  # the worker's answer
         finally:
             delegate.cleanup()
