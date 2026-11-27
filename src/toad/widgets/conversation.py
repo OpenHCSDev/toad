@@ -1026,10 +1026,10 @@ class Conversation(
         return any(widget in visible and viewport.overlaps(visible[widget][0]) for widget in candidates)
 
     def show_draft(self, draft, identity) -> None:
-        widget = self.cli_draft
-        if self.contents.children[-1] is not widget:
-            self.contents.move_child(widget, after=-1)
-        DRAFT_PRESENTATION.project_value(draft, widget, identity)
+        DRAFT_PRESENTATION.project_value(draft, self.cli_draft, identity)
+
+    def clear_draft(self) -> None:
+        self.cli_draft.clear()
 
     def empty_history(self, notification_view=None) -> TranscriptHistory:
         return TranscriptHistory.empty(

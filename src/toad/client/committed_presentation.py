@@ -28,6 +28,7 @@ from toad.commit_claims import (
     CommitClaim,
     CommitEvidence,
     CommitParticipant,
+    LiveResponsePresentation,
     RetainedBlockClaim,
 )
 from toad.core.projection import MroProjection
@@ -68,6 +69,25 @@ BLOCK_CLAIMS = BlockClaims()
 
 def block_claim(widget: object) -> CommitClaim:
     return BLOCK_CLAIMS.project_value(widget)
+
+
+class DraftCoverage(MroProjection[bool]):
+    """Whether a live block already draws the in-progress assistant reply."""
+
+    @handles(object)
+    def uncovered(self, widget: object) -> bool:
+        return False
+
+    @handles(LiveResponsePresentation)
+    def covered(self, widget: LiveResponsePresentation) -> bool:
+        return True
+
+
+DRAFT_COVERAGE = DraftCoverage()
+
+
+def covers_live_draft(widget: object) -> bool:
+    return DRAFT_COVERAGE.project_value(widget)
 
 
 def retirement_candidates(widgets: Iterable[object], evidence: CommitEvidence) -> list[object]:
@@ -120,7 +140,7 @@ class PreparedPageCommit(PreparedCommit, shows=(PreparedPageSource,)):
 
     @classmethod
     async def capture(cls, view: Conversation, history: TranscriptHistory, page: TranscriptPage, sequences: frozenset[int]) -> Self:
-        classes = history.page_source.fragments
+        classes = history.fragment_classes
         files = await view.transcript.page_files(page, classes)
         prepared = await TranscriptPageRenderTask(page, classes, files).prepared(view.app.preparation)
         return cls(history, sequences, prepared)

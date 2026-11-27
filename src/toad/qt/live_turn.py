@@ -25,7 +25,12 @@ from agent_comms.transcript.transcript_events import (
 
 from toad.client.fragments import GrowsInPlace
 from toad.client.transcript_fragments import TranscriptFragment
-from toad.commit_claims import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
+from toad.commit_claims import (
+    CAPTURED_CLAIM,
+    CommitClaim,
+    LiveResponsePresentation,
+    SnapshotPresentation,
+)
 from toad.turn_presentation import LiveBlock
 
 if TYPE_CHECKING:
@@ -78,11 +83,11 @@ class QtLiveBlock(LiveBlock):
         self.window.drop_live(self)
 
 
-class QtResponseBlock(SnapshotPresentation, QtLiveBlock):
+class QtResponseBlock(LiveResponsePresentation, QtLiveBlock):
     """Live agent response row; saved history covering its claim retires it."""
 
 
-class QtThoughtBlock(QtResponseBlock):
+class QtThoughtBlock(SnapshotPresentation, QtLiveBlock):
     event_kind = ThinkingTranscript
 
 

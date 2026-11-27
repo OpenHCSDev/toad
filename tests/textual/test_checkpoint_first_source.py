@@ -51,6 +51,7 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         assert not old.accepts_commit(page.after)
         view.window.anchor()
         view.prompt.focus()
+        view.transcript.require_commit()
         publication = view.transcript.binding.capture(view.transcript, CommitPublication)
         assert publication.current()
         task = asyncio.create_task(publication.publish())
@@ -68,5 +69,5 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         await ui.until(lambda: ui.painted(view.window).count("FIRST_SAVED_NATIVE_RESPONSE") == 1,
                        why="the saved response drawn exactly once")
         assert replacement.page_source.through == page.after
-        assert replacement.page_source.loader == view.transcript.get_transcript_page
+        assert replacement.page_source.loader == view.transcript
         assert replacement.covers_incoming(notice.seq)

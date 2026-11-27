@@ -149,6 +149,9 @@ class DraftPresentation(MroProjection[None]):
 
     @handles(DraftFold)
     def draft(self, draft: DraftFold, widget: CliDraft, identity: TranscriptReadIdentity) -> None:
+        parent = widget.parent
+        if parent is not None and parent.children and parent.children[-1] is not widget:
+            parent.move_child(widget, after=-1)
         widget.show(draft, identity)
 
     @handles(NoDraft)
