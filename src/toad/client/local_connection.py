@@ -33,6 +33,7 @@ from agent_comms.ui_model.observation_service import LocalRouteObservation
 from agent_comms.ui_model.sidebar import SidebarModel
 
 from toad.client.agent_processes import AgentProcesses, SpawnsAgentProcesses
+from toad.client.bus_selection import BusChoice
 from toad.launch_opening import LaunchOpening
 from toad.client.db import UNSCOPED_TABS, TabScope
 from toad.client.connection import (
@@ -88,6 +89,10 @@ class LocalCoreConnection(LaunchRoot, CoreConnection):
     def chosen(self, arguments: list[str]) -> CoreConnection:
         """Read as a launch reads its arguments: a profile is remote, a root this machine's."""
         return select_connection(arguments)
+
+    def offered_buses(self, now: float) -> tuple[BusChoice, ...]:
+        """A desktop launch with a local bus offers this machine plus every held remote profile."""
+        return BusChoice.offered(now)
 
     def prewarm(self) -> None:
         """Walk local Core storage declarations once before the first frame so a cold tab

@@ -22,11 +22,11 @@ from __future__ import annotations
 
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     QVBoxLayout,
 )
 
@@ -37,6 +37,7 @@ from toad.client.bus_selection import (
     PickerRow,
 )
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtPushButton
 from toad.qt.window import (
     BusAddress,
     BusRow,
@@ -78,11 +79,12 @@ class QtBusSwitcher(BusListing, QFrame):
         outer.addWidget(self._tree, 1)
 
         self._address = BusAddress(window)
+        self._address.returnPressed.connect(self.hide_switcher)
         outer.addWidget(self._address)
 
         close_row = QHBoxLayout()
         close_row.addStretch(1)
-        self._close = QPushButton("Close", self)
+        self._close = QtPushButton("Close", self)
         self._close.clicked.connect(self.hide_switcher)
         close_row.addWidget(self._close)
         outer.addLayout(close_row)
@@ -132,12 +134,16 @@ class QtBusSwitcher(BusListing, QFrame):
         self._host.deregister_bus_listing(self)
         self.hide()
 
+    def keyPressEvent(self, event: QKeyEvent) -> None:  # type: ignore[override]
+        if event.key() == Qt.Key.Key_Escape:
+            self.hide_switcher()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
     # ---- row + address handlers ----
 
     def _row_clicked(self, item) -> None:
-        """A picked row acts (`PickerRow.chosen` through `BusRow.activate`) then
-        the switcher closes. Mirrors `BusChoices.chose` → `row.chosen(self.app)`
-        with Textual's dismiss replaced by this inline-overlay hide."""
-        if isinstance(item, self._BusRow):
-            self.hide_switcher()
-            item.activate(self._host)
+        """Polymorphic switcher activation: `BusRow` closes the switcher and switches onto
+        the chosen bus; section headers toggle open/closed without dismissing."""
+        item.activate_in_switcher(self, self._host)

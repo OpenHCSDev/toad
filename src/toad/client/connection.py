@@ -97,7 +97,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 
 from toad.client.agent_processes import AgentProcesses, NoAgentProcesses
 from toad.client.transcript_reader import CoordinationTranscriptReader
-from toad.client.bus_selection import ProfileArgument
+from toad.client.bus_selection import BusChoice, ProfileArgument
 from toad.client.host import CommsHost
 from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.client.context_reads import ContextReads
@@ -213,6 +213,11 @@ class CoreConnection(ABC):
     @abstractmethod
     def chosen(self, arguments: list[str]) -> CoreConnection:
         """The connection a bus the owner chose names, read by this connection's kind."""
+
+    def offered_buses(self, now: float) -> tuple[BusChoice, ...]:
+        """Buses this connection kind can open without asking the tailnet (remote-only
+        launches list held remote profiles; `LocalCoreConnection` also includes `LocalBus`)."""
+        return BusChoice.held(now)
 
     def close(self) -> None:
         """Release connection-owned work after its observations and reads end."""

@@ -165,6 +165,7 @@ def test_flash_coordination_held_rows_and_live_revision_are_the_shared_owners():
     from toad.flash_host import FlashNotice
     from toad.qt.agent_surface import QtLiveToolFragment
     from toad.qt.bus_switcher import QtBusSwitcher
+    from toad.qt.window import QtSidebarBuses
     from toad.qt.live_turn import QtLiveFragment
     from toad.qt.prompt_stack import QtFlash, QtSessionDetails
     from toad.screens.bus_choice import ListsBuses
@@ -174,7 +175,7 @@ def test_flash_coordination_held_rows_and_live_revision_are_the_shared_owners():
 
     _owned_by(FlashNotice, "settings", Flash, QtFlash)
     _owned_by(ObservedActivity, "coordination", ObservedThreadActivity, QtSessionDetails)
-    _owned_by(BusListing, "held_rows", ListsBuses, QtBusSwitcher)
+    _owned_by(BusListing, "held_rows", ListsBuses, QtBusSwitcher, QtSidebarBuses)
     _owned_by(GrowsInPlace, "revision", QtLiveFragment, QtLiveToolFragment)
     # The counter, not the event count, keys a live row.
     assert QtLiveFragment(events=(), live_revision=3).revision == 3
