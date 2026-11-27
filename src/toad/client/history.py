@@ -591,7 +591,7 @@ class WireSource(BusQueueSource, ConversationSource):
     access: CoordinationAccess = field(kw_only=True)
     core: CoreAccess = field(kw_only=True)
     fragments: type[EvidencedFragment] = field(kw_only=True)
-    tail_limit: int = 8
+    tail_limit: int = 20
     page_limit: int = 40
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:

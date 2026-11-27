@@ -72,14 +72,14 @@ class PresentationBudget:
     """
 
     max_items: Annotated[int, gt] = 24
-    batch_items: Annotated[int, gt] = 4
+    batch_items: Annotated[int, gt] = 12
     reserve_batches: Annotated[int, ge] = 4
     minimum_widgets: Annotated[int, gt] = 300
     widgets_per_row: Annotated[int, ge] = 10
-    buffer_viewports: Annotated[int, gt] = 3
-    destination_pages: Annotated[int, gt] = 2
-    lookahead_seconds: Annotated[float, gt] = 1.0
-    delivery_safety_factor: Annotated[float, gt] = 2.0
+    buffer_viewports: Annotated[int, gt] = 5
+    destination_pages: Annotated[int, gt] = 4
+    lookahead_seconds: Annotated[float, gt] = 2.0
+    delivery_safety_factor: Annotated[float, gt] = 3.0
     scroll_idle_seconds: Annotated[float, gt] = 0.2
 
     def __post_init__(self) -> None:
@@ -995,13 +995,12 @@ class HistoryPager(ResumesSource):
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, end)
-            # Prepare a bounded runway chunk (~3 viewports) rather than the entire 40-message
-            # transport page before mounting: on a phone, 40 synchronous Qt document layouts
-            # stalled mid-scroll loading for 0.5-1.5s while 1-row-at-a-time top-ups thrashed
-            # layouts. Remaining messages in the fetched page extend locally (`local=True`).
-            edge_chunk = max(1, missing) if followed_end else max(
-                missing, window.presentation_budget.runway_rows(window.viewport_rows)
-            )
+            # Prepare a responsive 2-viewport chunk before mounting so new rows land above a
+            # fast phone fling immediately instead of hoarding an entire 40-message page across
+            # multiple worker waves while the reader hits scroll_y == 0. Remaining messages in
+            # the fetched page extend locally (`local=True`) on the next frame while
+            # `prepare_ahead` prefetches the next transport page in parallel.
+            edge_chunk = max(1, missing) if followed_end else max(1, window.viewport_rows) * 2
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories, end=end,
                 boundary=end.edge_boundary(edge, local, staged),
