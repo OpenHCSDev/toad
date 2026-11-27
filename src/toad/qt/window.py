@@ -54,6 +54,7 @@ from toad.keymap import KeyInvocationId
 from toad.qt.finger_press import FingerPress
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
+from toad.qt.tap_flash import QtPushButton, QtTextButton
 from ui_theme.clock import AnimationClock
 from ui_theme.scheme import (
     AlternateRowToneColour,
@@ -1863,8 +1864,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         separator.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         return separator
 
-    def bar_button(self, text: str, tip: str, action) -> QToolButton:
-        button = QToolButton(self)
+    def bar_button(self, text: str, tip: str, action) -> QtTextButton:
+        button = QtTextButton(self)
         button.setText(text)
         button.setToolTip(tip)
         button.setAutoRaise(True)
@@ -2376,15 +2377,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         spin.setMinimumHeight(40)
         spin.valueChanged.connect(self.set_message_font_scale)
 
-        minus = QPushButton("−", panel)
+        minus = QtPushButton("−", panel)
         minus.setMinimumSize(44, 40)
         minus.clicked.connect(lambda: spin.setValue(max(50, spin.value() - 5)))
 
-        plus = QPushButton("+", panel)
+        plus = QtPushButton("+", panel)
         plus.setMinimumSize(44, 40)
         plus.clicked.connect(lambda: spin.setValue(min(200, spin.value() + 5)))
 
-        reset = QPushButton("100%", panel)
+        reset = QtPushButton("100%", panel)
         reset.setMinimumSize(56, 40)
         reset.clicked.connect(lambda: spin.setValue(100))
 

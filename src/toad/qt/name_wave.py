@@ -19,6 +19,7 @@ from ui_theme.effects import Band
 
 from toad.client.name_wave import BandCells, NameWave
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
+from toad.qt.tap_flash import QtTextButton
 
 
 def band_ink(span: tuple[int, int], length: int, ink: QTextCharFormat) -> QTextLayout.FormatRange:
@@ -310,7 +311,7 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         right_inset = self.TAB_GAP + 2
         layout.setContentsMargins(2, 0, right_inset, 0)
         layout.setSpacing(0)
-        button = QToolButton(container)
+        button = QtTextButton(container)
         button.setObjectName("tab-close-button")
         button.setText("×")
         button.setToolTip("Close tab")

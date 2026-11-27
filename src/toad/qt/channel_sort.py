@@ -16,7 +16,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QToolButton, QWidget
+from PySide6.QtWidgets import QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from agent_comms.display_order import ChannelSort, DisplayOrder, ThreadSort
@@ -25,12 +25,13 @@ from toad.client.menu_entry import MenuEntry
 from toad.client.sort_control import ChannelListOrder, ChannelMemberOrder, ChannelSortForm, CommsSortWrite, SortControlBase, ThreadSortForm
 
 from toad.qt.menu import QtMenu
+from toad.qt.tap_flash import QtTextButton
 
 if TYPE_CHECKING:
     from toad.qt.window import QtToadApp
 
 
-class QtSortButton[Order: DisplayOrder](SortControlBase[Order], QToolButton, metaclass=PyQtWidgetMeta):
+class QtSortButton[Order: DisplayOrder](SortControlBase[Order], QtTextButton, metaclass=PyQtWidgetMeta):
     """A sort choice as a one-line button whose tap lists its form's orders, then any
     settings it toggles, in the window's pop-up menu under the button; a pick hands the
     order to `write_picked`, and only the observation that follows repaints the label."""
@@ -84,9 +85,7 @@ class QtSortControl[Order: DisplayOrder](CommsSortWrite[Order], QtSortButton[Ord
     def __init__(self, app: QtToadApp, form_type, scope: str, parent: QWidget | None = None) -> None:
         self._app = app
         super().__init__(form_type, scope, parent)
-        plain = self.styleSheet()
-        app.renderer.themed(self, lambda: self.setStyleSheet(
-            plain + f"QToolButton {{ background-color: transparent; color: {app.renderer.colour(MutedRole)}; }}"))
+        app.renderer.themed(self, lambda: self.apply_text_style(app.renderer, MutedRole.colour))
 
     def saved_settings(self):
         return self._app.saved_settings

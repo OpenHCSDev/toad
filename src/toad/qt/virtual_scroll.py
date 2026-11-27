@@ -32,14 +32,18 @@ from PySide6.QtGui import (
     QFontMetrics,
     QGuiApplication,
     QPainter,
+    QPalette,
     QRegion,
     QTextCharFormat,
     QTextCursor,
     QTextDocument,
     QTextFormat,
+    QTextTable,
 )
 from PySide6.QtWidgets import QAbstractScrollArea, QWidget
 from pyqt_reactive.widgets.virtual_rows import PendingRow, RowFormatting, RowPreparer, ThreadRowPreparer
+
+from toad.client.tap_flash import TapFeedback
 
 
 def _inverted_char_format(bg: QColor, fg: QColor, existing: QTextCharFormat) -> QTextCharFormat:
@@ -74,20 +78,75 @@ def _href_selections(document: QTextDocument, href: str, bg: QColor, fg: QColor)
     return selections
 
 
-def _header_selections(document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
-    """Invert the message's header divider text (first non-empty blocks/table cells of `document`)."""
-    selections: list[QAbstractTextDocumentLayout.Selection] = []
+def _divider_tables(document: QTextDocument) -> list[tuple[QTextTable, QColor]]:
+    """Return every leading divider row `QTextTable` (1 row, 3 cols: `<hr> | title | <hr>`)
+    and its rule colour at the top of `document`. Multi-line headers (title + wrapped title +
+    timestamp) emit consecutive 3-column tables, so all of them flash together."""
+    tables: list[tuple[QTextTable, QColor]] = []
+    seen: set[int] = set()
     block = document.begin()
-    # A Divider renders as a 1-row HTML table (rule | header spans | rule) before the body blocks.
-    # Highlight every text fragment inside that leading table (or the first non-empty block).
-    table = QTextCursor(block).currentTable() if block.isValid() else None
-    while block.isValid() and not block.text().strip() and table is None:
-        block = block.next()
-        if block.isValid():
-            table = QTextCursor(block).currentTable()
     while block.isValid():
-        if table is not None and QTextCursor(block).currentTable() != table:
+        table = QTextCursor(block).currentTable()
+        if table is None:
+            if block.text().strip():
+                break
+            block = block.next()
+            continue
+        if table.rows() != 1 or table.columns() != 3:
             break
+        left_blk = table.cellAt(0, 0).firstCursorPosition().block()
+        right_blk = table.cellAt(0, 2).firstCursorPosition().block()
+        hr_prop = QTextFormat.Property.BlockTrailingHorizontalRulerWidth
+        if not (left_blk.blockFormat().hasProperty(hr_prop) and right_blk.blockFormat().hasProperty(hr_prop)):
+            break
+        tid = id(table)
+        if tid not in seen:
+            seen.add(tid)
+            tables.append((table, left_blk.blockFormat().background().color()))
+        block = block.next()
+    return tables
+
+
+def _header_selections(
+    document: QTextDocument,
+    bg: QColor,
+    fg: QColor,
+    tables: list[tuple[QTextTable, QColor]] | None = None,
+) -> list[QAbstractTextDocumentLayout.Selection]:
+    """Invert every text run across all leading message-header divider tables (or the first
+    non-empty block when no divider table is present)."""
+    selections: list[QAbstractTextDocumentLayout.Selection] = []
+    divider_tables = _divider_tables(document) if tables is None else tables
+    if divider_tables:
+        for table, hr_color in divider_tables:
+            ink = hr_color if hr_color.isValid() and hr_color != bg else fg
+            cell = table.cellAt(0, 1)
+            block = cell.firstCursorPosition().block()
+            last = cell.lastCursorPosition().block()
+            while block.isValid():
+                it = block.begin()
+                while not it.atEnd():
+                    frag = it.fragment()
+                    if frag.isValid() and frag.length() > 0:
+                        cursor = QTextCursor(document)
+                        cursor.setPosition(frag.position())
+                        cursor.setPosition(frag.position() + frag.length(), QTextCursor.MoveMode.KeepAnchor)
+                        sel = QAbstractTextDocumentLayout.Selection()
+                        sel.cursor = cursor
+                        fmt = QTextCharFormat(frag.charFormat())
+                        fmt.setForeground(bg)
+                        fmt.setBackground(ink)
+                        sel.format = fmt
+                        selections.append(sel)
+                    it += 1
+                if block == last:
+                    break
+                block = block.next()
+        return selections
+    block = document.begin()
+    while block.isValid() and not block.text().strip():
+        block = block.next()
+    if block.isValid():
         it = block.begin()
         while not it.atEnd():
             frag = it.fragment()
@@ -100,14 +159,12 @@ def _header_selections(document: QTextDocument, bg: QColor, fg: QColor) -> list[
                 sel.format = _inverted_char_format(bg, fg, frag.charFormat())
                 selections.append(sel)
             it += 1
-        if table is None:
-            break
-        block = block.next()
     return selections
 
 
-class TapHighlight(ABC):
-    """What clickable text is currently inverted in response to a tap."""
+class TapHighlight(TapFeedback, ABC):
+    """What clickable text (or divider header + horizontal rules) is currently inverted in
+    response to a tap."""
 
     def matches_row(self, key: object) -> bool:
         return False
@@ -124,6 +181,23 @@ class TapHighlight(ABC):
     def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
         return []
 
+    def paint_document(
+        self,
+        painter: QPainter,
+        document: QTextDocument,
+        palette: QPalette,
+        bg: QColor,
+        fg: QColor,
+        clip: QRectF | None = None,
+    ) -> None:
+        """Draw `document` with this tap highlight's inverted formatting."""
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.palette = palette
+        if clip is not None:
+            context.clip = clip
+        context.selections = self.selections(document, bg, fg)
+        document.documentLayout().draw(painter, context)
+
 
 class NoTapHighlight(TapHighlight):
     """No active tap inversion."""
@@ -132,8 +206,51 @@ class NoTapHighlight(TapHighlight):
 NO_TAP_HIGHLIGHT = NoTapHighlight()
 
 
+class LinkTapHighlight(TapHighlight):
+    """Shared base for inverting one tapped `<a href>` span in either a row or pinned header."""
+
+    href: str
+
+    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
+        return _href_selections(document, self.href, bg, fg)
+
+
+class HeaderTapHighlight(TapHighlight):
+    """Shared base for inverting a tapped message header divider — including every wrapped
+    header line AND the flanking `<hr>` horizontal bars — in both in-flow rows and pinned headers."""
+
+    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
+        return _header_selections(document, bg, fg)
+
+    def paint_document(
+        self,
+        painter: QPainter,
+        document: QTextDocument,
+        palette: QPalette,
+        bg: QColor,
+        fg: QColor,
+        clip: QRectF | None = None,
+    ) -> None:
+        tables = _divider_tables(document)
+        layout = document.documentLayout()
+        for table, hr_color in tables:
+            ink = hr_color if hr_color.isValid() and hr_color != bg else fg
+            painter.fillRect(layout.frameBoundingRect(table), ink)
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.palette = palette
+        if clip is not None:
+            context.clip = clip
+        context.selections = _header_selections(document, bg, fg, tables)
+        layout.draw(painter, context)
+        for table, _hr_color in tables:
+            for col in (0, 2):
+                brect = layout.blockBoundingRect(table.cellAt(0, col).firstCursorPosition().block())
+                if brect.width() > 0:
+                    painter.fillRect(QRectF(brect.left(), brect.center().y() - 0.5, brect.width(), 1.5), bg)
+
+
 @dataclass(frozen=True, slots=True)
-class RowLinkTapHighlight(TapHighlight):
+class RowLinkTapHighlight(LinkTapHighlight):
     """Invert the tapped `<a href>` text span inside one history row."""
 
     key: object
@@ -145,13 +262,10 @@ class RowLinkTapHighlight(TapHighlight):
     def row_key(self) -> object:
         return self.key
 
-    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
-        return _href_selections(document, self.href, bg, fg)
-
 
 @dataclass(frozen=True, slots=True)
-class RowHeaderTapHighlight(TapHighlight):
-    """Invert the tapped message header divider inside one history row."""
+class RowHeaderTapHighlight(HeaderTapHighlight):
+    """Invert the tapped message header divider (text + horizontal bars) inside one history row."""
 
     key: object
 
@@ -161,12 +275,9 @@ class RowHeaderTapHighlight(TapHighlight):
     def row_key(self) -> object:
         return self.key
 
-    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
-        return _header_selections(document, bg, fg)
-
 
 @dataclass(frozen=True, slots=True)
-class PinnedLinkTapHighlight(TapHighlight):
+class PinnedLinkTapHighlight(LinkTapHighlight):
     """Invert the tapped `<a href>` text span inside a pinned sticky header."""
 
     index: int
@@ -178,13 +289,10 @@ class PinnedLinkTapHighlight(TapHighlight):
     def is_pinned(self) -> bool:
         return True
 
-    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
-        return _href_selections(document, self.href, bg, fg)
-
 
 @dataclass(frozen=True, slots=True)
-class PinnedHeaderTapHighlight(TapHighlight):
-    """Invert the tapped pinned sticky header."""
+class PinnedHeaderTapHighlight(HeaderTapHighlight):
+    """Invert the tapped pinned sticky header (text + horizontal bars)."""
 
     index: int
 
@@ -193,9 +301,6 @@ class PinnedHeaderTapHighlight(TapHighlight):
 
     def is_pinned(self) -> bool:
         return True
-
-    def selections(self, document: QTextDocument, bg: QColor, fg: QColor) -> list[QAbstractTextDocumentLayout.Selection]:
-        return _header_selections(document, bg, fg)
 
 
 class RowMetrics:

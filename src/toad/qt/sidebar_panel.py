@@ -41,6 +41,7 @@ from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
 from toad.client.sidebar_panels import PanelMenuModel, PanelSpec, SidebarPanelCollapse, SidebarPanelColumn
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtTextButton
 
 
 class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta):
@@ -62,7 +63,7 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
         self._header = QWidget(self)
         self._header.setObjectName("QtSidebarPanelHeader")
         self._header.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._chevron = QToolButton(self._header)
+        self._chevron = QtTextButton(self._header)
         self._chevron.setAutoRaise(True)
         self._chevron.setArrowType(Qt.ArrowType.DownArrow)
         self._chevron.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -125,6 +126,7 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
     def _header_press(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.MouseButton.LeftButton:
             event.accept()
+            self._chevron.flash_tap()
             self._toggle()
         else:
             event.ignore()

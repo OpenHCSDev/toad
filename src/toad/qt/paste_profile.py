@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 )
 
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtPushButton
 
 
 class QtProfilePastePanel(QFrame):
@@ -51,13 +52,13 @@ class QtProfilePastePanel(QFrame):
         buttons = QHBoxLayout()
         buttons.setContentsMargins(0, 0, 0, 0)
         buttons.setSpacing(UiGap.frame)
-        cancel = QPushButton("Cancel", self)
+        cancel = QtPushButton("Cancel", self)
         cancel.setFlat(True)
         cancel.setMinimumHeight(40)
         cancel.clicked.connect(self._cancel)
         buttons.addWidget(cancel)
         buttons.addStretch(1)
-        submit = QPushButton("Hold profile", self)
+        submit = QtPushButton("Hold profile", self)
         submit.setDefault(True)
         submit.setMinimumHeight(40)
         submit.clicked.connect(self._fire)

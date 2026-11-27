@@ -1396,3 +1396,94 @@ def test_first_collapse_prepares_inline_without_worker_pool(monkeypatch) -> None
     assert delegate.prepare_inline(markdown_frag, font, 360) is False
     assert delegate.is_prepared(delegate.fragment_key(markdown_frag, font, 360)) is False
     delegate.cleanup()
+
+
+def test_header_tap_highlight_inverts_bars_and_multiline_and_text_buttons_share_tap_flash(monkeypatch) -> None:
+    """Header tap flash inverts horizontal `<hr>` bars + all wrapped/timestamp lines on both
+    in-flow and pinned headers, and clickable text buttons inherit the shared `TapFeedback` /
+    `TapFlashControl` owner."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtGui import QColor, QImage, QPainter, QPalette, QTextDocument
+    from agent_comms.messaging.display_references import ProjectReferences
+    from ui_theme.catalog import SCHEMES
+    from ui_theme.scheme import BackgroundColour, SecondaryColour
+
+    from toad.client.line_blocks import Divider, EventTime, IncomingRole, MutedRole, Span, Summary
+    from toad.client.tap_flash import TAP_FLASH_MS, TapFeedback
+    from toad.qt.channel_sort import QtSortButton
+    from toad.qt.goal import QtGoalControl
+    from toad.qt.queue_ui import QtActivatedText
+    from toad.qt.side_bar import QtSidebarAction
+    from toad.qt.tap_flash import QtPushButton, QtTextButton, TapFlashControl
+    from toad.qt.virtual_scroll import (
+        PinnedHeaderTapHighlight,
+        RowHeaderTapHighlight,
+        _divider_tables,
+    )
+
+    # 1. Single nominal ancestor across document tap highlights AND clickable text controls.
+    for cls in (
+        RowHeaderTapHighlight,
+        PinnedHeaderTapHighlight,
+        TapFlashControl,
+        QtTextButton,
+        QtPushButton,
+        QtGoalControl,
+        QtSortButton,
+        QtSidebarAction,
+        QtActivatedText,
+    ):
+        assert issubclass(cls, TapFeedback)
+        assert cls.tap_flash_duration_ms == TAP_FLASH_MS
+
+    # 2. HeaderTapHighlight inverts BOTH horizontal `<hr>` bars AND multi-line timestamp rows.
+    ts_cls = [c for c in EventTime.__subclasses__() if c.__name__ != "UnrecordedEventTime"][0]
+    scheme = SCHEMES[0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), ProjectReferences()), DiffSettings()).at_width(30)
+    div = Divider(
+        (Span("▼ ", IncomingRole), Span("#model <- pm-neuro-arch", IncomingRole)),
+        role=IncomingRole,
+        timestamp=ts_cls(1795744971.0),
+    )
+    html = renderer.html((div, Summary((Span("body line", MutedRole),))))
+    doc = QTextDocument()
+    doc.setTextWidth(360)
+    doc.setHtml(html)
+    tables = _divider_tables(doc)
+    assert len(tables) >= 2  # title + timestamp tables
+
+    bg = QColor(BackgroundColour.rgb(scheme).hex)
+    fg = QColor("#ffffff")
+    ink = QColor(renderer.colour(IncomingRole))
+    img = QImage(360, int(doc.size().height()) + 4, QImage.Format.Format_ARGB32)
+    img.fill(bg)
+    painter = QPainter(img)
+    RowHeaderTapHighlight("m-1").paint_document(painter, doc, QPalette(), bg, fg)
+    painter.end()
+
+    layout = doc.documentLayout()
+    for table, _hr_color in tables:
+        trect = layout.frameBoundingRect(table)
+        # Band background inside left & right rule cells is inverted to `ink`.
+        for col in (0, 2):
+            brect = layout.blockBoundingRect(table.cellAt(0, col).firstCursorPosition().block())
+            mid_x = int(brect.center().x())
+            assert img.pixelColor(mid_x, int(trect.top()) + 2) == ink
+            # Horizontal bar itself is drawn inverted in `bg` across the `ink` band.
+            assert img.pixelColor(mid_x, int(brect.center().y())) == bg
+
+    # 3. QtTextButton flashes inverted (`SecondaryColour` background) on tap and clears cleanly.
+    btn = QtTextButton()
+    btn.setText("Pause")
+    btn.apply_text_style(renderer, SecondaryColour)
+    btn.resize(80, 32)
+    btn.show()
+    app.processEvents()
+    btn.flash_tap()
+    flashed = btn.grab().toImage()
+    sec_color = QColor(SecondaryColour.rgb(scheme).hex)
+    assert flashed.pixelColor(4, 4) == sec_color
+    btn._end_tap_flash()
+    assert btn._tap_flashing is False
+    btn.deleteLater()
