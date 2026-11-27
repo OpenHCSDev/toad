@@ -25,7 +25,7 @@ from agent_comms.transport.request import CoreAccess
 from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from formbridge.operations import OperationKind
 from PySide6.QtCore import QEvent, QFileSystemWatcher, QMargins, QObject, QPoint, QRect, QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeySequence, QPainter, QPalette, QScreen, QShortcut
+from PySide6.QtGui import QBrush, QColor, QFont, QGuiApplication, QKeySequence, QPainter, QPalette, QScreen, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -754,8 +754,8 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         # Row backgrounds come polymorphically from each item's shared `row_tones`
         # (`ChannelRowFace.row_tones` for channels, `ThreadRowFace.row_tones` for threads)
-        # painted by `QtNameWaveDelegate`, matching Textual's `AlternatingTone` instead of
-        # Qt's single flat alternating colour.
+        # prepared onto `BackgroundRole` when rows or themes change so Qt C++ paints them
+        # with zero per-frame Python work.
         self.setAlternatingRowColors(False)
         self.setExpandsOnDoubleClick(False)
         self.setVerticalScrollMode(QTreeWidget.ScrollMode.ScrollPerPixel)
@@ -765,6 +765,8 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self.setSelectionMode(QTreeWidget.SelectionMode.NoSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.itemClicked.connect(self.activate)
+        self.model().rowsInserted.connect(self._paint_row_tones_from)
+        self.model().rowsRemoved.connect(self._paint_row_tones_from)
 
     def row_menu_context(self, line: ConversationRow):
         """Textual's context for the same line (`NavigationTarget.menu_context`): the open tab
@@ -782,33 +784,68 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self.window.copy_to_clipboard(name)
 
     def paint_colours(self) -> None:
-        """The tree's stylesheet and its line delegate's colours, under the current scheme.
-        The scrollbar is `RowTree.scrollbar_cells` wide, as Textual's sidebar viewport draws
-        it: a narrow sidebar keeps its text width."""
+        """The tree's stylesheet, prepared row-tone brushes, and line delegate colours under
+        the current scheme. Omitting a base `QTreeWidget::item` background rule lets Qt's
+        C++ style paint each item's `BackgroundRole` brush directly with zero per-frame
+        Python calls."""
         window = self.window
         scheme = window.theme.color_scheme
+        renderer = window.renderer
         bar = self.scrollbar_cells * self.fontMetrics().averageCharWidth()
-        self.setStyleSheet(scheme.styles.generate_tree_widget_style()
-                           + f"QScrollBar:vertical {{ width: {bar}px; }}"
-                           f"QScrollBar:horizontal {{ height: {bar}px; }}")
+        sidebar_bg = renderer.theme(SidebarToneColour)
+        ink_hex = renderer.theme(WorkspaceTabTones.active_text_colour)
+        hover_bg = scheme.to_hex(scheme.hover_bg)
+        selection_bg = scheme.to_hex(scheme.selection_bg)
+        selection_ink = scheme.to_hex(scheme.selection_text)
+        self.setStyleSheet(
+            f"QTreeWidget {{ background-color: {sidebar_bg}; color: {ink_hex};"
+            f" border: none; border-radius: 3px; selection-background-color: {selection_bg}; }}"
+            f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}"
+            f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
+            f"QScrollBar:vertical {{ width: {bar}px; }}"
+            f"QScrollBar:horizontal {{ height: {bar}px; }}"
+        )
+        self._tone_brushes: dict[type[ThemeColour], QBrush] = {}
+        self._paint_subtree_row_tones(self.invisibleRootItem())
         previous = self.itemDelegateForColumn(0)
-        self._row_delegate = QtNameWaveDelegate(
-            QColor(window.renderer.theme(WorkspaceTabTones.underline_colour)),
-            window.renderer.scheme,
+        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
+            QColor(renderer.theme(WorkspaceTabTones.underline_colour)),
             scheme.to_qcolor(scheme.text_primary),
             scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text),
             self,
-        )
-        self.setItemDelegateForColumn(0, self._row_delegate)
+        ))
         if previous is not None:
             previous.deleteLater()
 
+    def _row_tone_brush(self, tone: type[ThemeColour]) -> QBrush:
+        brush = self._tone_brushes.get(tone)
+        if brush is None:
+            brush = self._tone_brushes[tone] = QBrush(QColor(self.window.renderer.theme(tone)))
+        return brush
+
+    def _paint_children_tones(self, parent: QTreeWidgetItem, start: int = 0) -> None:
+        for row in range(start, parent.childCount()):
+            child = parent.child(row)
+            child.setBackground(0, self._row_tone_brush(child.row_tones[row % 2]))
+
+    def _paint_subtree_row_tones(self, parent: QTreeWidgetItem) -> None:
+        self._paint_children_tones(parent)
+        for row in range(parent.childCount()):
+            child = parent.child(row)
+            if child.childCount():
+                self._paint_subtree_row_tones(child)
+
+    def _paint_row_tones_from(self, parent_index, first: int, _last: int) -> None:
+        parent = self.itemFromIndex(parent_index) if parent_index.isValid() else self.invisibleRootItem()
+        if parent is not None:
+            self._paint_children_tones(parent, first)
+
     def drawBranches(self, painter: QPainter, rect: QRect, index) -> None:  # type: ignore[override]
-        """Paint the left disclosure gutter in the same shared row tone as the item."""
-        item = self.itemFromIndex(index)
-        if item is not None:
-            painter.fillRect(rect, self._row_delegate.row_tone_qcolor(item.row_tones[index.row() % 2]))
+        """Paint the left disclosure gutter in the item's prepared shared row tone."""
+        brush = index.data(Qt.ItemDataRole.BackgroundRole)
+        if brush is not None:
+            painter.fillRect(rect, brush)
         super().drawBranches(painter, rect, index)
 
     def activate(self, item: SidebarItem) -> None:
