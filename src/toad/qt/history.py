@@ -182,6 +182,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._font_metrics_cache: tuple[QFont, float, int] | None = None
         self._font_spec_cache: tuple[QFont, str, float] | None = None
         self._frame_paint: tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor] | None = None
+        self._frame_source_mode = False
 
     @staticmethod
     def _backing_image_format(widget: QWidget | None, painter: QPainter) -> QImage.Format:
@@ -537,6 +538,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         device = self.view.backing_device()
         palette = device.palette() if device is not None else QPalette()
         painter.save()
+        if self._frame_source_mode:
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
         if arrival.active:
             painter.setOpacity(arrival.opacity)
         else:
@@ -577,11 +580,15 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         bg_hex, bg_color, fg_color = self._theme_colours()
         return device, font, palette, ratio, img_format, bg_hex, bg_color, fg_color
 
-    def begin_paint(self, painter: QPainter, viewport_rect: QRect) -> None:
+    def begin_paint(self, painter: QPainter, viewport_rect: QRect, *, animating: bool = False) -> None:
         self._frame_paint = self._resolve_frame_paint(painter)
+        self._frame_source_mode = not animating
+        if self._frame_source_mode:
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
 
     def end_paint(self) -> None:
         self._frame_paint = None
+        self._frame_source_mode = False
 
     def paint_row(
         self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
@@ -631,34 +638,47 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             effective_clip = painter_clip if effective_clip is None else effective_clip.intersected(painter_clip)
         if effective_clip is not None:
             shown = effective_clip.boundingRect().intersected(rect)
+            tile_clip = effective_clip if effective_clip.rectCount() > 1 else None
         else:
             shown = rect
+            tile_clip = None
         if shown.isEmpty():
             return True
-        look = (rect.width(), rect.height(), ratio, bg_hex, img_format)
+        rect_left = rect.left()
+        rect_top = rect.top()
+        rect_w = rect.width()
+        rect_h = rect.height()
+        look = (rect_w, rect_h, ratio, bg_hex, img_format)
         row_id = id(document) if document is not None else (id(self), fragment.key)
-        painter.save()
-        if arrival.active:
-            painter.setOpacity(arrival.opacity)
-        else:
-            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        needs_state = arrival.active or not self._frame_source_mode
+        if needs_state:
+            painter.save()
+            if arrival.active:
+                painter.setOpacity(arrival.opacity)
+            else:
+                painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         plain_doc: QTextDocument | None = None
-        y_start = (shown.top() - rect.top()) // self.TILE
-        y_end = (shown.bottom() - rect.top()) // self.TILE
-        x_start = (shown.left() - rect.left()) // self.TILE_X
-        x_end = (shown.right() - rect.left()) // self.TILE_X
+        tile_h = self.TILE
+        tile_w = self.TILE_X
+        pictures_kept = self.pictures.kept
+        y_start = (shown.top() - rect_top) // tile_h
+        y_end = (shown.bottom() - rect_top) // tile_h
+        x_start = (shown.left() - rect_left) // tile_w
+        x_end = (shown.right() - rect_left) // tile_w
         for tile_y in range(y_start, y_end + 1):
-            top = tile_y * self.TILE
-            height = min(self.TILE, rect.height() - top)
+            top = tile_y * tile_h
+            height = min(tile_h, rect_h - top)
+            draw_y = rect_top + top
             for tile_x in range(x_start, x_end + 1):
-                left = tile_x * self.TILE_X
-                width = min(self.TILE_X, rect.width() - left)
-                if effective_clip is not None and not effective_clip.intersects(
-                    QRect(rect.left() + left, rect.top() + top, width, height)
+                left = tile_x * tile_w
+                width = min(tile_w, rect_w - left)
+                draw_x = rect_left + left
+                if tile_clip is not None and not tile_clip.intersects(
+                    QRect(draw_x, draw_y, width, height)
                 ):
                     continue
                 tile_key = (row_id, tile_y, tile_x)
-                picture = self.pictures.kept(tile_key, look, document)
+                picture = pictures_kept(tile_key, look, document)
                 if picture is None:
                     picture = QImage(
                         max(1, round(width * ratio)),
@@ -672,13 +692,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
                         self._paint_tile_document(drawing, palette, document, left, top, width, height)
                     else:
                         if plain_doc is None:
-                            plain_doc = self.new_document(font, self.layout_width(rect.width()))
+                            plain_doc = self.new_document(font, self.layout_width(rect_w))
                             plain_doc.setPlainText(self.row_text(fragment))
                         self._paint_tile_document(drawing, palette, plain_doc, left, top, width, height)
                     drawing.end()
                     self.pictures.keep(tile_key, look, document, picture)
-                painter.drawImage(QPoint(rect.left() + left, rect.top() + top), picture)
-        painter.restore()
+                painter.drawImage(draw_x, draw_y, picture)
+        if needs_state:
+            painter.restore()
         return True
 
 

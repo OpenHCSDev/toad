@@ -450,7 +450,7 @@ class RowDocumentStore(ABC):
     @abstractmethod
     def paint_row(self, painter: QPainter, row: int, fragment, rect: QRect, clip_region: QRegion | None) -> None: ...
 
-    def begin_paint(self, painter: QPainter, viewport_rect: QRect) -> None:
+    def begin_paint(self, painter: QPainter, viewport_rect: QRect, *, animating: bool = False) -> None:
         """Optional per-frame hook invoked once before `paint_row` runs over visible rows."""
 
     def end_paint(self) -> None:
@@ -1247,7 +1247,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
         last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
         last_bottom = -1
-        self.rows.begin_paint(painter, vp_rect)
+        self.rows.begin_paint(painter, vp_rect, animating=animating)
         try:
             for row in range(first, last + 1):
                 h = self._heights[row]
