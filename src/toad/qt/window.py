@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import shiboken6
 from time import time
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
@@ -2000,6 +2001,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _schedule_animation(self, interval: float | None) -> None:
         """The clock's one timer: tick every ``interval`` seconds, or stop."""
+        if not shiboken6.isValid(self._animation_timer):
+            return
         if interval is None:
             self._animation_timer.stop()
         else:

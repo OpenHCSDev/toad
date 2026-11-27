@@ -1202,19 +1202,17 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         hidden strips on every scroll frame."""
         viewport = self.viewport()
         area = viewport.geometry()
+        top_left = area.topLeft()
         covers: list[QRect] = []
         opaque: list[QRect] = []
         for child in self.children():
-            if (
-                isinstance(child, QWidget)
-                and child is not viewport
-                and child.isVisible()
-                and child.geometry().intersects(area)
-            ):
-                rect = child.geometry().intersected(area).translated(-area.topLeft())
-                covers.append(rect)
-                if child.testAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent):
-                    opaque.append(rect)
+            if isinstance(child, QWidget) and child is not viewport and child.isVisible():
+                geo = child.geometry()
+                if geo.intersects(area):
+                    rect = geo.intersected(area).translated(-top_left)
+                    covers.append(rect)
+                    if child.testAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent):
+                        opaque.append(rect)
         return covers, opaque
 
     def floating_over(self) -> list[QRect]:
@@ -1222,7 +1220,8 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
 
     @staticmethod
     def uncovered(rect: QRect, covers: list[QRect]) -> QRect:
-        for cover in sorted(covers, key=lambda c: c.width() * c.height(), reverse=True):
+        ordered = covers if len(covers) <= 1 else sorted(covers, key=lambda c: c.width() * c.height(), reverse=True)
+        for cover in ordered:
             if not rect.intersects(cover):
                 continue
             left, top, width, height = rect.left(), rect.top(), rect.width(), rect.height()
@@ -1239,13 +1238,23 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
 
     def scrollContentsBy(self, dx: int, dy: int) -> None:  # noqa: N802 - Qt virtual method name
         viewport = self.viewport()
+        vp_rect = viewport.rect()
         covers, opaque = self.floating_covers()
-        clear = self.uncovered(viewport.rect(), covers) if covers and not dx else QRect()
+        clear = self.uncovered(vp_rect, covers) if covers and not dx else QRect()
         if clear.isEmpty():
             viewport.scroll(dx, dy)
             return
         viewport.scroll(dx, dy, clear)
-        dirty = QRegion(viewport.rect()).subtracted(QRegion(clear))
+        # Since `clear` and `cover` are disjoint subsets of `vp_rect`, their areas sum
+        # to `vp_rect`'s area iff `vp_rect \ clear == cover`, skipping all QRegion work.
+        if (
+            len(covers) == 1
+            and len(opaque) == 1
+            and clear.width() * clear.height() + opaque[0].width() * opaque[0].height()
+            == vp_rect.width() * vp_rect.height()
+        ):
+            return
+        dirty = QRegion(vp_rect).subtracted(QRegion(clear))
         for rect in opaque:
             dirty = dirty.subtracted(QRegion(rect))
         if not dirty.isEmpty():

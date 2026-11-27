@@ -743,7 +743,7 @@ class RowPictures(NativePresentation):
     def __init__(self, limit: int) -> None:
         self.limit = limit
         # By the row's document (a row still being prepared: its fragment key) and the
-        # tile of it: (look, document, picture). Holding the document keeps the one the
+        # tile of it: (look, document, picture, weight). Holding the document keeps the one the
         # picture was drawn from alive, so its identity cannot pass to a new document.
         self.rows: OrderedDict = OrderedDict()
         self.bytes = 0
@@ -765,15 +765,17 @@ class RowPictures(NativePresentation):
 
     def keep(self, key, look, document, picture: QPixmap) -> None:
         self.drop(key)
-        self.rows[key] = (look, document, picture)
-        self.bytes += self.weight(picture.size())
+        weight = self.weight(picture.size())
+        self.rows[key] = (look, document, picture, weight)
+        self.bytes += weight
         while self.bytes > self.limit and len(self.rows) > 1:
-            self.drop(next(iter(self.rows)))
+            _evicted_key, evicted = self.rows.popitem(last=False)
+            self.bytes -= evicted[3]
 
     def drop(self, key) -> None:
         entry = self.rows.pop(key, None)
         if entry is not None:
-            self.bytes -= self.weight(entry[2].size())
+            self.bytes -= entry[3]
 
     def clear(self) -> None:
         self.rows.clear()
@@ -1668,19 +1670,23 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.rows.width_changed()
             self.rows_changed()
 
-    def floating_over(self) -> list[QRect]:
+    def floating_covers(self) -> tuple[list[QRect], list[QRect]]:
         """Only this window's two floating overlays (`sticky_header` and `jump_bar`),
         avoiding `self.children()` wrapping ~20 C++ children into Python on every
         `scrollContentsBy` tick."""
         area = self._viewport.geometry()
         top_left = area.topLeft()
-        result: list[QRect] = []
+        covers: list[QRect] = []
+        opaque: list[QRect] = []
         for child in (self.sticky_header, self.jump_bar):
             if child.isVisible():
                 geo = child.geometry()
                 if geo.intersects(area):
-                    result.append(geo.intersected(area).translated(-top_left))
-        return result
+                    rect = geo.intersected(area).translated(-top_left)
+                    covers.append(rect)
+                    if child.testAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent):
+                        opaque.append(rect)
+        return covers, opaque
 
     def _invalidate_tap_highlight(self, highlight: TapHighlight) -> None:
         if not self.widget_gone:
