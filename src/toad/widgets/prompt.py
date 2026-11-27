@@ -38,7 +38,7 @@ from textual.strip import Strip
 from textual.style import Style
 from textual.widgets import Button, Label, OptionList, TextArea
 from textual.widgets.option_list import Option, OptionListComponent
-from textual.widgets.text_area import Selection, TextAreaComponent
+from textual.widgets.text_area import Selection, TextAreaComponent, TextAreaState
 from ui_theme.scheme import ErrorColour, MutedColour, PrimaryColour, SecondaryColour
 
 from toad import danger, messages
@@ -46,7 +46,7 @@ from toad.clipboard_image import PastesClipboard, read_clipboard, save_clipboard
 from toad.agent_binding import NoAgentConnection
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
-from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost, DraftEditorState
 from toad.client.input_decision import InputDecision, InputAccepted, RefusalFeedback
 from toad.client.message_files import AttachedFileChip, MessagePromptComposer
 from toad.screens.file_picker import FileBrowserScreen, PathSearchScreen
@@ -729,6 +729,47 @@ class EnterInsertAction(PromptFrameAction):
         prompt.enter_insert()
 
 
+@dataclass(frozen=True)
+class TextAreaDraftState(DraftEditorState):
+    """Captured Textual `TextAreaState` (document, history, selection, and live `EditingMode`
+    such as an embedded `NeovimEditing` buffer) retained while a pooled `Prompt` serves
+    another tab."""
+
+    state: TextAreaState
+
+    def restore_into(self, composer: Prompt, host: ComposerPoolHost, text: str) -> None:
+        editor = composer.prompt_text_area
+        state = self.state
+        previous_mode = editor.editing_mode
+        editor._languages = {language.name: language for language in state.languages}
+        editor.set_reactive(TextArea.language, state.language)
+        editor.history = state.history
+        editor._highlight_query = state.highlight_query
+        editor.set_document(state.document)
+        editor.paint_selection(state.selection)
+        editor.editing_mode = state.editing_mode
+        if previous_mode is state.editing_mode:
+            state.editing_mode.attach(editor)
+            editor.show_editing_mode(state.editing_mode)
+        editor.record_cursor_width()
+        editor.call_after_refresh(
+            editor.scroll_to,
+            x=state.scroll_x,
+            y=state.scroll_y,
+            animate=False,
+            immediate=True,
+        )
+        editor.post_message(editor.Changed(editor).set_sender(editor))
+        editor.update_suggestion()
+
+    def discard(self) -> None:
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        asyncio.ensure_future(self.state.editing_mode.close())
+
+
 class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingEffects, TonePaint,
              containers.VerticalGroup, ToadNode, PromptComposer, actions=(PromptFrameAction,)):
     """The Textual composer; `PromptComposer` owns its submissions, queue, glyph and draft
@@ -814,23 +855,30 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
             read_only_reason=str(editor.tooltip or "") if editor.disabled else "",
             commands=tuple(self.slash_commands),
             shell_mode=self.shell_mode,
-            editor_state=editor.capture_editor_state(),
+            editor_state=TextAreaDraftState(editor.capture_editor_state()),
         )
+
+    def reset_editor_draft(self, host: ComposerPoolHost, text: str) -> None:
+        """Initialize the pooled `PromptTextArea` for a tab with no prior captured state.
+
+        Never calls `editor.load_text()` or `editor.move_cursor()` before replacing
+        `editing_mode`, because the previous tab's captured `NeovimEditing` buffer is
+        still owned by that tab's `ComposerDraft`."""
+        editor = self.prompt_text_area
+        editor.history.clear()
+        editor._set_document(text, editor.language)
+        editor.paint_selection(Selection.cursor((0, 0)))
+        editor.editing_mode = host.screen.key_mode()
+        editor.post_message(editor.Changed(editor).set_sender(editor))
+        editor.update_suggestion()
 
     def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         self.submissions = host.submissions
         self._bind_conversation_reactives(host)
         self.slash_commands = list(draft.commands)
         self.shell_mode = draft.shell_mode
+        draft.editor_state.restore_into(self, host, draft.text)
         editor = self.prompt_text_area
-        if draft.editor_state is not None:
-            state = draft.editor_state
-            editor.history = state.history
-            editor.set_document(state.document)
-            editor.paint_selection(state.selection)
-        else:
-            editor.load_text(draft.text)
-            editor.history.clear()
         editor.disabled = bool(draft.read_only_reason)
         editor.tooltip = draft.read_only_reason or None
         self.kept_delivery_preview = None
