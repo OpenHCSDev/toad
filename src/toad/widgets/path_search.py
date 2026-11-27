@@ -152,13 +152,21 @@ class PickerPane(containers.VerticalGroup):
         return self.query_ancestor(PathSearch)
 
     @property
-    @abstractmethod
     def toggled(self) -> PickerPane:
         """The pane Tab switches to."""
+        return self.search.query_one(self._toggled_step())
+
+    @abstractmethod
+    def _toggled_step(self):
+        ...
 
     @property
+    def cursor_owner(self) -> MovesCursor:
+        return self.query_one(self._cursor_owner_step())
+
     @abstractmethod
-    def cursor_owner(self) -> MovesCursor: ...
+    def _cursor_owner_step(self):
+        ...
 
     @property
     @abstractmethod
@@ -180,13 +188,11 @@ class PickerPane(containers.VerticalGroup):
 class FuzzyPane(PickerPane):
     """Fuzzy search over the project's paths."""
 
-    @property
-    def toggled(self) -> PickerPane:
-        return self.search.query_one(TreePane)
+    def _toggled_step(self):
+        return TreePane
 
-    @property
-    def cursor_owner(self) -> FuzzyPathOptionList:
-        return self.query_one(FuzzyPathOptionList)
+    def _cursor_owner_step(self):
+        return FuzzyPathOptionList
 
     @property
     def focus_target(self) -> FuzzyInput:
@@ -211,13 +217,11 @@ class TreePane(PickerPane):
     def mount_lock(self) -> asyncio.Lock:
         return asyncio.Lock()
 
-    @property
-    def toggled(self) -> PickerPane:
-        return self.search.query_one(FuzzyPane)
+    def _toggled_step(self):
+        return FuzzyPane
 
-    @property
-    def cursor_owner(self) -> ProjectDirectoryTree:
-        return self.query_one(ProjectDirectoryTree)
+    def _cursor_owner_step(self):
+        return ProjectDirectoryTree
 
     @property
     def focus_target(self) -> ProjectDirectoryTree:

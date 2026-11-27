@@ -1435,8 +1435,13 @@ class LazyThreadSidebar(ThreadSidebar):
     def wants_panels(self) -> bool:
         return super().wants_panels and not self.collapsed
 
+    def make_panels(self):
+        screen = self._owner()
+        return self._make_panels_step(screen)
+
     @abstractmethod
-    def make_panels(self): ...
+    def _make_panels_step(self, screen):
+        ...
 
     def _compose_panels(self):
         if not self.panels:
