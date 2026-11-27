@@ -39,7 +39,7 @@ from PySide6.QtWidgets import QApplication
 from agent_comms.projects.checkouts import Checkout
 from toad.client.connection import RemoteCoreConnection
 from toad.client.history import WirePageBuffer
-from toad.qt.client_start import open_app
+from toad.qt.client_start import open_app, run_qt_loop
 from toad.qt.glyph_fonts import install_glyph_fonts
 from toad.qt.theme import current_scheme
 
@@ -269,19 +269,17 @@ async def run(profile: Path, out: Path, do_profile: bool) -> None:
     finally:
         app.close()
         await app.close_client()
-        current = asyncio.current_task()
-        for task in asyncio.all_tasks():
-            if task is not current and not task.done():
-                task.cancel()
-        QApplication.quit()
 
 
 def main(arguments: list[str]) -> None:
     args = [a for a in arguments[1:] if not a.startswith("--")]
     if len(args) != 2:
         raise SystemExit(f"usage: {arguments[0]} PROFILE OUTDIR [--profile]")
+    for variable, folder in (("XDG_CONFIG_HOME", "config"), ("XDG_STATE_HOME", "state")):
+        os.environ[variable] = str((Path(args[1]) / folder).resolve())
+        Path(os.environ[variable]).mkdir(parents=True, exist_ok=True)
     install_glyph_fonts(QApplication(arguments[:1]))  # the entry's splash registers them; this profile has none
-    qasync.run(run(Path(args[0]), Path(args[1]), "--profile" in arguments))
+    run_qt_loop(run(Path(args[0]), Path(args[1]), "--profile" in arguments))
 
 
 if __name__ == "__main__":

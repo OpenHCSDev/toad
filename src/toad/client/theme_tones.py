@@ -48,14 +48,18 @@ class HueToneColour(ToneColour):
         return SidebarToneColour.resolve_rgb(read).blend(read(cls.hue), cls.amount)
 
 
-class ChannelRowToneColour(HueToneColour):
+class ChannelRowTone(HueToneColour):
+    """Alternating sidebar channel row surfaces stepped toward the theme hue."""
+
+
+class ChannelRowToneColour(ChannelRowTone):
     """A channel row of the channel list."""
 
     name = "tone-channel-row"
     amount = 0.13
 
 
-class ChannelAlternateRowToneColour(HueToneColour):
+class ChannelAlternateRowToneColour(ChannelRowTone):
     """Every other channel row, one more step toward the hue."""
 
     name = "tone-channel-row-alternate"
