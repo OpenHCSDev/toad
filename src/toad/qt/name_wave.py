@@ -136,7 +136,11 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
             span = item.band_drawn() if item is not None else None
         if span is None:
             return ()
-        return self.cached_band_inks(span, self.title_length)
+        length = self.title_length
+        kept = self.inks.get((min(length, span[0]), min(length, span[1])))
+        if kept is not None:
+            return kept
+        return self.cached_band_inks(span, length)
 
 
 class QtClockedWave(NameWave):
