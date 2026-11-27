@@ -76,8 +76,19 @@ class RebindableComposer:
     def reset_editor_draft(self, host: ComposerPoolHost, text: str) -> None:
         """Initialize this composer's editor for a fresh `host` with no captured state."""
 
+    def rebind_toolkit_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        """Toolkit-specific state rebinding before queue and prompt refresh."""
+
+    def after_rebind_conversation(self) -> None:
+        """Optional toolkit-specific post-rebind layout fit."""
+
     def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         """Rebind this existing composer widget to `host` and restore `draft`."""
+        self.kept_delivery_preview = None
+        self.rebind_toolkit_conversation(host, draft)
+        self.sync_queue()
+        self.update_prompt()
+        self.after_rebind_conversation()
 
 
 class ComposerPoolHost:

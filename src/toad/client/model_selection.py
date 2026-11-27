@@ -116,7 +116,39 @@ class ModelSelectionCore:
     def connect_provider(self) -> None: ...
 
     @abstractmethod
-    def filter_models(self, placement: HighlightPlacement) -> None: ...
+    def search_query(self) -> str: ...
+
+    @abstractmethod
+    def highlighted_model_id(self) -> str | None: ...
+
+    @abstractmethod
+    def present_filtered_models(
+        self,
+        ranked: list[RankedModel],
+        highlighted_index: int | None,
+        summary: str,
+    ) -> None: ...
+
+    def filter_models(self, placement: HighlightPlacement) -> None:
+        previous_id = self.highlighted_model_id()
+        ranked, summary = self.rank_models(self.search_query())
+        highlighted = (
+            placement.index([entry.choice.value for entry in ranked], previous_id)
+            if ranked
+            else None
+        )
+        self.present_filtered_models(ranked, highlighted, summary)
+
+    def search_changed(self) -> None:
+        self.filter_models(ResetsHighlight())
+        self.refilter = KeepsHighlight()
+
+    def note_highlight_moved(self) -> None:
+        self.refilter = KeepsHighlight()
+
+    def submit(self) -> None:
+        if (model_id := self.highlighted_model_id()) is not None:
+            self.select_model(model_id)
 
     async def recent_choices(self, scope: str) -> list[str]:
         return await ModelConfigurationSetting().recent_choices(scope)

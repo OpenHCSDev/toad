@@ -2343,7 +2343,8 @@ def test_arrival_glide_and_layout_scroll_request_preparation():
             self.tail_scroll_y = 240.0
             self.follows_tail = True
             self.lookahead = MagicMock()
-            self.preparations = 0
+            self.notification_checks = 0
+            self.histories = (self,)
             self._clock = AnimationClock(lambda _interval: None)
 
         @property
@@ -2360,28 +2361,31 @@ def test_arrival_glide_and_layout_scroll_request_preparation():
         def repaint_arrival_keys(self, keys) -> None:
             pass
 
-        def shift_travel(self, rows: float, destination: float) -> None:
-            pass
-
-        def request_preparation(self) -> None:
-            self.preparations += 1
+        def check_visible_notifications(self) -> None:
+            self.notification_checks += 1
 
     win = _Window()
-    # Non-glide programmatic layout scroll requests preparation once.
+    # Non-glide tail follow (`check_follow`) refreshes visible notifications once without
+    # re-arming source page reads, while an older-page `layout_scroll` shift stays quiet.
+    from toad.client.history_changes import NoHistoryChange
     with win.layout_scroll():
         win.scroll_y = 100.0
-    assert win.preparations == 1
+    assert win.notification_checks == 0
+    assert NoHistoryChange().check_follow(win) is True
+    assert win.scroll_y == 240.0
+    assert win.notification_checks == 1
 
-    # Mid-glide ticks must NOT spam preparation, while landing requests it once.
+    # Mid-glide ticks must NOT spam notifications, while landing refreshes them once.
+    win.scroll_y = 100.0
     arrival = ViewportArrival(win, ("row-1",))
     win.arrivals.append(arrival)
     arrival.attach_scroll(100.0, TAIL_ARRIVAL_TARGET, 240.0)
     win.glide = arrival
     arrival.apply_amount(0.5)
-    assert win.preparations == 1
+    assert win.notification_checks == 1
     arrival.land()
     assert win.scroll_y == 240.0
-    assert win.preparations >= 2
+    assert win.notification_checks == 2
 
 
 def test_qt_goal_bar_fit_document_uses_wrapped_height_for_width(monkeypatch):
@@ -2424,3 +2428,110 @@ def test_qt_goal_bar_fit_document_uses_wrapped_height_for_width(monkeypatch):
         )
     finally:
         win.deleteLater()
+
+
+def test_header_pin_threshold_matches_block_row_without_laying_out_dividers(monkeypatch):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    QApplication.instance() or QApplication([])
+    from dataclasses import dataclass
+    from PySide6.QtGui import QFont
+    from toad.client.line_blocks import Body, Divider, Gap, MutedRole, Span
+    from toad.qt.history import HistoryRowDelegate, QtLineRenderer, RenderedRow
+    from toad.qt.lines import DiffSettings, LinkContext
+
+    class _EmptyRefs:
+        def find(self, text):
+            return ()
+
+    class _View:
+        def viewport_width(self):
+            return 412
+
+        def invalidate_row_height(self, row):
+            pass
+
+        def rows_changed(self):
+            pass
+
+        def rows_repainted(self):
+            pass
+
+    @dataclass(frozen=True)
+    class _Frag:
+        key: tuple
+        shown: int
+        revision: int
+        line_blocks: tuple
+        header_blocks: int
+        pinned_dividers: tuple
+
+        def sticky_header(self, block, row):
+            return self.pinned_dividers if (block, row) > (self.header_blocks - 1, 0) else ()
+
+    font = QFont("monospace", 10)
+    renderer = QtLineRenderer(current_scheme(os.environ), LinkContext(Path("."), _EmptyRefs()), DiffSettings())
+    width = 412
+    frags = []
+    for idx in range(5):
+        divider = Divider((Span(f"sender-{idx} -> #comms · 10:0{idx}", MutedRole),), MutedRole)
+        blocks = (Gap(), divider, Body(f"Message {idx}\nline 2"))
+        frags.append(_Frag(("m", idx), 0, 0, blocks, 2, (divider,)))
+
+    d_ref = HistoryRowDelegate(_View(), renderer, object())
+    d_fast = HistoryRowDelegate(_View(), renderer, object())
+    for frag in frags:
+        leading = tuple(renderer.at_width(50).html((b,)) for b in frag.line_blocks[:3])
+        row = RenderedRow(renderer.at_width(50).html(frag.line_blocks), leading, frag.pinned_dividers)
+        d_ref._prepared[d_ref.fragment_key(frag, font, width)] = row
+        d_fast._prepared[d_fast.fragment_key(frag, font, width)] = row
+
+    for frag in frags:
+        for y in range(0, 60, 3):
+            blk, row_idx = d_ref.block_row(frag, font, width, y)
+            expected = frag.sticky_header(blk, row_idx)
+            threshold = d_fast.header_pin_threshold(frag, font, width)
+            actual = frag.pinned_dividers if threshold is not None and y >= threshold else ()
+            assert actual == expected
+    # Only the single globally shared Gap block is ever laid out, never any Divider.
+    assert len(d_fast._documents) == 1
+
+
+def test_every_history_fragment_subclass_supports_retain_painted():
+    """Every HistoryFragment painted by QtHistoryWindow (including tool, thinking, context,
+    and live transcript fragments) must support retain_painted without crashing paintEvent."""
+    import toad.qt.agent_surface
+    import toad.qt.live_turn
+    import toad.qt.transcript_fragments
+    from toad.client.fragments import EvidencedFragment, HistoryFragment
+    from toad.client.history import ReadMarkedHistory
+
+    def walk(cls):
+        out = set()
+        for sub in cls.__subclasses__():
+            out.add(sub)
+            out.update(walk(sub))
+        return out
+
+    all_subclasses = walk(HistoryFragment)
+    assert toad.qt.transcript_fragments.QtToolTranscriptFragment in all_subclasses
+    assert toad.qt.transcript_fragments.QtThinkingTranscriptFragment in all_subclasses
+    assert toad.qt.agent_surface.QtLiveToolFragment in all_subclasses
+    assert toad.qt.live_turn.QtLiveFragment in all_subclasses
+
+    missing = [c.__name__ for c in all_subclasses if not callable(getattr(c, "retain_painted", None))]
+    assert not missing
+
+    class _DummyOwner:
+        def __init__(self):
+            self._painted_reads = {}
+            self.marked = 0
+
+        def mark_visible_after_paint(self):
+            self.marked += 1
+
+    owner = _DummyOwner()
+    non_evidenced = HistoryFragment(events=())
+    ReadMarkedHistory.retain_painted(owner, non_evidenced)
+    assert owner._painted_reads == {}
+    assert owner.marked == 0
+    assert "retain_painted" in EvidencedFragment.__dict__

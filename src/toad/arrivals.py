@@ -148,7 +148,7 @@ class ViewportArrival(ArrivalTransition):
         if target is not None and owner.follows_tail:
             with owner.layout_scroll():
                 target.land(owner)
-            owner.request_preparation()
+            owner.refresh_visible_notifications()
         if self.keys:
             owner.repaint_arrival_keys(self.keys)
 
@@ -264,8 +264,32 @@ class AnimatesArrivals:
         """Place the window at its followed tail (toolkits with a specialized jump override)."""
         self.scroll_y = self.tail_scroll_y
 
-    def request_preparation(self) -> None:
-        """Prepare the viewport after an arrival scroll lands; paging windows override."""
+    histories: Iterable[object] = ()
+
+    def refresh_visible_notifications(self) -> None:
+        """Refresh delivery/read receipts for histories now visible in this window without
+        re-arming source page reads (`history_pager.py` finish_source_work invariant)."""
+        for history in tuple(self.histories):
+            history.check_visible_notifications()
+
+    def toolkit_animated_travel(self) -> float:
+        """Remaining distance of any toolkit-owned scroll animation or fling."""
+        return 0.0
+
+    @property
+    def animated_travel(self) -> float:
+        """Remaining distance of a head reveal, else any toolkit-owned scroll travel."""
+        if (travel := self.head_reveal_travel()) is not None:
+            return travel
+        return self.toolkit_animated_travel()
+
+    def shift_toolkit_travel(self, rows: float, destination: float) -> None:
+        """Shift any toolkit-owned scroll animation or fling by `rows` after layout moves."""
+
+    def shift_travel(self, rows: float, destination: float) -> None:
+        """Keep a head reveal and any toolkit-owned scroll travel aimed at the same rows."""
+        self.shift_arrival_motion(rows)
+        self.shift_toolkit_travel(rows, destination)
 
     # ---- Shared semantic operations ----
 

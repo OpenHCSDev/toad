@@ -87,6 +87,26 @@ class StructuredPart(ABC):
         return self.line_blocks()
 
 
+class RawTextPart(StructuredPart):
+    """A structured part whose searchable text is its `raw_text` field."""
+
+    raw_text: str
+
+    @property
+    def text(self) -> str:
+        return self.raw_text
+
+
+class BodyTextPart(StructuredPart):
+    """A structured part whose searchable text is its `body_text` field."""
+
+    body_text: str
+
+    @property
+    def text(self) -> str:
+        return self.body_text
+
+
 @dataclass(frozen=True)
 class CertaintyClaim(StructuredPart):
     """One grounded or assumed epistemic claim from a `Certainty:` audit block."""
@@ -121,7 +141,7 @@ class CertaintyClaim(StructuredPart):
 
 
 @dataclass(frozen=True)
-class ThinkingPart(StructuredPart):
+class ThinkingPart(RawTextPart):
     """Visible reasoning (`<think>` or Pi `ThinkingContent`), with parsed Certainty/Confidence."""
 
     kind_title = "Thinking"
@@ -131,10 +151,6 @@ class ThinkingPart(StructuredPart):
     claims: tuple[CertaintyClaim, ...] = ()
     confidence: str = ""
     streaming: bool = False
-
-    @property
-    def text(self) -> str:
-        return self.raw_text
 
     @classmethod
     def from_text(cls, text: str, *, streaming: bool = False) -> ThinkingPart:
@@ -202,7 +218,7 @@ class ThinkingPart(StructuredPart):
 
 
 @dataclass(frozen=True)
-class ContextSectionPart(StructuredPart):
+class ContextSectionPart(BodyTextPart):
     """One named section inside a compact `<ctx>` / `.live_ctx` document."""
 
     kind_title = "Section"
@@ -210,10 +226,6 @@ class ContextSectionPart(StructuredPart):
 
     heading: str
     body_text: str
-
-    @property
-    def text(self) -> str:
-        return self.body_text
 
     @property
     def label(self) -> str:
@@ -231,7 +243,7 @@ class ContextSectionPart(StructuredPart):
 
 
 @dataclass(frozen=True)
-class LiveContextPart(StructuredPart):
+class LiveContextPart(RawTextPart):
     """A compact structured `<ctx>` or `.live_ctx` context block decomposed into sections."""
 
     kind_title = "Context"
@@ -242,10 +254,6 @@ class LiveContextPart(StructuredPart):
     budget: str = ""
     sections: tuple[ContextSectionPart, ...] = ()
     streaming: bool = False
-
-    @property
-    def text(self) -> str:
-        return self.raw_text
 
     @classmethod
     def from_text(cls, text: str, *, title: str = "Context", streaming: bool = False) -> LiveContextPart:
@@ -369,17 +377,13 @@ class ToolCallPart(StructuredPart):
 
 
 @dataclass(frozen=True)
-class AnswerPart(StructuredPart):
+class AnswerPart(BodyTextPart):
     """Plain assistant answer text outside `<think>`, `<ctx>`, and `<tool_call>` blocks."""
 
     kind_title = "Answer"
     expands_in_tree = False
 
     body_text: str
-
-    @property
-    def text(self) -> str:
-        return self.body_text
 
     @property
     def label(self) -> str:

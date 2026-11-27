@@ -185,6 +185,9 @@ class SourceNotifications:
         super().prepare_viewport()
         self.notification_view.check_notifications()
 
+    def check_visible_notifications(self) -> None:
+        self.notification_view.check_notifications_after_refresh()
+
     @property
     def notification_references(self):
         return tuple(dict.fromkeys(reference for fragment in self.visible_fragments()

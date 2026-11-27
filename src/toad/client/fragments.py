@@ -303,6 +303,9 @@ class HistoryFragment(CursorRest):
         """Collapse link when this row itself draws the message's leading header divider."""
         return None
 
+    def retain_painted(self, owner) -> None:
+        """Non-message fragments carry no read-receipt evidence; `EvidencedFragment` overrides."""
+
     @cached_property
     def revision(self):
         """What makes the same fragment draw differently, derived once from its events as its

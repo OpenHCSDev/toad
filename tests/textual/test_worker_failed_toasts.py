@@ -61,7 +61,11 @@ def test_a_deferred_publication_observes_with_a_callback_a_subscription_can_borr
         return ResourceRelease()
 
     work = SourcePublicationRequests(owner=None)
-    view = SimpleNamespace(app=SimpleNamespace(coordination_access=None))
+    view = SimpleNamespace(
+        app=SimpleNamespace(coordination_access=SimpleNamespace(events=SimpleNamespace())),
+        retire_core=lambda _sub: None,
+        observe_core_callback=lambda _events, _kind, _cb: object(),
+    )
     work.defer(SimpleNamespace(binding=SimpleNamespace(view=view), thread_scope=SimpleNamespace(observe=observe)))
 
     assert borrowed == [work.thread_rows_changed]

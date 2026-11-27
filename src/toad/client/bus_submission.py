@@ -79,10 +79,21 @@ class SubmissionView:
         self.submission_composer.restore(draft)
         self.show_send_failure(self.unknown_notice(description))
 
+    def can_refresh_composer(self) -> bool:
+        """Whether this view is attached and ready to draw compose access."""
+        return True
+
     @abstractmethod
+    def apply_compose_access(self, composer, access: ComposeAccess) -> None:
+        """Apply Core's compose access (read-only hold and file attachments) onto `composer`."""
+
     async def refresh_composer(self, access: ComposeAccess) -> None:
         """Draw compose from the caller's Core answer: held or open, and whether it offers
         files."""
+        if not self.can_refresh_composer():
+            return
+        self.composer_block = access.block_reason
+        self.on_composer("access", lambda composer: self.apply_compose_access(composer, access))
 
     @abstractmethod
     def draws_user_message(self, reference: MessageReference) -> bool: ...

@@ -20,10 +20,10 @@ from ui_theme.scheme import (
 )
 
 from toad.client.model_selection import (
-    HighlightPlacement,
     KeepsHighlight,
     ModelChoice,
     ModelSelectionCore,
+    RankedModel,
     ResetsHighlight,
     match_score,
 )
@@ -190,10 +190,19 @@ class ModelSelection(
         recent = await self.recent_choices(scope)
         self.apply_recents(generation, scope, recent)
 
-    def filter_models(self, placement: HighlightPlacement) -> None:
+    def search_query(self) -> str:
+        return self.search_input.value
+
+    def highlighted_model_id(self) -> str | None:
         highlighted = self.option_list.highlighted_option
-        previous_id = highlighted.id if highlighted is not None else None
-        ranked, summary = self.rank_models(self.search_input.value)
+        return highlighted.id if highlighted is not None else None
+
+    def present_filtered_models(
+        self,
+        ranked: list[RankedModel],
+        highlighted_index: int | None,
+        summary: str,
+    ) -> None:
         options = []
         for entry in ranked:
             model = entry.choice
@@ -208,19 +217,13 @@ class ModelSelection(
         # Only the user moves the highlight with an OptionHighlighted; see on_option_highlighted.
         with self.option_list.prevent(OptionList.OptionHighlighted):
             self.option_list.set_options(options)
-            if options:
-                self.option_list.highlighted = placement.index(
-                    [option.id for option in options], previous_id
-                )
-            else:
-                self.option_list.highlighted = None
+            self.option_list.highlighted = highlighted_index
         self.query_one(ModelCount).update(summary)
 
     @on(Input.Changed)
     def on_search_changed(self, event: Input.Changed):
         event.stop()
-        self.filter_models(ResetsHighlight())
-        self.refilter = KeepsHighlight()
+        self.search_changed()
 
     @on(Input.Submitted)
     def on_search_submitted(self, event: Input.Submitted) -> None:
@@ -231,7 +234,7 @@ class ModelSelection(
     def on_option_highlighted(self, event: OptionList.OptionHighlighted):
         """Arrow keys and the pointer: filter_models moves the highlight without this event."""
         event.stop()
-        self.refilter = KeepsHighlight()
+        self.note_highlight_moved()
 
     @on(OptionList.OptionSelected, "SelectionOptionList")
     def on_option_selected(self, event: OptionList.OptionSelected):
@@ -248,6 +251,4 @@ class ModelSelection(
         if connect.has_focus:
             connect.activate()
             return
-        if (option := self.option_list.highlighted_option) is not None:
-            if option.id is not None:
-                self.select_model(option.id)
+        super().submit()
