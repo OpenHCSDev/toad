@@ -122,6 +122,7 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
 
     left = paint_accent_xs()
     first_ink = delegate.inks[(0, 3)]
+    assert all(titled.paragraphs[0].cacheEnabled() for _orig, titled, _len in delegate.bold.values())
     item.checks = 0
     paint_accent_xs()
     assert item.checks == 1
@@ -129,3 +130,17 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     item.painted_span = (8, 11)
     right = paint_accent_xs()
     assert left and right and max(left) < min(right)
+
+    from toad.qt.name_wave import QtSessionTabBar
+    from ui_theme.clock import AnimationClock
+
+    bar = QtSessionTabBar(AnimationClock(lambda _dt, _cb: None), accent, QColor("#eeeeee"))
+    try:
+        layout = bar.bold_line("toad-qt", 120)
+        assert layout.cacheEnabled() is True
+        cached_inks = bar.cached_band_inks((1, 4), 7)
+        assert bar.cached_band_inks((1, 4), 7) is cached_inks
+        bar.set_colours(QColor("#00ff00"), QColor("#ffffff"))
+        assert bar.inks == {}
+    finally:
+        bar.deleteLater()
