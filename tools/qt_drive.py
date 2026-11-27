@@ -117,9 +117,9 @@ from toad.qt.window import (
 from toad.conversation_turn import LocalTurnBinding
 from toad.core.events import TextAgentFail, UnsupportedResumeAgentFail
 from toad.live_output import ResponseStream, ThoughtStream
-from toad.qt.history import HistoryRows
 from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.live_turn import QtLiveFragment
+from toad.qt.virtual_scroll import FragmentRowList, RowDocumentStore
 
 PROJECT = Path(__file__).resolve().parents[1]
 
@@ -772,8 +772,7 @@ class TranscriptScenario(Scenario):
         named = os.environ.get("TOAD_DRIVE_HEADER", "")
         headed = max(row for row, fragment in enumerate(fragments)
                      if any(type(block).__name__ == "Divider" and named in block.label for block in fragment.line_blocks))
-        last = window.model_rows.index(headed)
-        window.scrollTo(last, window.ScrollHint.PositionAtTop)
+        window.scroll_to_row(headed)
         await asyncio.sleep(1.5)
         self.report("3-newest-header", rows=len(fragments))
 
@@ -844,7 +843,7 @@ class ToolDetailScenario(Scenario):
         window.toggle_details(fragment.details_link)
         await until(lambda: fragment.shown.details_open, "details open")
         await asyncio.sleep(1.0)
-        window.scrollTo(window.model_rows.index(window.model_rows.row_of(fragment.key)), window.ScrollHint.PositionAtTop)
+        window.scroll_to_row(window.model_rows.row_of(fragment.key))
         await asyncio.sleep(1.5)
         self.report("1-open", key=str(fragment.key)[:80], blocks=[type(block).__name__ for block in fragment.line_blocks])
 
@@ -1018,18 +1017,18 @@ class StickyScenario(Scenario):
         rows = window.model_rows
         headed = [row for row, fragment in enumerate(rows.fragments)
                   if fragment.line_blocks and fragment.sticky_header(len(fragment.line_blocks) - 1, 1)]
-        tallest = max(headed, key=lambda row: window.visualRect(rows.index(row, 0)).height())
+        tallest = max(headed, key=lambda row: window.row_rect(row).height())
         fragment = rows.fragments[tallest]
         header = fragment.sticky_header(len(fragment.line_blocks) - 1, 1)[-1]
         words = "".join(span.text for span in header.spans).split()
-        rect = window.visualRect(rows.index(tallest, 0))
+        rect = window.row_rect(tallest)
         window.scroll_y = window.scroll_y + rect.top() + rect.height() // 2
         await asyncio.sleep(0.8)
         facts = self.pinned()
         self.report("1-mid-message", header=" ".join(words), height=rect.height(), **facts)
         assert facts["shown"], "mid-message: no header pinned"
         assert all(word in facts["text"] for word in words), f"pinned {facts['text']!r} is not {words}"
-        rect = window.visualRect(rows.index(tallest, 0))
+        rect = window.row_rect(tallest)
         window.scroll_y = window.scroll_y + rect.top()
         await asyncio.sleep(0.8)
         facts = self.pinned()
@@ -1872,8 +1871,7 @@ class LiveTurnScenario(Scenario):
                "help, the log link); nothing is sent to the bus")
 
     def live_rows(self) -> list[tuple[str, str]]:
-        rows = self.page.messages.model_rows
-        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        tail = self.page.messages.model_rows.fragments
         return [(type(fragment.events[0]).__name__, fragment.events[0].text)
                 for fragment in tail if isinstance(fragment, QtLiveFragment)]
 
@@ -1908,8 +1906,7 @@ class AgentSessionScenario(Scenario):
                "output as live rows; run it on a scratch root, never a live one")
 
     def live_rows(self) -> list[tuple[str, str]]:
-        rows = self.page.messages.model_rows
-        tail = [rows.index(row).data(HistoryRows.FRAGMENT) for row in range(rows.rowCount())]
+        tail = self.page.messages.model_rows.fragments
         # A live row's position is negative (`QtLiveBlock`); the text is what the row draws.
         return [(type(fragment.events[0]).__name__,
                  " / ".join(block.selection_text for block in fragment.line_blocks))
@@ -2678,7 +2675,6 @@ class ArrivalScenario(Scenario):
         return f"{text} #{hash(fragment.key) & 0xffff:04x}"
 
     async def run(self) -> None:
-        from toad.qt.history import HistoryRows
         await self.listed()
         app = self.app
         app.resize(self.width, 915)
@@ -2702,7 +2698,7 @@ class ArrivalScenario(Scenario):
         rows: list[str] = []
         updates: list[tuple[float, tuple, tuple]] = []
         started = time.monotonic()
-        original = HistoryRows.show
+        original = FragmentRowList.show
 
         first_shown: dict[str, float] = {}  # a row's full text, when it first showed
         # When Core's revisions reach this app: the pace a burst can show at, at best.
@@ -2726,7 +2722,7 @@ class ArrivalScenario(Scenario):
             if before != after:
                 updates.append((time.monotonic() - started, tuple(sorted(after - before)),
                                 tuple(sorted(before - after))))
-        HistoryRows.show = recorded
+        FragmentRowList.show = recorded
         stamp = time.strftime("%H:%M:%S")
         # A row drawn plain before its styled formatting landed: counted per arriving message.
         delegate = view.messages.rows
@@ -2813,8 +2809,8 @@ class ArrivalScenario(Scenario):
             # A reader scrolled up: arrivals must not move what they read, and the jump bar shows.
             window.scroll_y = max(0, window.scroll_y - 300)
             await asyncio.sleep(0.5)
-            top = window.indexAt(window.viewport().rect().topLeft())
-            reading = (self.label(top.data(HistoryRows.FRAGMENT)), window.visualRect(top).top())
+            top_row = window.row_at_point(window.viewport().rect().topLeft())
+            reading = (self.label(window.model_rows.fragments[top_row]), window.row_rect(top_row).top())
         # Every frame the history paints, with where it was and whether a glide moved it: the
         # motion a reader sees is these frames, not the clock's ticks.
         painted: list[tuple[float, float, bool]] = []
@@ -2860,7 +2856,7 @@ class ArrivalScenario(Scenario):
         print("final rows:", view.messages.model_rows.rowCount(),
               [self.label(f) for f in view.messages.model_rows.fragments][-8:], flush=True)
         timer.stop()
-        HistoryRows.show = original
+        FragmentRowList.show = original
         type(delegate).styled_formatting = original_formatting
         appeared: dict[str, list[str]] = {}
         for at, added, removed in updates:
@@ -2901,7 +2897,7 @@ class ArrivalScenario(Scenario):
         if scrolled_up:
             row = window.model_rows.row_of(next(f.key for f in window.model_rows.fragments
                                                   if self.label(f) == reading[0]))
-            print("scrolled reader: row", reading, "is now at", window.visualRect(window.model_rows.index(row, 0)).top(),
+            print("scrolled reader: row", reading, "is now at", window.row_rect(row).top(),
                   "jump bar shown:", window.jump_bar.jump_shown, "following:", window.follows_tail, flush=True)
         jumps = [round(after - before, 1) for (_, before), (_, after) in zip(scrolls, scrolls[1:])
                  if after != before]
@@ -2984,9 +2980,7 @@ class CliSyncScenario(Scenario):
 
     def shown_texts(self) -> list[str]:
         """Every row the reader's view holds, saved or still live: the model's own fragments."""
-        from toad.qt.history import HistoryRows
-        rows = self.page.messages.model_rows
-        return [rows.index(row).data(HistoryRows.FRAGMENT).clipboard_text for row in range(rows.rowCount())]
+        return [fragment.clipboard_text for fragment in self.page.messages.model_rows.fragments]
 
     async def run(self) -> None:
         import json
@@ -3276,7 +3270,7 @@ class SendGapScenario(Scenario):
             seen = history.viewport().rect()
             for row, fragment in enumerate(rows.fragments):
                 if fragment is not None and marker in fragment.clipboard_text:
-                    return history.visualRect(rows.index(row, 0)).intersects(seen)
+                    return history.row_rect(row).intersects(seen)
             return False
 
         def sample() -> None:
@@ -3407,8 +3401,8 @@ class FrameScenario(Scenario):
             for name in ("rows_changed", "show_pages", "prepare_viewport", "respond_to_scroll", "repin_header"):
                 if hasattr(qt_history.QtHistoryWindow, name):
                     timed(qt_history.QtHistoryWindow, name, f"window.{name}")
-            timed(qt_history.HistoryRows, "show", "rows.show")
-            timed(virtual_rows.RowDocumentDelegate, "_row_prepared", "delegate._row_prepared")
+            timed(FragmentRowList, "show", "rows.show")
+            timed(RowDocumentStore, "_row_prepared", "delegate._row_prepared")
         if os.environ.get("FRAME_TIME_OPEN"):
             # What opening a page costs, by owner (tools only).
             from objectstate.lazy_factory import LazyDataclassFactory
@@ -3434,14 +3428,14 @@ class FrameScenario(Scenario):
             timed_open(SavedSettings, "set", "write.settings_set")
             timed_open(ObjectStateRegistry, "_record_snapshot_internal", "write.snapshot")
             timed_open(ObjectStateRegistry, "invalidate_by_type_and_scope", "write.invalidate")
-            delegate = virtual_rows.RowDocumentDelegate
-            for name in ("sizeHint", "row_document", "measured_height", "_row_prepared", "_rows_prepared",
+            delegate = RowDocumentStore
+            for name in ("measure_row", "row_document_for", "measured_height", "_row_prepared", "_rows_prepared",
                          "_update_viewport"):
                 if name in delegate.__dict__:
                     timed_open(delegate, name, f"rows.{name}")
             for name in ("rows_changed", "show_pages"):
                 timed_open(qt_history.QtHistoryWindow, name, f"window.{name}")
-            for name in ("new_document", "final_document"):
+            for name in ("new_document", "final_document_for"):
                 if name in delegate.__dict__:
                     timed_open(delegate, name, f"rows.{name}")
             for name in ("fragment_height", "block_row"):
@@ -4008,7 +4002,7 @@ class HistoryScrollBackScenario(Scenario):
         shift, placed = window.shift_travel, []
 
         def top_row() -> int:
-            return window.indexAt(QPoint(5, 5)).row()
+            return window.row_at_point(QPoint(5, 5))
 
         def counted_shift(rows, destination):
             shift(rows, destination)
@@ -4047,19 +4041,19 @@ class HistoryScrollBackScenario(Scenario):
         """SCROLL_BACK_TIME_PAINT: each row the delegate paints, and their sum per viewport
         paint (one frame of the history), tools only."""
         timings: dict[str, list[float]] = {"frame rows": [], "row": []}
-        delegate = window.itemDelegate()
-        paint_row = delegate.paint
+        delegate = window.rows
+        paint_row = delegate.paint_row
 
-        def row(painter, option, index):
+        def row(painter, row_idx, fragment, rect, clip_region):
             started = time.perf_counter()
             try:
-                return paint_row(painter, option, index)
+                return paint_row(painter, row_idx, fragment, rect, clip_region)
             finally:
                 took = (time.perf_counter() - started) * 1000
                 timings["row"].append(took)
                 if timings["frame rows"]:
                     timings["frame rows"][-1] += took
-        delegate.paint = row
+        delegate.paint_row = row
 
         class FramePaints(QObject):
             def eventFilter(self, watched, event):
@@ -4120,10 +4114,10 @@ class HistoryScrollBackScenario(Scenario):
         await asyncio.sleep(1.0)
         results.write(f"taps from scroll_y={window.scroll_y:.0f} of {window.max_scroll_y:.0f}\n")
         # (1) the row the viewport's top cuts through: its head is above.
-        index = window.indexAt(QPoint(x, 1))
-        rect = window.visualRect(index)
-        if index.isValid() and rect.top() < 0:
-            head = index.data(HistoryRows.FRAGMENT).message_head(model_rows.fragments)
+        tapped_row = window.row_at_point(QPoint(x, 1))
+        rect = window.row_rect(tapped_row)
+        if tapped_row >= 0 and rect.top() < 0:
+            head = model_rows.fragments[tapped_row].message_head(model_rows.fragments)
             point = QPoint(x, max(4, min(rect.bottom(), viewport.height()) // 2))
             before = window.scroll_y
             touch(QTest.touchEvent(handle, finger).press(0, at(point)))
@@ -4138,9 +4132,9 @@ class HistoryScrollBackScenario(Scenario):
                     break
                 await asyncio.sleep(0.002)
             row = model_rows.row_of(head.key)
-            head_top = window.visualRect(model_rows.index(row, 0)).top() if row >= 0 else None
+            head_top = window.row_rect(row).top() if row >= 0 else None
             results.write(f"tap head-above: release_to_motion_ms={(moved - released) * 1000 if moved else -1:.0f} "
-                          f"head_top_after={head_top} tapped_row={index.row()} head_row={row} "
+                          f"head_top_after={head_top} tapped_row={tapped_row} head_row={row} "
                           f"cut_top={rect.top()} scroll_before={before:.0f} scroll_after={window.scroll_y:.0f}\n")
         else:
             results.write("tap head-above: no row cut by the top\n")
@@ -4401,7 +4395,7 @@ class HoldScenario(Scenario):
         history = self.page.messages
         viewport = history.viewport()
         on_row = QPoint(viewport.width() // 4, viewport.height() // 3)
-        self.expect("2-history-row", history.indexAt(on_row).isValid(), "no message row under the held point")
+        self.expect("2-history-row", history.row_at_point(on_row) >= 0, "no message row under the held point")
         requested: list[str] = []
         history.block_menu_requested.connect(lambda fragment: requested.append(type(fragment).__name__))
         await self.held_menu("2-history-row", viewport, on_row)
