@@ -484,6 +484,16 @@ class Observation(ABC):
     def retire(self, access: CoordinationAccess) -> None:
         """An observation without a process has nothing to retire."""
 
+    def pending_notification_views(self) -> tuple[NotificationSubscriber, ...]:
+        """Notification subscribers retained while this observation could not subscribe them."""
+        return ()
+
+    def rebind_notifications(self, subscribers: tuple[NotificationSubscriber, ...]) -> None:
+        """Re-attach active notification views once this observation becomes current."""
+
+    def discard_notification_view(self, view: NotificationSubscriber) -> None:
+        """Forget a view that stopped showing notifications before this observation ended."""
+
     def activate(self, access: CoordinationAccess):
         """The new current observation shows itself in every view following the sidebar,
         hidden or shown: a failure as the failure, a reopened service as its rows. This is
@@ -500,6 +510,9 @@ class Observation(ABC):
         for _, waiter in waiters:
             if not waiter.done():
                 waiter.set_exception(RouteChangedError("Comms service changed before the sidebar was read"))
+        subscribers = tuple(dict.fromkeys((
+            *access.notification_views, *previous.pending_notification_views(),
+        )))
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
         access.team_interest = StopTeamHud()
@@ -509,6 +522,7 @@ class Observation(ABC):
         access.notification_known.clear()
         access.notification_interest = ObserveNotifications(frozenset())
         self.activate(access)
+        self.rebind_notifications(subscribers)
         access.events.publish(ObservedServiceChanged())
 
 
@@ -646,6 +660,18 @@ class FailedObservation(Observation):
     def observe_notifications(self, wanted: ObserveNotifications):
         for view in tuple(self.access.notification_views):
             view.notifications_failed(self.error)
+
+    def pending_notification_views(self) -> tuple[NotificationSubscriber, ...]:
+        return tuple(self.failed_notification_views)
+
+    def rebind_notifications(self, subscribers: tuple[NotificationSubscriber, ...]) -> None:
+        for view in subscribers:
+            if view not in self.failed_notification_views:
+                self.failed_notification_views.add(view)
+                view.notifications_failed(self.error)
+
+    def discard_notification_view(self, view: NotificationSubscriber) -> None:
+        self.failed_notification_views.discard(view)
 
     def subscribe_notifications(
         self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
@@ -918,6 +944,10 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
     def observe_notifications(self, wanted: ObserveNotifications):
         self.tell(wanted)
 
+    def rebind_notifications(self, subscribers: tuple[NotificationSubscriber, ...]) -> None:
+        for view in subscribers:
+            view.rebind_notifications()
+
     def subscribe_notifications(
         self, view: NotificationSubscriber, build_read: Callable[[str], ReadNotifications],
     ) -> bool:
@@ -1186,6 +1216,7 @@ class CoordinationAccess(MroDispatch):
         """Whether `view` was showing a read."""
         shown = view in self.notification_views
         self.notification_views.pop(view, None)
+        self.observation.discard_notification_view(view)
         self._request_interest()
         return shown
 

@@ -121,6 +121,13 @@ class HistoryNotifications(NotificationSubscriber):
         if self.can_draw_on_screen:
             self.run_notification_work(self._reload_notification_sources())
 
+    def rebind_notifications(self) -> None:
+        """Core's observation attached anew (reconnect, restart, or mobile resume): drop the
+        old read key and re-subscribe the visible messages on the new observation."""
+        self.checked_references = None
+        if self.can_draw_on_screen:
+            self.check_notifications_after_refresh()
+
     async def _reload_notification_sources(self):
         for target in self.notification_targets():
             await target.reload_notification_source()

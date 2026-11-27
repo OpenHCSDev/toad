@@ -148,6 +148,7 @@ class ViewportArrival(ArrivalTransition):
         if target is not None and owner.follows_tail:
             with owner.layout_scroll():
                 target.land(owner)
+            owner.request_preparation()
         if self.keys:
             owner.repaint_arrival_keys(self.keys)
 
@@ -262,6 +263,9 @@ class AnimatesArrivals:
     def follow_end(self) -> None:
         """Place the window at its followed tail (toolkits with a specialized jump override)."""
         self.scroll_y = self.tail_scroll_y
+
+    def request_preparation(self) -> None:
+        """Prepare the viewport after an arrival scroll lands; paging windows override."""
 
     # ---- Shared semantic operations ----
 

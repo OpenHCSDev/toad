@@ -320,6 +320,8 @@ class ReaderPlacement:
                 if not restoring:
                     if rows := self.scroll_y - previous:
                         self.shift_travel(rows, destination)
+                        if not self.gliding_to_end():
+                            self.request_preparation()
                     self.lookahead.relocated(rows)
             finally:
                 self._restoring = restoring

@@ -228,12 +228,15 @@ with tempfile.TemporaryDirectory() as recipes:
           "blank and sys.exit(f'error: application actions with an empty summary at -O{sys.flags.optimize}: {blank}'); "
           "from agent_comms.installer.harness_install import HarnessSession; "
           "'claude_bridge' in HarnessSession.__registry__ or sys.exit('error: HarnessSession discovery missed claude_bridge'); "
+          "from agent_comms.cli_verbs.thread import ThreadCliCommand; "
           "from agent_comms.coordination.tables.assignments import WakeAssignment; "
+          "from agent_comms.nominal.field_codec import FieldCodec; "
           "from agent_comms.planning.goal_ledger import FailedTurnEvidence; "
           "from agent_comms.ui_model.teammate_state import TeammateState; "
           "FailedTurnEvidence.recorded_member(FailedTurnEvidence.declared_name) is FailedTurnEvidence or sys.exit('error: FailedTurnEvidence lookup failed'); "
           "WakeAssignment.recorded_member(WakeAssignment.declared_name) is WakeAssignment or sys.exit('error: WakeAssignment lookup failed'); "
           "all(issubclass(TeammateState.recorded_member(n), TeammateState) for n in ('idle', 'blocked', 'moving', 'spinning')) or sys.exit('error: TeammateState lookup failed'); "
+          "FieldCodec.encode(ThreadCliCommand(name='probe'))['kind'] == 'thread' or sys.exit('error: ThreadCliCommand encode failed'); "
           "print('shipped app imports toad.qt.main; every application action has a summary'); print(json.dumps(sorted(sys.modules)))")],
         capture_output=True, text=True, timeout=120, cwd=recipes, check=False,
         env=os.environ | {"PYTHONOPTIMIZE": str(optimize)})

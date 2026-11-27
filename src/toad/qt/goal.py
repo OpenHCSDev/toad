@@ -263,10 +263,24 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self.fit_document()
 
     def fit_document(self) -> None:
-        """The document is as tall as its text, up to its share of the window."""
+        """The document is as tall as its wrapped text at the viewport width, up to its share
+        of the window."""
         body = self.document.widget()
-        cap = int(QWidget.window(self).height() * self.document_share) or body.sizeHint().height()
-        self.document.setFixedHeight(max(1, min(body.sizeHint().height(), cap)))
+        width = self.document.viewport().width()
+        if width <= 0:
+            margins = self.layout().contentsMargins()
+            width = max(0, self.width() - margins.left() - margins.right())
+        content_height = (
+            body.heightForWidth(width)
+            if width > 0 and body.hasHeightForWidth()
+            else body.sizeHint().height()
+        )
+        cap = int(QWidget.window(self).height() * self.document_share) or content_height
+        self.document.setFixedHeight(max(1, min(content_height, cap)))
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self.fit_document()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         super().resizeEvent(event)
