@@ -30,6 +30,7 @@ from toad.qt.metrics import UiGap
 from toad.motion import ROW_REVEAL, TransitionTarget
 from toad.qt.widget_animation import WidgetAnimation
 from toad.qt.presented_window import PresentedWindow
+from toad.qt.tap_flash import TapFlashControl
 
 # Qt's QWIDGETSIZE_MAX, which PySide does not export: no maximum height.
 QWIDGETSIZE_MAX = (1 << 24) - 1
@@ -38,17 +39,23 @@ if TYPE_CHECKING:
     from toad.qt.composer import Composer
 
 
-class QtActivatedText(ActivatesContract, WrappedText):
-    """Muted text a press activates (Textual's ``Activates`` + ``SecondaryText``); it wraps."""
+class QtActivatedText(TapFlashControl, ActivatesContract, WrappedText):
+    """Muted text a press activates (Textual's ``Activates`` + ``SecondaryText``); it wraps
+    and flashes inverted on tap through `TapFlashControl`."""
 
     def __init__(self, composer: Composer, text: str = "") -> None:
         super().__init__(text)
         self.composer = composer
+        self.bind_tap_ink(composer.renderer, MutedRole.colour, left_align=True)
         composer.renderer.themed(self, lambda: self.setStyleSheet(composer.renderer.color_style(MutedRole)))
+
+    def tap_flash_text_flags(self) -> int:
+        return int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextWordWrap)
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         if event.button() == Qt.MouseButton.LeftButton:
             event.accept()
+            self.flash_tap()
             self.activate()
         else:
             super().mousePressEvent(event)

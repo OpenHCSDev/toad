@@ -22,6 +22,7 @@ from PySide6.QtCore import QEvent, QObject, QPoint, QRect, Qt
 from PySide6.QtWidgets import QBoxLayout, QHBoxLayout, QLabel, QLayout, QToolButton, QWidget
 
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtTextButton
 from toad.screen_width import ScreenWidth
 from toad.window_presentation import BesideApp, FillsApp, WindowPresentation
 
@@ -141,7 +142,7 @@ class PresentedWindow:
             header = QWidget(self)
             row = QHBoxLayout(header)
             row.setContentsMargins(0, 0, 0, UiGap.normal)
-            back = QToolButton(header)
+            back = QtTextButton(header)
             back.setText("←")
             back.setToolTip("Back")
             back.setAutoRaise(True)

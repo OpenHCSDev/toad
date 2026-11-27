@@ -23,7 +23,7 @@ from collections.abc import Callable
 
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QPainter, QPalette
-from PySide6.QtWidgets import QGridLayout, QLabel, QStyle, QStyleOption, QToolButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QGridLayout, QLabel, QStyle, QStyleOption, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from textual.geometry import Offset, Region, Size
 from toad.client.application import ClientApplication
@@ -61,7 +61,10 @@ def cells_to_pixels(region: Region, cells: Size, pixels: QRect) -> QRect:
     return QRect(left, top, x(region.right) - left, y(region.bottom) - top)
 
 
-class QtSidebarAction(PlacementControl, QToolButton, metaclass=PyQtWidgetMeta):
+from toad.qt.tap_flash import QtTextButton
+
+
+class QtSidebarAction(PlacementControl, QtTextButton, metaclass=PyQtWidgetMeta):
     """One arrow or Float/Push as a Qt button; the placement-action family presents it."""
 
     def __init__(self, action: SidebarPlacementAction, surface: QtSideBar) -> None:

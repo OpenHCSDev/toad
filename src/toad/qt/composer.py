@@ -73,6 +73,7 @@ from toad.qt.prompt_stack import QtInfoBar
 from toad.slash_command import SlashCommand
 from toad.slash_command_results import CommandMatch, SlashCommandResults
 from toad.qt.metrics import UiGap, delete_layout_widgets
+from toad.qt.tap_flash import QtPushButton
 
 
 def _bind_composer_shortcuts(composer: Composer):
@@ -375,7 +376,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.held = QtQueueHint(self)
         self.info_bar.layout().insertWidget(self.info_bar.layout().indexOf(self.info_bar.status), self.held)
         self.failure = self.line(FailureRole)
-        self.send_button = QPushButton("➤", self.button_box)
+        self.send_button = QtPushButton("➤", self.button_box)
         self.send_button.setToolTip(SubmitAction.title)
         self.send_button.setAccessibleName(SubmitAction.title)
         self.send_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up
@@ -861,7 +862,7 @@ Composer.action_methods = (
 )
 
 
-class QtAttachedFileChip(AttachedFileChip, QPushButton):
+class QtAttachedFileChip(AttachedFileChip, QtPushButton):
     """An attached file as a button over the editor; tapping it takes the file off."""
 
     def __init__(self, composer: QtMessageComposer, position: int) -> None:
@@ -881,7 +882,7 @@ class QtMessageComposer(MessagePromptComposer, Composer):
 
     def __init__(self, host: ComposerHost, renderer: QtLineRenderer, placeholder: str) -> None:
         super().__init__(host, renderer, placeholder)
-        self.attach_button = QPushButton("+", self.button_box)
+        self.attach_button = QtPushButton("+", self.button_box)
         self.attach_button.setToolTip(AttachFileAction.title)
         self.attach_button.setAccessibleName(AttachFileAction.title)
         self.attach_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # tapping keeps the keyboard up

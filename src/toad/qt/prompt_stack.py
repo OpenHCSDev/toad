@@ -44,6 +44,7 @@ from toad.private_native_cursor import HiddenCursorStatus
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtTextButton
 from toad.status_thread import ObservedActivity
 from toad.qt.presented_window import PresentedWindow
 
@@ -98,7 +99,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.is_mounted = False
         self.expanded = False
         self.history_details = SessionHistoryDetails(view.transcript, self)
-        self.title = QToolButton(self)
+        self.title = QtTextButton(self)
         self.title.setAutoRaise(True)
         self.title.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         self.title.clicked.connect(self.toggle)
@@ -106,7 +107,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         self.details.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
         self.details.hide()
         # Textual's `InspectSession` detail action: underlined accent text in the disclosure.
-        self.inspect_action = QToolButton(self)
+        self.inspect_action = QtTextButton(self)
         self.inspect_action.setText(self.inspect_label)
         self.inspect_action.setAutoRaise(True)
         self.inspect_action.clicked.connect(lambda: asyncio.ensure_future(self.inspect()))
@@ -124,8 +125,7 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
         """The muted details, the accent inspect action and the title in its status role,
         under the renderer's current scheme."""
         self.details.setStyleSheet(self.renderer.color_style(MutedRole))
-        self.inspect_action.setStyleSheet(
-            f"QToolButton {{ color: {self.renderer.theme(AccentColour)}; text-decoration: underline; border: none }}")
+        self.inspect_action.apply_text_style(self.renderer, AccentColour, underline=True)
         self.paint_title()
 
     def showEvent(self, event) -> None:  # type: ignore[override]
@@ -154,9 +154,8 @@ class QtSessionDetails(ObservedActivity, SessionStatusTitle, QtCoreObserver, QWi
 
     def paint_title(self) -> None:
         """The title in its row's status role, under the renderer's current scheme."""
-        self.renderer.apply_sheet(self.title,
-            f"QToolButton {{ {self.renderer.color_style(self.title_role_for(self.row, self.status))};"
-            " border: none; text-align: left; padding: 0 4px }")
+        role = self.title_role_for(self.row, self.status)
+        self.title.apply_text_style(self.renderer, role.colour, left_align=True, pad_x=4)
 
     def refresh_summary(self) -> None:
         row = self.row

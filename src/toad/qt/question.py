@@ -32,6 +32,7 @@ from toad.client.input_attention import InputAttention
 from toad.question_actions import ChoiceQuestion, QuestionContext, SelectKindAction
 from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap, delete_layout_widgets
+from toad.qt.tap_flash import QtPushButton
 
 class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
@@ -103,7 +104,7 @@ class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
         self._title.setText(ask.question)
         self._title.setVisible(bool(ask.question))
         for index, answer in enumerate(ask.options):
-            button = QPushButton(answer.text)
+            button = QtPushButton(answer.text)
             button.setCursor(Qt.CursorShape.PointingHandCursor)
             button.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
             button.clicked.connect(lambda _checked=False, idx=index: self._pick(idx))

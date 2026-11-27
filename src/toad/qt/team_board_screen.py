@@ -50,6 +50,7 @@ from toad.client.team_board import TeamBoardState, TeamMemberBoard
 from toad.core.events import TeamHudChanged, TeamHudFailed
 from toad.qt.core_events import QtCoreObserver
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtPushButton
 from toad.qt.presented_window import PresentedWindow
 from toad.qt.window import QtToadApp
 from toad.target_commands import BoardCommand
@@ -245,7 +246,7 @@ class QtTeamMemberView(TeamMemberBoard, QWidget):
         for offer, command in commands.items():
             if offer in self.action_buttons:
                 continue
-            button = QPushButton(command.label, self)
+            button = QtPushButton(command.label, self)
             button.clicked.connect(partial(self._apply_board_command, command))
             self.action_buttons[offer] = button
             self.actions.addWidget(button)

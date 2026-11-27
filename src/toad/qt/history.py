@@ -502,14 +502,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         rect: QRect,
         clip_region: QRegion | None,
         opacity: float | None,
-        selections: list[QAbstractTextDocumentLayout.Selection],
+        highlight: TapHighlight,
     ) -> None:
-        """Paint `document` directly into `painter` with optional inverted tap-highlight
-        `selections`, bypassing cached tiles so tile caches stay untouched."""
+        """Paint `document` directly into `painter` through `highlight.paint_document`,
+        bypassing cached tiles so tile caches stay untouched."""
         shown = clip_region.boundingRect().intersected(rect) if clip_region is not None else rect
         if shown.isEmpty():
             return
-        _bg_hex, bg_color, _fg_color = self._theme_colours()
+        _bg_hex, bg_color, fg_color = self._theme_colours()
         device = self.view.backing_device()
         palette = device.palette() if device is not None else QPalette()
         painter.save()
@@ -524,11 +524,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             shown.height(),
         )
         painter.setClipRect(local_clip)
-        context = QAbstractTextDocumentLayout.PaintContext()
-        context.palette = palette
-        context.clip = local_clip
-        context.selections = selections
-        document.documentLayout().draw(painter, context)
+        highlight.paint_document(painter, document, palette, bg_color, fg_color, local_clip)
         painter.restore()
 
     def _paint_plain_row(
@@ -538,13 +534,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         font = device.font() if device is not None else QFont()
         document = self.new_document(font, self.layout_width(rect.width()))
         document.setPlainText(self.row_text(fragment))
-        self._paint_document_direct(painter, document, rect, clip_region, None, [])
+        self._paint_document_direct(painter, document, rect, clip_region, None, NO_TAP_HIGHLIGHT)
 
     def paint_row(
         self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
     ) -> None:
         """Paint one history row from cached `QImage` tiles (or directly with inverted text
-        selections when this row carries the active `TapHighlight`)."""
+        and divider rules when this row carries the active `TapHighlight`)."""
         if not fragment.has_blocks:
             return
         opacity = self.view.arrival_opacity(fragment.key) if self.view.has_active_arrivals else None
@@ -554,9 +550,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             font = device.font() if device is not None else QFont()
             document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
             if document is not None:
-                _bg_hex, bg_color, fg_color = self._theme_colours()
-                selections = highlight.selections(document, bg_color, fg_color)
-                self._paint_document_direct(painter, document, rect, clip_region, opacity, selections)
+                self._paint_document_direct(painter, document, rect, clip_region, opacity, highlight)
                 self.view.row_painted(fragment, rect)
                 return
         if not self.paint_pictures(painter, fragment, rect, clip_region, opacity):
@@ -1266,12 +1260,10 @@ class QtStickyHeader(HeaderPin, QWidget):
         highlight = self.history_window.tap_highlight
         if highlight.is_pinned():
             painter.fillRect(self.rect(), bg_color)
+            palette = self.palette()
             for index, document in enumerate(self.documents):
-                context = QAbstractTextDocumentLayout.PaintContext()
-                context.palette = self.palette()
-                if highlight.matches_pinned(index):
-                    context.selections = highlight.selections(document, bg_color, fg_color)
-                document.documentLayout().draw(painter, context)
+                active = highlight if highlight.matches_pinned(index) else NO_TAP_HIGHLIGHT
+                active.paint_document(painter, document, palette, bg_color, fg_color)
                 painter.translate(0, document.size().height())
             painter.end()
             return
@@ -1444,7 +1436,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._viewport_resize_timer.timeout.connect(self._apply_viewport_width_change)
         self._tap_highlight_timer = QTimer(self)
         self._tap_highlight_timer.setSingleShot(True)
-        self._tap_highlight_timer.setInterval(160)
+        self._tap_highlight_timer.setInterval(self.tap_highlight.tap_flash_duration_ms)
         self._tap_highlight_timer.timeout.connect(self._clear_tap_highlight)
         self.verticalScrollBar().valueChanged.connect(self.scrolled)
         self._scroll_frame_timer = QTimer(self)

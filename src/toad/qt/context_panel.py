@@ -43,6 +43,7 @@ from toad.core.context_inspection import (
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import ContextSidebarPanel
 from toad.qt.metrics import UiGap
+from toad.qt.tap_flash import QtPushButton
 
 
 class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
@@ -100,18 +101,18 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
         row.setSpacing(UiGap.normal)
-        self._older = QPushButton("Older", self)
+        self._older = QtPushButton("Older", self)
         self._older.setEnabled(False)
         self._older.clicked.connect(self.older_requests)
         row.addWidget(self._older)
-        self._newer = QPushButton("Newer", self)
+        self._newer = QtPushButton("Newer", self)
         self._newer.setEnabled(False)
         self._newer.clicked.connect(self.newer_requests)
         row.addWidget(self._newer)
-        self._refresh_btn = QPushButton("Refresh", self)
+        self._refresh_btn = QtPushButton("Refresh", self)
         self._refresh_btn.clicked.connect(self._on_refresh)
         row.addWidget(self._refresh_btn)
-        self._copy = QPushButton("Copy", self)
+        self._copy = QtPushButton("Copy", self)
         self._copy.clicked.connect(self._on_copy)
         row.addWidget(self._copy)
         row.addStretch(1)

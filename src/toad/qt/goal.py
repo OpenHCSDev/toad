@@ -29,7 +29,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QPlainTextEdit,
     QScrollArea,
-    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -56,11 +55,13 @@ from toad.core.events import ThreadRowsChanged
 from toad.widget_contracts import DismissibleContract, SubmitsContract
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
+from toad.qt.tap_flash import QtTextButton
 from ui_theme.scheme import SecondaryColour
 
 
-class QtGoalControl(QToolButton, GoalInteractionControl, metaclass=PyQtWidgetMeta):
-    """One GoalInteraction as a Qt button; the family owns its label, state and press."""
+class QtGoalControl(QtTextButton, GoalInteractionControl, metaclass=PyQtWidgetMeta):
+    """One GoalInteraction as a Qt text button; the family owns its label, state and press,
+    and `QtTextButton` owns its flat themed style and 160 ms tap inversion."""
 
     def __init__(self, interaction: type[GoalInteraction], bar: QtGoalBar) -> None:
         super().__init__()
@@ -200,7 +201,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self.standby.setStyleSheet(muted)
         self.progress.setStyleSheet(muted)
         for control in self.actions:
-            control.setStyleSheet(f"QToolButton {{ color: {secondary}; border: none; padding: 0 }}")
+            control.apply_text_style(renderer, SecondaryColour)
         self.setStyleSheet(f"#goal-bar {{ border-top: 1px solid {secondary} }}")
 
     # What GoalObservation reads into and publishes, as it does for the TUI's conversation
