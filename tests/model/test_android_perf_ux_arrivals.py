@@ -2131,7 +2131,9 @@ def test_pending_reader_scroll_flushes_before_layout_and_frame_paint_caches_per_
     surface = QImage(200, 100, QImage.Format.Format_ARGB32_Premultiplied)
     painter = QPainter(surface)
     try:
-        delegate.begin_paint(painter, QRect(0, 0, 200, 100))
+        delegate.begin_paint(painter, QRect(0, 0, 200, 100), animating=False)
+        assert delegate._frame_source_mode is True
+        assert painter.compositionMode() == QPainter.CompositionMode.CompositionMode_Source
         for idx in range(4):
             frag = MagicMock(key=f"r{idx}", has_blocks=True, clipboard_text="row")
             assert delegate.paint_pictures(
@@ -2140,6 +2142,7 @@ def test_pending_reader_scroll_flushes_before_layout_and_frame_paint_caches_per_
         delegate.end_paint()
         assert format_calls == 1
         assert delegate._frame_paint is None
+        assert delegate._frame_source_mode is False
     finally:
         painter.end()
         delegate.cleanup()
