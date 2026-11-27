@@ -2591,3 +2591,117 @@ def test_line_block_triggers_header_collapse_and_channel_row_tones():
     assert issubclass(ChannelAlternateRowToneColour, ChannelRowTone)
     assert not issubclass(SidebarToggleToneColour, ChannelRowTone)
     assert ChannelRowFace.row_tones == (ChannelRowToneColour, ChannelAlternateRowToneColour)
+
+
+def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_strip(monkeypatch):
+    """QtStickyHeader keeps recently pinned QTextDocuments and rasterized QImages in bounded
+    LRUs across header switches and skips no-op resize/move calls; VirtualRowCanvas.scrollContentsBy
+    subtracts WA_OpaquePaintEvent covers from viewport.update(dirty)."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    from collections import OrderedDict
+    from PySide6.QtCore import QPoint, QRect, Qt
+    from PySide6.QtGui import QColor, QImage, QPainter, QTextDocument
+    from PySide6.QtWidgets import QWidget
+    from toad.client.line_blocks import Divider, MutedRole, Span
+    from toad.qt.history import QtStickyHeader
+    from toad.qt.virtual_scroll import VirtualRowCanvas
+
+    # 1. QtStickyHeader LRU + no-op geometry guard.
+    class _FakeHistoryWindow(QWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self.resize(412, 600)
+            self._vp = QWidget(self)
+            self._vp.setGeometry(0, 0, 412, 600)
+            self.rows = MagicMock()
+            self.rows.links_revision = 1
+            self.rows.renderer = object()
+            self.rows._theme_colours.return_value = ("#111111", QColor("#111111"), QColor("#eeeeee"))
+            self.tap_highlight = MagicMock()
+            self.tap_highlight.is_pinned.return_value = False
+
+        def viewport(self) -> QWidget:
+            return self._vp
+
+    host = _FakeHistoryWindow()
+    build_calls: list[Divider] = []
+
+    def make_doc(header: Divider, _font, width: int) -> QTextDocument:
+        build_calls.append(header)
+        doc = QTextDocument()
+        doc.setDocumentMargin(0)
+        doc.setTextWidth(width)
+        doc.setPlainText(header.spans[0].text)
+        return doc
+
+    host.rows.header_document.side_effect = make_doc
+    sticky = QtStickyHeader(host)
+
+    h1 = Divider((Span("Header A"),), MutedRole)
+    h2 = Divider((Span("Header B"),), MutedRole)
+    resize_calls = 0
+    move_calls = 0
+    orig_resize, orig_move = sticky.resize, sticky.move
+
+    def counted_resize(*args):
+        nonlocal resize_calls
+        resize_calls += 1
+        return orig_resize(*args)
+
+    def counted_move(*args):
+        nonlocal move_calls
+        move_calls += 1
+        return orig_move(*args)
+
+    sticky.resize = counted_resize
+    sticky.move = counted_move
+
+    sticky.draw_pinned((h1,), 0, 412)
+    sticky.show()
+    # Paint h1 so its QImage lands in _pixmap_cache.
+    sticky.grab()
+    sticky.draw_pinned((h2,), 0, 412)
+    sticky.grab()
+    # Switch back to h1: must hit both laid_out and _pixmap_cache with 0 new builds and 0 resizes/moves.
+    sticky.draw_pinned((h1,), 0, 412)
+    sticky.grab()
+    assert build_calls == [h1, h2]
+    assert len(sticky.laid_out) == 2
+    assert len(sticky._pixmap_cache) == 2
+    assert resize_calls == 1
+    assert move_calls == 0
+    sticky.draw_pinned((h1,), 4, 412)
+    assert move_calls == 1
+
+    # 2. VirtualRowCanvas.scrollContentsBy excludes full-width WA_OpaquePaintEvent cover from dirty update.
+    canvas = VirtualRowCanvas(MagicMock())
+    canvas.resize(412, 600)
+    canvas.show()
+    vp_geo = canvas.viewport().geometry()
+    opaque_top = QWidget(canvas)
+    opaque_top.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+    opaque_top.setGeometry(vp_geo.left(), vp_geo.top(), vp_geo.width(), 24)
+    opaque_top.show()
+
+    updates: list[QRect] = []
+    orig_update = canvas.viewport().update
+
+    def capture_update(region):
+        updates.append(region.boundingRect() if hasattr(region, "boundingRect") else region)
+        return orig_update(region)
+
+    canvas.viewport().update = capture_update
+    canvas.scrollContentsBy(0, -40)
+    assert updates == [], f"opaque full-width header must not trigger extra viewport.update, got {updates}"
+
+    # Adding a translucent cover still updates the non-occluded band around it.
+    translucent_bottom = QWidget(canvas)
+    translucent_bottom.setGeometry(vp_geo.left() + 140, vp_geo.top() + vp_geo.height() - 40, 120, 32)
+    translucent_bottom.show()
+    canvas.scrollContentsBy(0, -40)
+    assert len(updates) == 1
+    assert updates[0].top() == vp_geo.height() - 40
+    assert updates[0].top() > 24, "opaque top band must stay excluded from dirty region"
+    host.close()
+    canvas.close()
