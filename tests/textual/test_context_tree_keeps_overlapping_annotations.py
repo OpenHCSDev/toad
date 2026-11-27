@@ -4,18 +4,16 @@ position when its source is refreshed, and keeps the selected annotation through
 The mounted Tree owns navigation; the explorer's intent owns which annotation's detail is selected."""
 
 from toad.widgets.context_explorer import ContextExplorer, ContextTree
-from toad.widgets.side_bar import SideBarCollapsible, ThreadSidebar
+from toad.widgets.side_bar import ThreadSidebar
 
 from support.overlapping_annotations import overlapping_annotations
+from support.textual_steps import select_thread_panel
 
 
 async def reveal_context(ui) -> ContextExplorer:
     """Open the session's Context panel and return its explorer."""
     sidebar = await ui.revealed(ui.app.screen.query_one(ThreadSidebar))
-    explorer = sidebar.query_one(ContextExplorer)
-    explorer.query_ancestor(SideBarCollapsible).collapsed = False
-    await ui.step()
-    return explorer
+    return await select_thread_panel(ui, sidebar, ContextExplorer)
 
 
 async def test_tree_rebinds_corrections_and_remounts_on_the_same_row_without_a_new_selection(workspace, tmp_path):

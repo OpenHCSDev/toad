@@ -1073,13 +1073,13 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         await self.prompt_text_area.run_action("submit_now")
 
     def sync_session(self) -> None:
-        if not self.is_mounted:
+        if not self.is_mounted or self._pruning:
             return
         self.watch_agent_info(self.agent_info)
         self.sync_turn()
 
     def watch_agent_info(self, agent_info: Content) -> None:
-        if not self.is_mounted:
+        if not self.is_mounted or self._pruning:
             return
         self.query_one(AgentInfo).update(self.input_decision.agent_info(agent_info, Content))
 
@@ -1321,7 +1321,7 @@ class MessagePrompt(MessagePromptComposer, Prompt):
         pass
 
     def watch_agent_info(self, agent_info: Content) -> None:
-        if self.is_mounted:
+        if self.is_mounted and not self._pruning:
             self.update_prompt()
 
     def project_directory_updated(self) -> None:

@@ -7,7 +7,9 @@ from __future__ import annotations
 from toad.client.history_state import LiveTranscript, ProvisionalTranscript
 from toad.client.message_file_links import NO_PAGE_FILES
 from toad.transcript_preparation import LoadedTranscriptPages, SavedTranscript, TranscriptPageRenderTask
-from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.project_directory_tree import ProjectDirectoryTree
+from toad.widgets.project_panel import ProjectPanel
+from toad.widgets.side_bar import PanelMenu, ThreadSidebar
 from toad.widgets.transcript_fragments import TEXTUAL_FRAGMENT_CLASSES
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.work_preparation import RenderPreparation
@@ -15,13 +17,24 @@ from toad.work_preparation import RenderPreparation
 import asyncio
 
 
+async def select_thread_panel(ui, sidebar, widget_type):
+    """Select and mount the thread sidebar's `PanelMenu` entry for `widget_type`."""
+    menu = sidebar.query_one(PanelMenu)
+    entry = next(entry for entry in menu.entries if isinstance(entry.widget, widget_type))
+    menu.picker.value = entry
+    await ui.until(
+        lambda: entry in menu.pages and menu.pages[entry].display and entry.widget.is_mounted,
+        seconds=12,
+        why=f"the {widget_type.__name__} sidebar panel",
+    )
+    await ui.step()
+    return entry.widget
+
+
 async def reveal_project_tree(ui):
     """Open the thread's Project panel (its tree loads only when shown) and return the tree."""
-    from toad.widgets.project_directory_tree import ProjectDirectoryTree
-    from toad.widgets.side_bar import SideBar, SideBarCollapsible
-
     sidebar = await ui.revealed(ui.app.screen.query_one(ThreadSidebar))
-    next(panel for panel in sidebar.query(SideBarCollapsible) if panel.title == "Project").collapsed = False
+    await select_thread_panel(ui, sidebar, ProjectPanel)
 
     def loaded():
         tree = sidebar.query_one_optional(ProjectDirectoryTree)

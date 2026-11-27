@@ -1,10 +1,9 @@
 """Real hint labels reach text entry and the sidebar's native control effects."""
+from support.textual_steps import select_thread_panel
 from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from textual.widgets._collapsible import CollapsibleTitle
 from textual.widgets._hints import HintLabel, HintSession
 
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.comms_sidebar import ChannelHeaderRow
 from toad.widgets.thread_comms import MessageFilter, ThreadCommsSidebar
 from toad.widgets.prompt import Prompt
@@ -22,16 +21,13 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         right.reveal()
         await ui.panels_loaded(left)
         await ui.panels_loaded(right)
-        tree = right.query_one(ThreadCommsSidebar)
-        panel = tree.query_ancestor(SideBarCollapsible)
-        panel.collapsed = False
-        await ui.step()
+        tree = await select_thread_panel(ui, right, ThreadCommsSidebar)
 
         async def choose(widget):
             await choose_target(lambda target: target.widget is widget, widget)
 
         async def choose_target(matches, described):
-            await ui.until(lambda: any(matches(painted.activation) for painted in
+            await ui.until(lambda: any(matches(painted) for painted in
                                       app.screen._compositor.activation_scene().targets.values()),
                            why=f'{described} to be an exposed published hint target')
             await app.screen.action_show_hints()
@@ -55,12 +51,6 @@ async def test_hints_reach_search_editor_disclosures_and_message_filters(workspa
         left.search_input.value = ''
         editor.focus()
         await ui.step()
-
-        title = panel.query_one(CollapsibleTitle)
-        await choose(title)
-        assert panel.collapsed and editor.has_focus
-        await choose(title)
-        assert not panel.collapsed and editor.has_focus
 
         checkbox = tree.query_one(MessageFilter)
         category = tree._filter_controls[checkbox]

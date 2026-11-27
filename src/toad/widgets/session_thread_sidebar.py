@@ -15,6 +15,7 @@ from toad.widgets.side_bar import (
     AbsentPanels,
     LazyThreadSidebar,
     PanelHydration,
+    PanelMenu,
 )
 from toad.widgets.session_thread_panels import (
     PlanSessionPanel,
@@ -102,6 +103,8 @@ class SessionThreadSidebar(LazyThreadSidebar, NativePresentation):
     async def evict(self, screen: MainScreen) -> None:
         """Release panels on eviction or close, preserving their reader position."""
         await self._cancel_panel_workers()
+        for menu in self.query(PanelMenu):
+            await menu.release()
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
         self.capture_panels(screen)
         await self.content_stack.remove_children()

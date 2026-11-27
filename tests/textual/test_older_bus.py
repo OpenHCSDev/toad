@@ -18,7 +18,7 @@ from agent_comms.registry.threads import NativeThread
 from agent_comms.transport.request import CoreAccess, RequestPoster
 from agent_comms.transport.tool_caller import HumanCaller
 from agent_comms.transport.tool_request import ServedRequest
-from agent_comms.transport.tools.served import ServedCommsUserSendTool
+from agent_comms.transport.served_tools.served import ServedCommsUserSendTool
 from agent_comms.transport.tools.sidebar import CommsMessageFilesTool, CommsMessageFileTool
 from support.agents import AppAgents
 from support.roots import installed_wire
