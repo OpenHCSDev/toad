@@ -256,6 +256,9 @@ class QtThreadView(
     def show_draft(self, draft, identity) -> None:
         self.messages.show_draft(DRAFT_FRAGMENTS.project_value(draft, identity, QT_FRAGMENT_CLASSES))
 
+    def clear_draft(self) -> None:
+        self.messages.show_draft(())
+
     def empty_history(self) -> QtTranscriptHistory:
         return QtTranscriptHistory(self.messages, self, self.app)
 

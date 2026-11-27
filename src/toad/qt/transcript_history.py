@@ -32,6 +32,8 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
     Textual's `TranscriptHistory` renders. Same bases, same contracts, same source type;
     only the page-view container (`QtPage`) and renderer differ."""
 
+    fragment_classes = QT_FRAGMENT_CLASSES
+
     @classmethod
     def initial_state(cls, view):
         """Start a bound thread unread, so mounting requests its first saved page.
@@ -57,6 +59,6 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
             self.view.transcript,
             prepared.page.after,
             app.preparation,
-            fragments=QT_FRAGMENT_CLASSES,
+            fragments=self.fragment_classes,
         )
 

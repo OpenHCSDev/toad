@@ -76,6 +76,9 @@ class TurnPresentation:
     async def show_live_block(self, block: LiveBlock, stream: OutputStream) -> None:
         """Show `block`, opened by `stream`, after the turn's earlier output."""
 
+    def clear_draft(self) -> None:
+        """Clear any in-progress CLI draft now superseded by a live response block."""
+
     @abstractmethod
     async def present_error_note(self, message: str, details: str) -> None:
         """An agent failure: `message` is markup, `details` plain text (either may be empty)."""

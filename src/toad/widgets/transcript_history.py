@@ -906,6 +906,8 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
     parked with a tab and rebuilt from what was parked.
     """
 
+    fragment_classes = TEXTUAL_FRAGMENT_CLASSES
+
     @classmethod
     def initial_state(cls, view):
         return view.query_ancestor(SessionScope).thread_identity.transcript_state()
@@ -917,7 +919,7 @@ class TranscriptHistory[ViewT: "Conversation"](CommittedHistory, ConversationHis
     @classmethod
     def empty_source(cls, view, through):
         return SavedTranscript(view.transcript, through, view.app.preparation,
-                               fragments=TEXTUAL_FRAGMENT_CLASSES)
+                               fragments=cls.fragment_classes)
 
     async def restore_source(self, source: PreparedPageSource, current) -> None:
         """Put the parked pages back into the same mounted reader."""

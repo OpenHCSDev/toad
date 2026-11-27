@@ -36,12 +36,16 @@ class OutputStream(DeclaredFamily, affix="Stream"):
     def create(self, view: TurnPresentation, fragment: str) -> LiveBlock:
         """This stream's block in `view`, holding its first fragment."""
 
+    def claim_draft(self, view: TurnPresentation) -> None:
+        """Clear any competing CLI draft when this stream owns the live reply."""
+
     async def append(self, view: TurnPresentation, fragment: str):
         if self.block is None:
             if self.accepts(fragment):
                 block = self.create(view, fragment)
                 block.source_claim = self.source_claim
                 self.block = block
+                self.claim_draft(view)
                 await view.show_live_block(block, self)
         else:
             await self.block.append_fragment(fragment)
@@ -66,6 +70,9 @@ class ResponseStream(OutputStream):
     def matches(self, incoming: ResponseStream) -> bool:
         return (self.delivery == incoming.delivery
                 and self.source_claim is incoming.source_claim)
+
+    def claim_draft(self, view: TurnPresentation) -> None:
+        view.clear_draft()
 
     def create(self, view: TurnPresentation, fragment: str) -> LiveBlock:
         return view.response_block(fragment, self.delivery)

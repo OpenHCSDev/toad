@@ -225,3 +225,7 @@ class SnapshotPresentation(CommitParticipant):
     @property
     def commit_claim(self) -> CommitClaim:
         return self.source_claim
+
+
+class LiveResponsePresentation(SnapshotPresentation):
+    """A live streaming assistant reply that supersedes ExternalTranscript's CLI draft."""

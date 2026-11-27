@@ -54,6 +54,7 @@ from textual.worker import Worker, WorkerCancelled
 from toad.client.committed_presentation import (
     block_claim,
     commit_plan,
+    covers_live_draft,
     retirement_candidates,
 )
 from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
@@ -267,7 +268,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         return True
 
     def show_draft(self, draft: DraftFold | NoDraft, identity: TranscriptReadIdentity) -> None:
-        self.binding.view.show_draft(draft, identity)
+        shown = NoDraft() if any(map(covers_live_draft, self.binding.view.live_blocks)) else draft
+        self.binding.view.show_draft(shown, identity)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
