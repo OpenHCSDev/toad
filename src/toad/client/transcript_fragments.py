@@ -294,10 +294,6 @@ class BusMessageFragment(BusMessageHistoryFragment, TranscriptFragment):
         the top row; a later part has no leading blocks, so it always pins."""
         return len(self.leading)
 
-    @property
-    def pinned_dividers(self) -> tuple[Divider, ...]:
-        return (self.row.header,)
-
 
 @dataclass(kw_only=True)
 class SentMessageFragment(BusMessageFragment):

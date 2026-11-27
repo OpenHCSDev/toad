@@ -1,0 +1,93 @@
+From ca4c2904e8f0fb300fc6fc44b6e37751e12bc03a Mon Sep 17 00:00:00 2001
+From: toolchain <toolchain@localhost>
+Date: Thu, 26 Nov 2026 18:43:31 -0500
+Subject: [PATCH 3/5] QBackingStoreDefaultCompositor: upload disjoint dirty
+ rects separately
+
+When dirtyRegion has multiple rects whose area is under 75% of the bounding box, upload each rect in place instead of the full-screen bounding box.
+
+Not upstream. Toad carries it (tools/android/qt-patches).
+---
+ .../qbackingstoredefaultcompositor.cpp        | 57 +++++++++++++++----
+ 1 file changed, 46 insertions(+), 11 deletions(-)
+
+diff --git a/src/gui/painting/qbackingstoredefaultcompositor.cpp b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+index fc74b37b..ad17e63d 100644
+--- a/src/gui/painting/qbackingstoredefaultcompositor.cpp
++++ b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+@@ -121,12 +121,37 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage
+         const QRect rect = dirtyRegion.boundingRect() & image.rect();
+         if (rect.isEmpty())
+             return m_texture.get();
+-        QRhiTextureSubresourceUploadDescription subresDesc;
++        QVarLengthArray<QRect, 8> uploadRects;
++        if (dirtyRegion.rectCount() > 1) {
++            qint64 sumArea = 0;
++            const qint64 boundArea = qint64(rect.width()) * rect.height();
++            for (const QRect &r : dirtyRegion) {
++                const QRect clipped = r & image.rect();
++                if (!clipped.isEmpty()) {
++                    sumArea += qint64(clipped.width()) * clipped.height();
++                    uploadRects.append(clipped);
++                }
++            }
++            if (uploadRects.isEmpty())
++                return m_texture.get();
++            if (sumArea * 4 >= boundArea * 3) {
++                uploadRects.clear();
++                uploadRects.append(rect);
++            }
++        } else {
++            uploadRects.append(rect);
++        }
++        QVarLengthArray<QRhiTextureUploadEntry, 8> entries;
++        entries.reserve(uploadRects.size());
+         if (needsConversion) {
+-            // The upload is deferred, so take ownership, but only of the dirty part
+-            QImage dirtyImage = image.copy(rect);
+-            dirtyImage.convertTo(QImage::Format_RGBA8888);
+-            subresDesc.setImage(dirtyImage);
++            for (const QRect &r : uploadRects) {
++                // The upload is deferred, so take ownership, but only of the dirty part
++                QImage dirtyImage = image.copy(r);
++                dirtyImage.convertTo(QImage::Format_RGBA8888);
++                QRhiTextureSubresourceUploadDescription subresDesc(dirtyImage);
++                subresDesc.setDestinationTopLeft(r.topLeft());
++                entries.append(QRhiTextureUploadEntry(0, 0, subresDesc));
++            }
+         } else {
+             // The upload is deferred only to the end of the frame this flush begins and
+             // ends, and the caller's image is not painted before the flush returns, so
+@@ -136,13 +161,23 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage
+             // 2 without GL_EXT_unpack_subimage) copies that part itself.
+             const QImage inPlace(image.constBits(), image.width(), image.height(),
+                                  image.bytesPerLine(), image.format());
+-            subresDesc.setImage(inPlace);
+-            subresDesc.setSourceTopLeft(rect.topLeft());
+-            subresDesc.setSourceSize(rect.size());
++            for (const QRect &r : uploadRects) {
++                QRhiTextureSubresourceUploadDescription subresDesc;
++                subresDesc.setImage(inPlace);
++                subresDesc.setSourceTopLeft(r.topLeft());
++                subresDesc.setSourceSize(r.size());
++                subresDesc.setDestinationTopLeft(r.topLeft());
++                entries.append(QRhiTextureUploadEntry(0, 0, subresDesc));
++            }
++        }
++        if (entries.size() == 1) {
++            QRhiTextureUploadDescription uploadDesc(entries.first());
++            resourceUpdates->uploadTexture(m_texture.get(), uploadDesc);
++        } else {
++            QRhiTextureUploadDescription uploadDesc;
++            uploadDesc.setEntries(entries.cbegin(), entries.cend());
++            resourceUpdates->uploadTexture(m_texture.get(), uploadDesc);
+         }
+-        subresDesc.setDestinationTopLeft(rect.topLeft());
+-        QRhiTextureUploadDescription uploadDesc(QRhiTextureUploadEntry(0, 0, subresDesc));
+-        resourceUpdates->uploadTexture(m_texture.get(), uploadDesc);
+     }
+ 
+     return m_texture.get();
+-- 
+2.54.0
+

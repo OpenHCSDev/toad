@@ -76,8 +76,7 @@ def test_a_qt_row_under_the_top_edge_names_the_readers_message_and_how_far_into_
     # The row was measured again, twice as tall and 500 px further down: the reader is the
     # same quarter into it.
     rect = SimpleNamespace(top=lambda: 500, height=lambda: 240)
-    window = SimpleNamespace(scroll_y=1000, visualRect=lambda index: rect,
-                             model_rows=SimpleNamespace(index=lambda row, column: (row, column)))
+    window = SimpleNamespace(scroll_y=1000, row_rect=lambda row: rect)
     assert QtRowLocation(7, fragment).destination(window, position.fraction) == 1000 + 500 + 60
 
 

@@ -181,7 +181,7 @@ class Renderer(ABC):
     async def _submit(self, task: RenderTask[ResultT]) -> ResultT:
         prepared = await self.capture(task)
         delivery = asyncio.create_task(
-            asyncio.to_thread(lambda: task.accept_result(prepared.materialize())),
+            prepared.deliver_accepted(task),
             name="renderer-materialize",
         )
         try:

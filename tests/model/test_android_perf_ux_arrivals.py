@@ -541,15 +541,14 @@ def test_bottom_chrome_yields_to_keyboard_while_open_sidebars_stay() -> None:
 
 
 def test_scroll_paint_event_clips_offscreen_tiles_and_tiles_horizontally(monkeypatch) -> None:
-    """`QListView::paintEvent` leaves `painter.hasClipping()` False; `QtHistoryWindow.paintEvent`
-    captures `event.region()` so `HistoryRowDelegate.paint_pictures` rasterizes only visible
-    tiles vertically and horizontally instead of blowing the 64 MB `RowPictures` cache."""
+    """`VirtualRowCanvas.paintEvent` passes `event.region()` directly into
+    `HistoryRowDelegate.paint_pictures` so only visible tiles vertically and horizontally
+    are rasterized instead of blowing the 64 MB `RowPictures` cache."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])
     import inspect
-    from PySide6.QtCore import QModelIndex, QRect, QSize
+    from PySide6.QtCore import QRect
     from PySide6.QtGui import QFont, QPainter, QPixmap, QRegion, QTextDocument
-    from PySide6.QtWidgets import QStyleOptionViewItem
     from toad.markdown_links import ReferenceContext
     from toad.qt.history import HistoryRowDelegate, RowPictures
 
@@ -559,36 +558,29 @@ def test_scroll_paint_event_clips_offscreen_tiles_and_tiles_horizontally(monkeyp
     pictures = RowPictures(64 * 1024 * 1024)
     delegate = HistoryRowDelegate(renderer, pictures, MagicMock())
 
-    # Tall (2560 px) + wide (1800 px) row painted into a 400x300 viewport with paintEvent region.
+    # Tall (2560 px) + wide (1800 px) row painted into a 400x300 viewport with clip region.
     doc = QTextDocument()
     doc.setPlainText("line\n" * 120)
-    delegate.painted_document = lambda _idx, _opt: doc
-
-    viewport = MagicMock()
-    viewport.rect.return_value = QRect(0, 0, 400, 300)
-    view = MagicMock()
-    view.viewport.return_value = viewport
-    view._paint_region = QRegion(QRect(0, 0, 400, 300))
-    delegate.view = view
+    delegate.final_document_for = lambda _frag, _font, _w: doc
 
     surface = QPixmap(400, 300)
     painter = QPainter(surface)
-    assert painter.hasClipping() is False  # exact QListView::paintEvent condition
-    option = QStyleOptionViewItem()
-    option.rect = QRect(0, -1000, 1800, 2560)
-    option.font = QFont()
+    assert painter.hasClipping() is False
+    rect = QRect(0, -1000, 1800, 2560)
+    clip_region = QRegion(QRect(0, 0, 400, 300))
+    fake_frag = MagicMock(key="row-1", has_blocks=True, clipboard_text="line")
 
     # Track tiles rasterized.
     painted_tiles: list[tuple[int, int, int, int]] = []
     orig_paint = delegate._paint_tile_document
 
-    def record_paint(drawing, local, index, document, left, top, width, height):
+    def record_paint(drawing, palette, document, left, top, width, height):
         painted_tiles.append((left, top, width, height))
-        orig_paint(drawing, local, index, document, left, top, width, height)
+        orig_paint(drawing, palette, document, left, top, width, height)
 
     delegate._paint_tile_document = record_paint
     try:
-        assert delegate.paint_pictures(painter, option, QModelIndex(), "row-1", None) is True
+        assert delegate.paint_pictures(painter, fake_frag, rect, clip_region, None) is True
     finally:
         painter.end()
 
@@ -864,24 +856,33 @@ def test_span_columns_wraps_only_between_whole_receipt_cells(monkeypatch) -> Non
         assert all(not line.startswith("\u00a0") for line in lines)
 
 
-def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeypatch, tmp_path) -> None:
+def test_parallel_render_and_hold_touch_link_priority_and_text_tap_inversion(monkeypatch, tmp_path) -> None:
     """Covers parallel 2-worker `HoldsRows.render_and_hold`, header name tap priority over
-    collapse within touch slop, row-tracked tap highlight, and IME Back-close resync."""
+    collapse within touch slop, live text-color inversion via `TapHighlight`, tappable pinned
+    sticky header preserving the `▼`/`▶` disclosure arrow, and IME Back-close resync."""
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     _app = QApplication.instance() or QApplication([])
     import asyncio
     import inspect
-    from PySide6.QtCore import QMargins, QPoint, QRect
-    from PySide6.QtGui import QTextDocument
+    from PySide6.QtCore import QMargins, QPoint, QRect, Qt
+    from PySide6.QtGui import QColor, QTextDocument
     from agent_comms.messaging.messages import InfoKind, Message
     from agent_comms.transcript.transcript_events import IncomingTranscript
+    from toad.client.fragments import FragmentCollapse
     from toad.client.line_blocks import OpenTarget
     from toad.client.message_file_links import NO_PAGE_FILES
     from toad.client.prepared_pages import HoldsRows
     from toad.client.transcript_fragments import transcript_fragments
     from toad.markdown_links import ReferenceContext
-    from toad.qt.history import QtHistoryWindow
+    from toad.qt.history import QtHistoryWindow, QtStickyHeader
     from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
+    from toad.qt.virtual_scroll import (
+        NO_TAP_HIGHLIGHT,
+        PinnedHeaderTapHighlight,
+        PinnedLinkTapHighlight,
+        RowHeaderTapHighlight,
+        RowLinkTapHighlight,
+    )
     from toad.qt.window import QtToadApp
 
     # 1. HoldsRows.render_and_hold dispatches up to two batches concurrently.
@@ -906,7 +907,7 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
     assert held == [(i, i * 10) for i in range(8)]
 
     # 2. Tapping within vertical touch slop of a header sender/target name opens the target
-    #    rather than collapsing the message.
+    #    rather than collapsing the message, and `pinned_dividers` preserves the `▼ ` arrow.
     scheme = current_scheme(os.environ)
     concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
     renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings()).at_width(42)
@@ -917,13 +918,16 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
         classes=QT_FRAGMENT_CLASSES,
         files=NO_PAGE_FILES,
     )[0]
+    assert len(frag.pinned_dividers) == 1
+    assert frag.pinned_dividers[0].spans[0].text == "▼ "
+    assert isinstance(frag.pinned_dividers[0].spans[0].link, FragmentCollapse)
+
     doc = QTextDocument()
     doc.setDocumentMargin(0)
     doc.setTextWidth(360)
     doc.setHtml(renderer.html(frag.line_blocks))
     layout = doc.documentLayout()
 
-    # Locate the exact bounding box of the `toad-qt` link in the rendered header.
     sender_pts = [
         (x, y)
         for y in range(0, 60)
@@ -932,46 +936,84 @@ def test_parallel_render_and_hold_touch_link_priority_and_live_tap_flash(monkeyp
     ]
     assert sender_pts
     mid_x = (min(x for x, _ in sender_pts) + max(x for x, _ in sender_pts)) // 2
-    just_below_y = max(y for _, y in sender_pts) + 4  # outside exact glyph box, within touch slop
+    just_below_y = max(y for _, y in sender_pts) + 4
 
     fake_win = MagicMock()
-    fake_index = MagicMock()
-    fake_index.isValid.return_value = True
-    fake_win.indexAt.return_value = fake_index
-    fake_win.visualRect.return_value = QRect(0, 0, 360, int(doc.size().height()))
+    fake_win.model_rows.fragments = (frag,)
+    fake_win.row_rect.return_value = QRect(0, 0, 360, int(doc.size().height()))
     fake_win.rows.layout_width.return_value = 360
-    fake_win.rows.row_document.return_value = doc
+    fake_win.rows.row_document_for.return_value = doc
     fake_win._TOUCH_LINK_OFFSETS = QtHistoryWindow._TOUCH_LINK_OFFSETS
-    picked = QtHistoryWindow._tapped_link_at(fake_win, QPoint(mid_x, just_below_y))
-    assert picked == OpenTarget("toad-qt")
+    fake_win._tapped_link_in_document = lambda d, x, y, w, h: QtHistoryWindow._tapped_link_in_document(fake_win, d, x, y, w, h)
+    picked = QtHistoryWindow._tapped_link_at(fake_win, 0, QPoint(mid_x, just_below_y))
+    assert picked is not None
+    link, href = picked
+    assert link == OpenTarget("toad-qt")
 
-    # 3. Tap highlight tracks live row geometry, paints inside the row rect, and on scroll
-    #    invalidates BOTH its pre-scroll rect and the shifted destination rect that
-    #    `viewport.scroll(dx, dy, ...)` blits backing-store pixels into.
+    # 3. TapHighlight inverts exact tapped text/header foreground & background inside QTextDocument.
+    bg, fg = QColor("#111111"), QColor("#eeeeee")
+    link_hl = RowLinkTapHighlight(frag.key, href)
+    assert link_hl.matches_row(frag.key) is True
+    assert link_hl.matches_row(("other", 0)) is False
+    link_sels = link_hl.selections(doc, bg, fg)
+    assert link_sels, "tapped link must produce inverted QTextDocument selections"
+    assert all(sel.format.foreground().color() == bg for sel in link_sels)
+    assert all(sel.format.background().color() != bg for sel in link_sels)
+    assert any("toad-qt" in sel.cursor.selectedText() for sel in link_sels)
+
+    header_hl = RowHeaderTapHighlight(frag.key)
+    header_sels = header_hl.selections(doc, bg, fg)
+    assert header_sels, "tapped header divider must invert header text runs"
+    assert all(sel.format.foreground().color() == bg for sel in header_sels)
+    assert any("▼" in sel.cursor.selectedText() for sel in header_sels)
+
+    # Sticky header keeps WA_TransparentForMouseEvents=True and dispatches both link taps and collapse taps.
+    pinned_doc = QTextDocument()
+    pinned_doc.setDocumentMargin(0)
+    pinned_doc.setTextWidth(360)
+    pinned_doc.setHtml(renderer.html(frag.pinned_dividers))
+    sticky_parent = QWidget()
+    fake_win.open_pinned.return_value = False
+    fake_win.top_page.return_value.collapse_link.return_value = frag.collapse_link
+    sticky = QtStickyHeader.__new__(QtStickyHeader)
+    QWidget.__init__(sticky, sticky_parent)
+    sticky.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+    sticky.history_window = fake_win
+    sticky.documents = (pinned_doc,)
+    sticky.resize(360, int(pinned_doc.size().height()))
+    try:
+        assert sticky.testAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents) is True
+        # Tap on `@sender` inside pinned header -> PinnedLinkTapHighlight + dispatch_sync(OpenTarget).
+        pinned_sender = [
+            (x, y)
+            for y in range(0, int(pinned_doc.size().height()))
+            for x in range(0, 360, 2)
+            if "toad-qt" in pinned_doc.documentLayout().anchorAt(QPoint(x, y))
+        ]
+        assert pinned_sender
+        px = (min(x for x, _ in pinned_sender) + max(x for x, _ in pinned_sender)) // 2
+        py = (min(y for _, y in pinned_sender) + max(y for _, y in pinned_sender)) // 2
+        assert sticky.handle_tap(QPoint(px, py)) is True
+        assert isinstance(fake_win._set_tap_highlight.call_args[0][0], PinnedLinkTapHighlight)
+        fake_win.dispatch_sync.assert_called_with(OpenTarget("toad-qt"))
+
+        # Tap on outer divider rule (x=2) -> PinnedHeaderTapHighlight + toggle_collapse.
+        fake_win._set_tap_highlight.reset_mock()
+        assert sticky.handle_tap(QPoint(2, py)) is True
+        assert isinstance(fake_win._set_tap_highlight.call_args[0][0], PinnedHeaderTapHighlight)
+        fake_win.toggle_collapse.assert_called_with(frag.collapse_link)
+    finally:
+        sticky_parent.deleteLater()
+
+    # _clear_tap_highlight resets to NO_TAP_HIGHLIGHT and invalidates the tapped row.
     fake_win.widget_gone = False
-    fake_win._tap_flash = (frag.key, 10, 20)
-    fake_win._tap_flash_painted = QRect(0, 130, 360, 20)
-    fake_win._tap_flash_timer = MagicMock()
+    fake_win.tap_highlight = link_hl
+    fake_win._tap_highlight_timer = MagicMock()
     fake_win.model_rows.row_of.return_value = 0
-    fake_win.viewport.return_value.rect.return_value = QRect(0, 0, 360, 600)
-    fake_win.visualRect.return_value = QRect(0, 120, 360, 80)
-    fake_win.tap_flash_band = lambda k, r: QtHistoryWindow.tap_flash_band(fake_win, k, r)
-    assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 130, 360, 20)
-    fake_win.visualRect.return_value = QRect(0, 40, 360, 50)
-    assert QtHistoryWindow._live_tap_flash_rect(fake_win) == QRect(0, 50, 360, 20)
-    # Non-matching fragment key gets an empty band; collapsed row clamps strictly inside row rect.
-    assert QtHistoryWindow.tap_flash_band(fake_win, ("other", 0), QRect(0, 40, 360, 50)).isEmpty()
-    assert QtHistoryWindow.tap_flash_band(fake_win, frag.key, QRect(0, 40, 360, 16)) == QRect(0, 40, 360, 16)
-    # Clearing with dy=+180 (rows shifted down by 180 px during collapse) invalidates both
-    # the pre-scroll rect (130) AND the blitted destination rect (310).
-    updated_rects: list[QRect] = []
-    fake_win.viewport.return_value.update.side_effect = updated_rects.append
-    fake_win._live_tap_flash_rect = lambda: QtHistoryWindow._live_tap_flash_rect(fake_win)
-    QtHistoryWindow._clear_tap_flash(fake_win, dy=180)
-    assert fake_win._tap_flash is None
-    assert fake_win._tap_flash_painted is None
-    assert QRect(0, 130, 360, 20) in updated_rects
-    assert QRect(0, 310, 360, 20) in updated_rects
+    fake_win._invalidate_tap_highlight = lambda hl: QtHistoryWindow._invalidate_tap_highlight(fake_win, hl)
+    QtHistoryWindow._clear_tap_highlight(fake_win)
+    assert fake_win.tap_highlight is NO_TAP_HIGHLIGHT
+    fake_win.update_row.assert_called_with(0)
 
     # 4. QtToadApp._resync_safe_area restores resting bottom margin after IME file hits 0
     #    even when Qt's cached safeAreaMargins() still holds the old 320 dp folded IME inset.
@@ -1010,6 +1052,8 @@ def test_wave2_scroll_perf_coalesced_loop_holds_async_opaque_scrollbar_and_row_f
     from toad.qt.window import RowFittedTree
 
     # 1. CoalescedQEventLoop drains multiple call_soon handles in one QTimer tick.
+    app.setQuitOnLastWindowClosed(False)
+    app.processEvents()
     loop = CoalescedQEventLoop(app)
     try:
         ran: list[int] = []
@@ -1079,13 +1123,14 @@ def test_wave2_scroll_perf_coalesced_loop_holds_async_opaque_scrollbar_and_row_f
 
     # 5. Same-height receipt updates keep `_moves_rows == False` (zero full relayout flicker)
     #    even when QTextDocument height is fractional (ceil == ceil, keep_row_size populated).
-    from PySide6.QtCore import QModelIndex, QSizeF
+    from PySide6.QtCore import QSizeF
     from PySide6.QtGui import QFont
     from pyqt_reactive.widgets.virtual_rows import HtmlRow
     from toad.qt.history import HistoryRowDelegate, RowPictures
 
     delegate = HistoryRowDelegate(renderer, RowPictures(1024 * 1024), MagicMock())
-    delegate._row_sizes_for = (1, 300)
+    font = QFont()
+    delegate._row_sizes_for = (font.key(), 300)
     delegate._row_sizes = [None]
     old_key = (("k1", "sent", 1), 0, "f", 300)
     new_key = (("k1", "read", 1), 0, "f", 300)
@@ -1094,14 +1139,13 @@ def test_wave2_scroll_perf_coalesced_loop_holds_async_opaque_scrollbar_and_row_f
     fake_doc = MagicMock()
     fake_doc.size.return_value = QSizeF(300.0, 42.3)  # fractional height: ceil=43, int=42
     delegate.laid_out = lambda _k, _f, _w, _fmt: fake_doc
-    delegate.preparation_key = lambda _idx, _f, _w: new_key
+    delegate.preparation_key_for = lambda _frag, _f, _w: new_key
     delegate.row_preparation = lambda _frag, _f, _w: (lambda: None)
     delegate.keyed_formatting = lambda _k, _t, _p: MagicMock(final=False)
-    fake_index = MagicMock(spec=QModelIndex)
-    fake_index.row.return_value = 0
-    fake_index.data.return_value = MagicMock(has_blocks=True, clipboard_text="hello")
-    size = delegate.measured_size(fake_index, QFont(), 300)
-    assert size.height() == 43 + delegate.ROW_PADDING
+    fake_frag = MagicMock(has_blocks=True, clipboard_text="hello")
+    height, _extent, est = delegate.measure_row(0, fake_frag, font, 300, allow_estimate=False)
+    assert est is False
+    assert height == 43 + delegate.ROW_PADDING
     assert new_key not in delegate._metrics
     assert delegate._moves_rows(new_key, HtmlRow("<p>hello</p>"), awaited=True) is False
     app.processEvents()
@@ -1143,21 +1187,15 @@ def test_wave3_android_scroll_zero_css_spans_matched_qimage_tiles_and_pause_meas
     delegate = HistoryRowDelegate(renderer, pictures, MagicMock())
     doc = QTextDocument()
     doc.setPlainText("hello world")
-    delegate.painted_document = lambda _idx, _opt: doc
-    viewport = MagicMock()
-    viewport.rect.return_value = QRect(0, 0, 200, 100)
-    view = MagicMock()
-    view.viewport.return_value = viewport
-    view._paint_region = QRegion(QRect(0, 0, 200, 100))
-    delegate.view = view
+    delegate.final_document_for = lambda _frag, _font, _w: doc
+    fake_frag = MagicMock(key="r1", has_blocks=True, clipboard_text="hello world")
 
     surface = QImage(200, 100, QImage.Format.Format_ARGB32_Premultiplied)
     painter = QPainter(surface)
-    opt = QStyleOptionViewItem()
-    opt.rect = QRect(0, 0, 200, 40)
-    opt.font = QFont()
     try:
-        assert delegate.paint_pictures(painter, opt, QModelIndex(), "r1", None) is True
+        assert delegate.paint_pictures(
+            painter, fake_frag, QRect(0, 0, 200, 40), QRegion(QRect(0, 0, 200, 100)), None
+        ) is True
     finally:
         painter.end()
     assert len(pictures.rows) == 1
@@ -1166,7 +1204,7 @@ def test_wave3_android_scroll_zero_css_spans_matched_qimage_tiles_and_pause_meas
     assert stored_img.format() == QImage.Format.Format_ARGB32_Premultiplied
 
     # 3. _measure_slice defers while scroll-paused and resumes when unpaused.
-    delegate._unmeasured[object()] = None
+    delegate._unmeasured.add(0)
     delegate.set_scroll_paused(True)
     delegate._measure_slice()  # must not touch view/model while paused
     assert len(delegate._unmeasured) == 1
@@ -1185,4 +1223,123 @@ def test_wave3_android_scroll_zero_css_spans_matched_qimage_tiles_and_pause_meas
     fake_history = MagicMock()
     fake_history.pages = (_ExplodingPage(),)
     assert QtConversationHistory.draws_rows.fget(fake_history) is True
+    app.processEvents()
+
+
+def test_wave4_virtual_row_canvas_direct_value_and_tab_chrome_cache(monkeypatch) -> None:
+    """Wave-4 Android FPS architectural overhaul:
+    1. `VirtualRowCanvas` provides O(log N) prefix-sum lookup, handles 0-height collapsed
+       parts, tail appends, and paints only visible rows without `QListView`.
+    2. `DirectValue.deliver` / `deliver_accepted` bypass `asyncio.to_thread` / `_QThreadWorker`.
+    3. `QtSessionTabBar` caches empty-text busy-tab chrome `QImage`s across wave ticks.
+    4. `ActivitySweep._scheme_colours()` caches resolved scheme RGB tuples across frames.
+    """
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import asyncio
+    import inspect
+    from types import SimpleNamespace
+    from PySide6.QtGui import QColor, QFont
+    from pyqt_reactive.widgets.virtual_rows import HtmlRow
+    from toad.markdown_links import ReferenceContext
+    from toad.qt.activity import ActivitySweep
+    from toad.qt.history import HistoryRowDelegate, RowPictures
+    from toad.qt.virtual_scroll import VirtualRowCanvas
+    from toad.work_preparation import DirectValue
+
+    # 1. VirtualRowCanvas prefix-sum layout, collapsed 0-height rows, and tail splice.
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    delegate = HistoryRowDelegate(renderer, RowPictures(4 * 1024 * 1024), MagicMock())
+    canvas = VirtualRowCanvas(delegate)
+    canvas.resize(320, 400)
+    canvas.show()
+    try:
+        rows = tuple(
+            SimpleNamespace(
+                key=f"r{i}",
+                shown="s",
+                revision=1,
+                has_blocks=(i % 7 != 0),
+                clipboard_text=f"Row {i}",
+                line_blocks=(),
+                header_blocks=0,
+                pinned_dividers=(),
+            )
+            for i in range(60)
+        )
+        font = canvas.font()
+        width = canvas.viewport_width()
+        for r in rows:
+            if r.has_blocks:
+                delegate._prepared[delegate.fragment_key(r, font, width)] = HtmlRow(f"<p>{r.clipboard_text}</p>")
+        canvas.model_rows.show(rows)
+        canvas.execute_layout()
+        assert canvas.total_height() > 0
+        # Row 0 has has_blocks=False (0 height), so y=0 maps to row 1 (first positive-height row).
+        assert canvas.row_at_y(0) == 1
+        assert canvas.row_rect(0).isEmpty()
+        r1 = canvas.row_rect(1)
+        assert r1.top() == 0 and r1.height() > 0
+        assert canvas.row_at_y(r1.height() - 1) == 1
+        assert canvas.row_at_y(r1.height()) == 2
+        # Tail append preserves prefix and extends offsets cleanly.
+        extra = SimpleNamespace(
+            key="r60", shown="s", revision=1, has_blocks=True,
+            clipboard_text="Row 60", line_blocks=(), header_blocks=0, pinned_dividers=(),
+        )
+        delegate._prepared[delegate.fragment_key(extra, font, width)] = HtmlRow("<p>Row 60</p>")
+        prev_total = canvas.total_height()
+        canvas.model_rows.show(rows + (extra,))
+        canvas.execute_layout()
+        assert canvas.total_height() > prev_total
+        assert canvas.model_rows.row_of("r60") == 60
+        canvas.grab()
+    finally:
+        delegate.cleanup()
+        canvas.deleteLater()
+
+    # 2. DirectValue delivers synchronously without calling scheduler.run_thread / to_thread.
+    scheduler = MagicMock()
+    dv = DirectValue("ready")
+    assert asyncio.run(dv.deliver(scheduler)) == "ready"
+    scheduler.run_thread.assert_not_called()
+    task = MagicMock()
+    task.accept_result.side_effect = lambda v: f"accepted:{v}"
+    assert asyncio.run(dv.deliver_accepted(task)) == "accepted:ready"
+    task.accept_result.assert_called_once_with("ready")
+
+    # 3. QtSessionTabBar caches busy-tab QSS chrome QImage across wave frames.
+    clock = AnimationClock(lambda _interval: None)
+    bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
+    bar.show_tabs([("#comms", "comms")])
+    bar.follow_tabs((SimpleNamespace(mode_name="comms", busy=True),))
+    bar.resize(300, 36)
+    bar.show()
+    try:
+        bar.grab()
+        assert len(bar._tab_chrome) == 1
+        cached_chrome = next(iter(bar._tab_chrome.values()))
+        bar.grab()
+        assert len(bar._tab_chrome) == 1
+        assert next(iter(bar._tab_chrome.values())) is cached_chrome
+    finally:
+        bar.follow_tabs((SimpleNamespace(mode_name="comms", busy=False),))
+        bar.deleteLater()
+
+    # 4. ActivitySweep caches scheme colour tuples and paints a live sweep frame cleanly.
+    sweep = ActivitySweep(renderer, clock)
+    sweep.resize(300, 20)
+    sweep.show()
+    try:
+        c1 = sweep._scheme_colours()
+        c2 = sweep._scheme_colours()
+        assert c1[0] is c2[0] and c1[1] is c2[1] and c1[2] is c2[2]
+        sweep.sweep(True)
+        sweep.grab()
+        assert len(c1[2]) >= 1
+    finally:
+        sweep.sweep(False)
+        sweep.deleteLater()
     app.processEvents()

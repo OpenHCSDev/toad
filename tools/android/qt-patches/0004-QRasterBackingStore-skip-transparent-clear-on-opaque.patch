@@ -1,0 +1,29 @@
+From a93e79cfab3e40958384d58a826feafa80338ddc Mon Sep 17 00:00:00 2001
+From: toolchain <toolchain@localhost>
+Date: Thu, 26 Nov 2026 18:43:31 -0500
+Subject: [PATCH 4/5] QRasterBackingStore: skip transparent clear on opaque RHI
+ windows
+
+QRhiBackingStore upgrades opaque RGB32 to ARGB32_Premultiplied for RHI textures; skip per-frame transparent fill when window format has no alpha.
+
+Not upstream. Toad carries it (tools/android/qt-patches).
+---
+ src/gui/painting/qrasterbackingstore.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/gui/painting/qrasterbackingstore.cpp b/src/gui/painting/qrasterbackingstore.cpp
+index fc1e46b7..521e8820 100644
+--- a/src/gui/painting/qrasterbackingstore.cpp
++++ b/src/gui/painting/qrasterbackingstore.cpp
+@@ -71,7 +71,7 @@ void QRasterBackingStore::beginPaint(const QRegion &region)
+             m_image.fill(Qt::transparent);
+     }
+ 
+-    if (!m_image.hasAlphaChannel())
++    if (!m_image.hasAlphaChannel() || !window()->format().hasAlpha())
+         return;
+ 
+     QPainter painter(&m_image);
+-- 
+2.54.0
+

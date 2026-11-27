@@ -1,0 +1,253 @@
+From 23dac0d9af4958e1eb34e4b261e9524ac4f4a680 Mon Sep 17 00:00:00 2001
+From: toolchain <toolchain@localhost>
+Date: Thu, 26 Nov 2026 18:43:31 -0500
+Subject: [PATCH 5/5] QBackingStoreDefaultCompositor: GPU-blit scrolled texture
+ interior
+
+Shift the scrolled backing-store interior on the GPU via copyTexture through a lazy scratch texture and upload only newly exposed and repainted pixels.
+
+Not upstream. Toad carries it (tools/android/qt-patches).
+---
+ .../qbackingstoredefaultcompositor.cpp        | 109 +++++++++++++++++-
+ .../qbackingstoredefaultcompositor_p.h        |   7 ++
+ src/gui/painting/qrasterbackingstore.cpp      |  19 ++-
+ 3 files changed, 132 insertions(+), 3 deletions(-)
+
+diff --git a/src/gui/painting/qbackingstoredefaultcompositor.cpp b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+index ad17e63d..289a701b 100644
+--- a/src/gui/painting/qbackingstoredefaultcompositor.cpp
++++ b/src/gui/painting/qbackingstoredefaultcompositor.cpp
+@@ -8,11 +8,66 @@
+ #include <QtGui/private/qwindow_p.h>
+ #include <qpa/qplatformgraphicsbuffer.h>
+ #include <QtCore/qfile.h>
++#include <QtCore/qhash.h>
++#include <QtCore/qmutex.h>
+ 
+ QT_BEGIN_NAMESPACE
+ 
+ using namespace Qt::StringLiterals;
+ 
++
++namespace {
++struct PendingBackingStoreScroll {
++    bool valid = false;
++    QRect devRect;
++    QPoint devDelta;
++    QRegion paintedDev;
++};
++
++Q_GLOBAL_STATIC(QMutex, g_scrollStateMutex)
++using BackingStoreScrollMap = QHash<const QPlatformBackingStore *, PendingBackingStoreScroll>;
++Q_GLOBAL_STATIC(BackingStoreScrollMap, g_scrollStates)
++} // namespace
++
++Q_DECL_HIDDEN void qt_rhiBackingStoreNoteScroll(const QPlatformBackingStore *store,
++                                                 const QRect &devRect, const QPoint &devDelta)
++{
++    if (!store || devRect.isEmpty() || devDelta.isNull())
++        return;
++    QMutexLocker locker(g_scrollStateMutex());
++    auto &state = (*g_scrollStates())[store];
++    if (!state.valid) {
++        state.valid = true;
++        state.devRect = devRect;
++        state.devDelta = devDelta;
++        state.paintedDev = QRegion();
++    } else if (state.devRect == devRect) {
++        state.paintedDev.translate(devDelta);
++        state.devDelta += devDelta;
++    } else {
++        state.valid = false;
++    }
++}
++
++Q_DECL_HIDDEN void qt_rhiBackingStoreNotePainted(const QPlatformBackingStore *store,
++                                                  const QRegion &devRegion)
++{
++    if (!store || devRegion.isEmpty())
++        return;
++    QMutexLocker locker(g_scrollStateMutex());
++    auto it = g_scrollStates()->find(store);
++    if (it != g_scrollStates()->end() && it->valid)
++        it->paintedDev += devRegion;
++}
++
++Q_DECL_HIDDEN void qt_rhiBackingStoreClearScroll(const QPlatformBackingStore *store)
++{
++    if (!store)
++        return;
++    QMutexLocker locker(g_scrollStateMutex());
++    g_scrollStates()->remove(store);
++}
++
+ QBackingStoreDefaultCompositor::~QBackingStoreDefaultCompositor()
+ {
+     reset();
+@@ -28,6 +83,7 @@ void QBackingStoreDefaultCompositor::reset()
+     m_samplerLinear.reset();
+     m_vbuf.reset();
+     m_texture.reset();
++    m_scrollScratch.reset();
+     m_widgetQuadData.reset();
+     for (PerQuadData &d : m_textureQuadData)
+         d.reset();
+@@ -39,7 +95,55 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QPlatformBackingSto
+                                                        const QRegion &dirtyRegion,
+                                                        QPlatformBackingStore::TextureFlags *flags) const
+ {
+-    return toTexture(backingStore->toImage(), rhi, resourceUpdates, dirtyRegion, flags);
++    PendingBackingStoreScroll scroll;
++    {
++        QMutexLocker locker(g_scrollStateMutex());
++        auto it = g_scrollStates()->find(backingStore);
++        if (it != g_scrollStates()->end()) {
++            scroll = *it;
++            g_scrollStates()->erase(it);
++        }
++    }
++    const QImage image = backingStore->toImage();
++    QRegion effectiveDirty = dirtyRegion;
++    if (scroll.valid && !scroll.devDelta.isNull()
++        && m_rhi == rhi && m_texture && m_texture->pixelSize() == image.size()
++        && !image.size().isEmpty()) {
++        const QRect bounded = scroll.devRect & image.rect();
++        const QRect srcRect = bounded & bounded.translated(-scroll.devDelta);
++        const QRect dstRect = srcRect.translated(scroll.devDelta);
++        const QRect safeDst = dstRect.adjusted(1, 1, -1, -1);
++        if (!safeDst.isEmpty() && qint64(srcRect.width()) * srcRect.height() > 64 * 64) {
++            bool scratchReady = m_scrollScratch && m_scrollScratch->pixelSize() == image.size();
++            if (!scratchReady) {
++                if (!m_scrollScratch) {
++                    m_scrollScratch.reset(rhi->newTexture(QRhiTexture::RGBA8, image.size(), 1,
++                                                          QRhiTexture::UsedAsTransferSource));
++                } else {
++                    m_scrollScratch->setPixelSize(image.size());
++                }
++                scratchReady = m_scrollScratch && m_scrollScratch->create();
++                if (!scratchReady)
++                    m_scrollScratch.reset();
++            }
++            if (scratchReady) {
++                QRhiTextureCopyDescription toScratch;
++                toScratch.setPixelSize(srcRect.size());
++                toScratch.setSourceTopLeft(srcRect.topLeft());
++                toScratch.setDestinationTopLeft(QPoint(0, 0));
++                resourceUpdates->copyTexture(m_scrollScratch.get(), m_texture.get(), toScratch);
++
++                QRhiTextureCopyDescription fromScratch;
++                fromScratch.setPixelSize(srcRect.size());
++                fromScratch.setSourceTopLeft(QPoint(0, 0));
++                fromScratch.setDestinationTopLeft(dstRect.topLeft());
++                resourceUpdates->copyTexture(m_texture.get(), m_scrollScratch.get(), fromScratch);
++
++                effectiveDirty = (dirtyRegion - QRegion(safeDst)) + (dirtyRegion & scroll.paintedDev);
++            }
++        }
++    }
++    return toTexture(image, rhi, resourceUpdates, effectiveDirty, flags);
+ }
+ 
+ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage,
+@@ -107,7 +211,7 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage
+             image.detach(); // if it was just wrapping data, that's no good, we need ownership, so detach
+ 
+         if (!m_texture)
+-            m_texture.reset(rhi->newTexture(QRhiTexture::RGBA8, image.size()));
++            m_texture.reset(rhi->newTexture(QRhiTexture::RGBA8, image.size(), 1, QRhiTexture::UsedAsTransferSource));
+         else
+             m_texture->setPixelSize(image.size());
+         if (!m_texture->create()) {
+@@ -116,6 +220,7 @@ QRhiTexture *QBackingStoreDefaultCompositor::toTexture(const QImage &sourceImage
+             m_texture.reset();
+             return nullptr;
+         }
++        m_scrollScratch.reset();
+         resourceUpdates->uploadTexture(m_texture.get(), image);
+     } else {
+         const QRect rect = dirtyRegion.boundingRect() & image.rect();
+diff --git a/src/gui/painting/qbackingstoredefaultcompositor_p.h b/src/gui/painting/qbackingstoredefaultcompositor_p.h
+index faea2721..e382ded8 100644
+--- a/src/gui/painting/qbackingstoredefaultcompositor_p.h
++++ b/src/gui/painting/qbackingstoredefaultcompositor_p.h
+@@ -21,6 +21,12 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++Q_DECL_HIDDEN void qt_rhiBackingStoreNoteScroll(const QPlatformBackingStore *store,
++                                                 const QRect &devRect, const QPoint &devDelta);
++Q_DECL_HIDDEN void qt_rhiBackingStoreNotePainted(const QPlatformBackingStore *store,
++                                                  const QRegion &devRegion);
++Q_DECL_HIDDEN void qt_rhiBackingStoreClearScroll(const QPlatformBackingStore *store);
++
+ class QBackingStoreDefaultCompositor
+ {
+ public:
+@@ -65,6 +71,7 @@ private:
+ 
+     mutable QRhi *m_rhi = nullptr;
+     mutable std::unique_ptr<QRhiTexture> m_texture;
++    mutable std::unique_ptr<QRhiTexture> m_scrollScratch;
+ 
+     std::unique_ptr<QRhiBuffer> m_vbuf;
+     std::unique_ptr<QRhiSampler> m_samplerNearest;
+diff --git a/src/gui/painting/qrasterbackingstore.cpp b/src/gui/painting/qrasterbackingstore.cpp
+index 521e8820..ed134293 100644
+--- a/src/gui/painting/qrasterbackingstore.cpp
++++ b/src/gui/painting/qrasterbackingstore.cpp
+@@ -8,6 +8,8 @@
+ #include <QtGui/qpainter.h>
+ 
+ #include <qpa/qplatformwindow.h>
++#include <QtCore/qmath.h>
++#include <private/qbackingstoredefaultcompositor_p.h>
+ 
+ QT_BEGIN_NAMESPACE
+ 
+@@ -18,12 +20,14 @@ QRasterBackingStore::QRasterBackingStore(QWindow *window)
+ 
+ QRasterBackingStore::~QRasterBackingStore()
+ {
++    qt_rhiBackingStoreClearScroll(this);
+ }
+ 
+ void QRasterBackingStore::resize(const QSize &size, const QRegion &staticContents)
+ {
+     Q_UNUSED(staticContents);
+     m_requestedSize = size;
++    qt_rhiBackingStoreClearScroll(this);
+ }
+ 
+ QImage::Format QRasterBackingStore::format() const
+@@ -55,7 +59,9 @@ bool QRasterBackingStore::scroll(const QRegion &region, int dx, int dy)
+     const QPoint delta(qRound(dx * devicePixelRatio), qRound(dy * devicePixelRatio));
+ 
+     const QRect rect = region.boundingRect();
+-    qt_scrollRectInImage(m_image, QRect(rect.topLeft() * devicePixelRatio, rect.size() * devicePixelRatio), delta);
++    const QRect devRect(rect.topLeft() * devicePixelRatio, rect.size() * devicePixelRatio);
++    qt_scrollRectInImage(m_image, devRect, delta);
++    qt_rhiBackingStoreNoteScroll(this, devRect, delta);
+ 
+     return true;
+ }
+@@ -69,6 +75,17 @@ void QRasterBackingStore::beginPaint(const QRegion &region)
+         m_image.setDevicePixelRatio(nativeWindowDevicePixelRatio);
+         if (m_image.hasAlphaChannel())
+             m_image.fill(Qt::transparent);
++        qt_rhiBackingStoreClearScroll(this);
++    } else if (!region.isEmpty()) {
++        QRegion devPainted;
++        for (const QRect &r : region) {
++            const int x1 = int(qFloor(r.left() * nativeWindowDevicePixelRatio)) - 1;
++            const int y1 = int(qFloor(r.top() * nativeWindowDevicePixelRatio)) - 1;
++            const int x2 = int(qCeil((r.right() + 1) * nativeWindowDevicePixelRatio));
++            const int y2 = int(qCeil((r.bottom() + 1) * nativeWindowDevicePixelRatio));
++            devPainted += QRect(QPoint(x1, y1), QPoint(x2, y2));
++        }
++        qt_rhiBackingStoreNotePainted(this, devPainted);
+     }
+ 
+     if (!m_image.hasAlphaChannel() || !window()->format().hasAlpha())
+-- 
+2.54.0
+

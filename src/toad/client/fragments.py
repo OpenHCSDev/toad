@@ -295,6 +295,14 @@ class HistoryFragment(CursorRest):
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
 
+    def header_collapse_link(self) -> FragmentCollapse | None:
+        """Collapse link for this fragment's message header (including when pinned), or None."""
+        return None
+
+    def in_flow_collapse_link(self) -> FragmentCollapse | None:
+        """Collapse link when this row itself draws the message's leading header divider."""
+        return None
+
     @cached_property
     def revision(self):
         """What makes the same fragment draw differently, derived once from its events as its
@@ -522,6 +530,18 @@ class BusMessageHistoryFragment(MessageLines):
             for span in header.spans
         )
         return replace(header, spans=(marker, *spans))
+
+    def header_collapse_link(self) -> FragmentCollapse | None:
+        return self.collapse_link
+
+    def in_flow_collapse_link(self) -> FragmentCollapse | None:
+        return self.collapse_link if self.part_position.index == 0 else None
+
+    @property
+    def pinned_dividers(self) -> tuple[Divider, ...]:
+        """The pinned sticky header keeps the same ▼/▶ collapse disclosure and sender/target
+        links as the in-flow header so scrolling past the top never drops the disclosure arrow."""
+        return (self.collapsible_header(self.shown),)
 
     @property
     def leading(self):
