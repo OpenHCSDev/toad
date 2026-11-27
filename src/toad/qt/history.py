@@ -1281,6 +1281,9 @@ class QtStickyHeader(HeaderPin, QWidget):
     `QtHistoryWindow._row_tapped` into `handle_tap` (stacked burst opens, `@sender`/`#target`
     links, and `▼`/divider collapse), with live text-color inversion on the tapped span."""
 
+    _MAX_LAID_OUT = 32
+    _MAX_PIXMAPS = 16
+
     def __init__(self, window: QtHistoryWindow) -> None:
         super().__init__(window)
         self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
@@ -1288,37 +1291,55 @@ class QtStickyHeader(HeaderPin, QWidget):
         self.history_window = window
         self.documents: tuple[QTextDocument, ...] = ()
         self.drawn: tuple = ()
-        self.laid_out: dict[Divider, QTextDocument] = {}
+        self.laid_out: OrderedDict[Divider, QTextDocument] = OrderedDict()
         self.layout_context: tuple = ()
-        self._pixmap_cache: tuple[tuple, QImage] | None = None
+        self._pixmap_cache: OrderedDict[tuple, QImage] = OrderedDict()
         self.hide()
 
     def draw_pinned(self, headers: tuple[Divider, ...], x: int, width: int) -> None:
         """Every scroll offset pins; only different headers, column, font, link context or
-        renderer (a theme) lay anything out again, and then only the headers not already laid out."""
+        renderer (a theme) lay anything out again, and recently pinned headers stay cached
+        in `laid_out` and `_pixmap_cache` so scrolling back and forth across message
+        boundaries avoids re-running `setHtml` / layout / rasterization or no-op geometry calls."""
         window = self.history_window
         context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
         drawn = (headers, x, context)
         if drawn == self.drawn:
             return
-        kept = self.laid_out if context == self.layout_context else {}
-        laid_out = {header: kept.get(header) or window.rows.header_document(header, window.font(), width)
-                    for header in headers}
-        if None in laid_out.values():
-            return
+        if context != self.layout_context:
+            self.laid_out.clear()
+            self._pixmap_cache.clear()
+            self.layout_context = context
+        documents: list[QTextDocument] = []
+        for header in headers:
+            document = self.laid_out.get(header)
+            if document is not None:
+                self.laid_out.move_to_end(header)
+            else:
+                document = window.rows.header_document(header, window.font(), width)
+                if document is None:
+                    return
+                self.laid_out[header] = document
+                while len(self.laid_out) > self._MAX_LAID_OUT:
+                    self.laid_out.popitem(last=False)
+            documents.append(document)
         self.drawn = drawn
-        self.layout_context = context
-        self.laid_out = laid_out
-        self.documents = tuple(self.laid_out[header] for header in headers)
-        self._pixmap_cache = None
-        self.resize(width, sum(int(document.size().height()) for document in self.documents))
-        self.move(window.viewport().mapTo(window, QPoint(x, 0)))
-        self.raise_()
+        self.documents = tuple(documents)
+        height = sum(int(document.size().height()) for document in self.documents)
+        if self.width() != width or self.height() != height:
+            self.resize(width, height)
+        origin = window.viewport().mapTo(window, QPoint(x, 0))
+        if self.pos() != origin:
+            self.move(origin)
+        if not self.isVisible():
+            self.raise_()
         self.update()
 
     def show_pin(self, shown: bool) -> None:
         if self.isVisible() != shown:
             self.setVisible(shown)
+            if shown:
+                self.raise_()
 
     def handle_tap(self, local: QPoint) -> bool:
         """Handle a tap at `local` (widget coordinates) on the pinned header:
@@ -1368,9 +1389,9 @@ class QtStickyHeader(HeaderPin, QWidget):
         dpr = self.devicePixelRatioF()
         img_format = HistoryRowDelegate._backing_image_format(self, painter)
         key = (self.drawn, self.width(), self.height(), dpr, bg_hex, img_format)
-        cached = self._pixmap_cache
-        if cached is not None and cached[0] == key:
-            image = cached[1]
+        image = self._pixmap_cache.get(key)
+        if image is not None:
+            self._pixmap_cache.move_to_end(key)
         else:
             image = QImage(max(1, round(self.width() * dpr)), max(1, round(self.height() * dpr)), img_format)
             image.setDevicePixelRatio(dpr)
@@ -1382,7 +1403,9 @@ class QtStickyHeader(HeaderPin, QWidget):
                 document.documentLayout().draw(drawing, context)
                 drawing.translate(0, document.size().height())
             drawing.end()
-            self._pixmap_cache = (key, image)
+            self._pixmap_cache[key] = image
+            while len(self._pixmap_cache) > self._MAX_PIXMAPS:
+                self._pixmap_cache.popitem(last=False)
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         painter.drawImage(0, 0, image)
         painter.end()
