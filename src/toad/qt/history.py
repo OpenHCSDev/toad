@@ -1431,7 +1431,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self.histories: WeakSet = WeakSet()
         self.history_lock = asyncio.Lock()
         self.presentation_budget = PresentationBudget(
-            buffer_viewports=self.configuration_state.fields.ui.history_buffer_viewports,
+            buffer_viewports=scope.configuration_settings.fields.ui.history_buffer_viewports,
         )
         self.lookahead = DirectionalPreparation(self)
         self.reader_position = TailPosition()
