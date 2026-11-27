@@ -109,11 +109,13 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         # font or width changes, and a changed one is another object.
         self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
         self._banded_prepared: dict[tuple[int, int, int], tuple[PreparedTextLayout, PreparedTextLayout]] = {}
+        self._view = self.parent()
+        self._viewport = self._view.viewport()
         self._row_images: dict[
             int,
             tuple[
                 object,
-                dict[tuple[tuple[int, int] | None, int, int, int, bool, int, float], tuple[QImage, bool]],
+                dict[tuple[bool, tuple[int, int] | None, int, int, int, bool, int, float], tuple[QImage, bool]],
             ],
         ] = {}
         self._row_image_count = 0
@@ -140,42 +142,45 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem, index) -> None:
         row = self._rows.get((index.row(), index.column(), index.internalId()))
-        if row is None or index.model() is not self._rows_model:
+        if row is None:
             row = self.prepared_row(index)
         if row.object_state_path and self._manager is not None:
             super().paint(painter, option, index)
             return
-        view = self.parent()
+        view = self._view
+        vp = self._viewport
         rect = option.rect
         item = view.itemFromIndex(index)
         running = item is not None and item.wave_running()
         span = item.painted_span if running else None
         dpr = painter.device().devicePixelRatioF()
         rid = id(row)
+        wraps = row.wrap_mode.wrapped if row.wrap_mode is not None else view.wordWrap()
+        vp_width = vp.width()
         variant = (
+            running,
             span,
             rect.width(),
             rect.height(),
             option.state._value_,
-            view.wordWrap(),
-            view.viewport().width(),
+            wraps,
+            vp_width,
             dpr,
         )
         bucket = self._row_images.get(rid)
         if bucket is not None and bucket[0] is row:
             cached = bucket[1].get(variant)
             if cached is not None:
-                image, wraps = cached
-                if wraps:
+                image, cached_wraps = cached
+                if cached_wraps:
                     painter.drawImage(0, rect.top(), image)
                 else:
                     painter.drawImage(rect.topLeft(), image)
                 return
-        wraps = row.wraps(view)
         frame = QRect(rect)
         if wraps:
             frame.setLeft(0)
-            frame.setWidth(view.viewport().width())
+            frame.setWidth(vp_width)
         width, height = frame.width(), frame.height()
         if width <= 0 or height <= 0:
             return

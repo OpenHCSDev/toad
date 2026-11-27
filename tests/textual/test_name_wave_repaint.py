@@ -154,6 +154,19 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     assert id(kept_item_row) in delegate._row_images
     assert id(kept_sib_row) not in delegate._row_images
 
+    # Idle (running=False, span=None) and bold waving between bands (running=True, span=None)
+    # must stay distinct in `_row_images`.
+    item.painted_span = None
+    p2 = QPainter(img)
+    delegate.paint(p2, option, tree.model().index(0, 0))
+    p2.end()
+    before_variants = len(delegate._row_images[id(kept_item_row)][1])
+    item.wave_running = lambda: False  # type: ignore[method-assign]
+    p3 = QPainter(img)
+    delegate.paint(p3, option, tree.model().index(0, 0))
+    p3.end()
+    assert len(delegate._row_images[id(kept_item_row)][1]) == before_variants + 1
+
     from toad.qt.name_wave import QtSessionTabBar
     from ui_theme.clock import AnimationClock
 

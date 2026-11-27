@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 from agent_comms.coordination.errors import CoordinationReadUnavailable
 from agent_comms.transport.remote_core import ConnectorObserverClosed
 from PySide6.QtCore import QRect
+from PySide6.QtGui import QTextDocument
 from PySide6.QtWidgets import QApplication, QWidget
 
 from toad.client.history import ObservedViewportRequest, RestyledViewportRequest
@@ -2736,5 +2737,38 @@ def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_
     assert pics.bytes == 200 * 4
     pics.drop("b")
     assert pics.bytes == 100 * 4
+
+    # 5. HistoryRowDelegate.begin_paint resolves font_spec & layout_width once per frame,
+    # so steady-state paint_pictures hits _documents directly without per-row _font_spec calls.
+    renderer = QtLineRenderer(current_scheme(os.environ), LinkContext(Path("."), frozenset()), DiffSettings())
+    del_pics = RowPictures(4 * 1024 * 1024)
+    delegate = HistoryRowDelegate(renderer, del_pics, MagicMock())
+    delegate.view = MagicMock(has_active_arrivals=False)
+    delegate.view.backing_device.return_value = canvas
+    delegate.view.viewport_width.return_value = 300
+    delegate.view.tap_highlight.matches_row.return_value = False
+    frag = MagicMock(has_blocks=True, key="f1", shown=True, revision=1)
+    doc = QTextDocument()
+    doc.setPlainText("hello")
+    doc.setTextWidth(300)
+    prep_key = delegate.preparation_key_for(frag, canvas.font(), 300)
+    delegate._documents[(prep_key, 300)] = doc
+    frame_img = QImage(300, 120, QImage.Format.Format_ARGB32_Premultiplied)
+    font_spec_calls = 0
+    orig_font_spec = delegate._font_spec
+
+    def counting_font_spec(f):
+        nonlocal font_spec_calls
+        font_spec_calls += 1
+        return orig_font_spec(f)
+
+    delegate._font_spec = counting_font_spec  # type: ignore[method-assign]
+    p = QPainter(frame_img)
+    delegate.begin_paint(p, QRect(0, 0, 300, 120))
+    for _ in range(5):
+        assert delegate.paint_pictures(p, frag, QRect(0, 0, 300, 40), None)
+    delegate.end_paint()
+    p.end()
+    assert font_spec_calls == 1, f"expected 1 _font_spec call per frame, got {font_spec_calls}"
     host.close()
     canvas.close()

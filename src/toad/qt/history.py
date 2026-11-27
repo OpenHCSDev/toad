@@ -181,7 +181,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._colour_cache: tuple[ColourScheme, str, QColor, QColor] | None = None
         self._font_metrics_cache: tuple[QFont, float, int] | None = None
         self._font_spec_cache: tuple[QFont, str, float] | None = None
-        self._frame_paint: tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor] | None = None
+        self._frame_paint: tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor, str, float, int] | None = None
         self._frame_source_mode = False
 
     @staticmethod
@@ -599,18 +599,23 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._paint_document_direct(painter, document, rect, clip_region, arrival, NO_TAP_HIGHLIGHT)
 
     def _resolve_frame_paint(
-        self, painter: QPainter,
-    ) -> tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor]:
+        self, painter: QPainter, viewport_width: int = 0,
+    ) -> tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor, str, float, int]:
         device = self.view.backing_device()
         font = device.font() if device is not None else QFont()
         palette = device.palette() if device is not None else QPalette()
         ratio = painter.device().devicePixelRatioF()
         img_format = self._backing_image_format(device, painter)
         bg_hex, bg_color, fg_color = self._theme_colours()
-        return device, font, palette, ratio, img_format, bg_hex, bg_color, fg_color
+        font_family, font_size = self._font_spec(font)
+        layout_w = self.layout_width(viewport_width) if viewport_width else 0
+        return (
+            device, font, palette, ratio, img_format, bg_hex, bg_color, fg_color,
+            font_family, font_size, layout_w,
+        )
 
     def begin_paint(self, painter: QPainter, viewport_rect: QRect, *, animating: bool = False) -> None:
-        self._frame_paint = self._resolve_frame_paint(painter)
+        self._frame_paint = self._resolve_frame_paint(painter, viewport_rect.width())
         self._frame_source_mode = not animating
         if self._frame_source_mode:
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
@@ -657,8 +662,17 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         frame = self._frame_paint
         if frame is None:
             frame = self._resolve_frame_paint(painter)
-        _device, font, palette, ratio, img_format, bg_hex, bg_color, _fg_color = frame
-        document = self.final_document_for(fragment, font, self.layout_width(rect.width()))
+        (
+            _device, font, palette, ratio, img_format, bg_hex, bg_color, _fg_color,
+            font_family, font_size, layout_w,
+        ) = frame
+        width = layout_w or self.layout_width(rect.width())
+        cache_key = (((fragment.key, fragment.shown, fragment.revision), self.links_revision, font_family, font_size, width), width)
+        document = self._documents.get(cache_key)
+        if document is not None:
+            self._documents.move_to_end(cache_key)
+        else:
+            document = self.final_document_for(fragment, font, width)
         if document is None and not arrival.active:
             return False
         effective_clip = clip_region
