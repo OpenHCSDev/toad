@@ -531,19 +531,17 @@ class ThreadCommsSidebar(
     def navigation_root(self):
         return self.thread_identity.root_path
 
-    def open_target(self, target: NavigationTarget):
-        identity = self.thread_identity
-        if (
-            identity.root_path
-            != self.app.coordination_access.observation.observed().root
-        ):
-            self.notify(
-                self.wrong_bus_warning,
-                title="Comms",
-                severity="warning",
-            )
-            return
+    def notify_comms_warning(self, message: str) -> None:
+        self.notify(message, title="Comms", severity="warning")
+
+    def refresh_after_changed_entry(self) -> None:
+        self.refresh_relationships(force=True)
+
+    def select_relationship_target(self, target) -> None:
         self.publish_core(SelectTarget(target))
+
+    def open_target(self, target: NavigationTarget):
+        self.open_relationship_target(self.app.coordination_access, target)
 
     def request_navigation(self, row, *, entry=None, generation=None):
         if not row.is_attached:
@@ -554,28 +552,17 @@ class ThreadCommsSidebar(
         self.run_worker(self._navigate_current(group, expected, observed_generation))
 
     async def _navigate_current(self, group_key, expected, generation):
-        if generation != self._generation or not expected.available:
-            return
-        identity = self.thread_identity
-        service = await self.relationship_source(identity)
-        if service is None:
-            return
-        snapshot = await self.app.preparation.run_thread(service.relationships, identity.thread_name())
-        if (
-            generation != self._generation
-            or not self.is_attached
-            or not self.screen.is_current
-        ):
-            return
-        current = snapshot.current_entry(group_key, expected)
-        if current is None:
-            self.notify(
-                self.changed_entry_warning,
-                title="Comms",
-            )
-            self.refresh_relationships(force=True)
-            return
-        self.open_target(entry_target(current))
+        await self.open_current_relationship(
+            self.app.coordination_access,
+            self.app.preparation,
+            group_key,
+            expected,
+            still_current=lambda: (
+                generation == self._generation
+                and self.is_attached
+                and self.screen.is_current
+            ),
+        )
 
     def relationship_opener(self, row: RelationshipRow) -> Callable[[], object]:
         entry, generation = row.entry, self._generation

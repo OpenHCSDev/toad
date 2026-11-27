@@ -160,28 +160,32 @@ class QtContextExplorer(ContextInspectionReader, SessionPanel, QWidget, metaclas
             return
         self._refresh_task = asyncio.current_task()
         try:
-            identity = self.thread_identity
-            root = identity.root_path
-            if root is None:
-                self._status.setText("Context · no thread root")
-                self._older.setEnabled(False)
-                self._newer.setEnabled(False)
-                self._tree.clear()
-                return
-            app = self._app
-            access = app.coordination_access
-            observed = await self.observed_source(access, app.preparation, root)
-            if observed is None or identity != self.thread_identity:
-                return
-            previous = self.observe_revision(access.revision)
-            acquired = await self.acquire_inspection(observed, access.revision, identity)
-            if identity != self.thread_identity:
-                return
-            self.receive_inspection(acquired)
-            self._status.setText(self.state.status)
-            self.state.present(lambda current: self._inspection_acquired(previous, current, force))
+            await self.thread_identity.inspect_owner(
+                lambda identity: self._refresh_owner(identity, force=force),
+                self._show_detached,
+            )
         finally:
             self._refresh_task = None
+
+    def _show_detached(self, text: str) -> None:
+        self._status.setText(f"Context · {text}")
+        self._older.setEnabled(False)
+        self._newer.setEnabled(False)
+        self._tree.clear()
+
+    async def _refresh_owner(self, identity, *, force: bool) -> None:
+        app = self._app
+        access = app.coordination_access
+        observed = await self.observed_source(access, app.preparation, identity.root_path)
+        if observed is None or identity != self.thread_identity:
+            return
+        previous = self.observe_revision(access.revision)
+        acquired = await self.acquire_inspection(observed, access.revision, identity)
+        if identity != self.thread_identity:
+            return
+        self.receive_inspection(acquired)
+        self._status.setText(self.state.status)
+        self.state.present(lambda current: self._inspection_acquired(previous, current, force))
 
     def show_source_unavailable(self, text: str) -> None:
         self._status.setText(text)
