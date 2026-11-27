@@ -130,6 +130,11 @@ class SidebarState:
     def set_welcome_section_open(self, title: str, value: bool) -> None:
         self.expanded[f"welcome:{title}"] = value
 
+    def preserve_selected_target(self) -> None:
+        """Keep the newly selected row in selected_targets when a prior selection existed."""
+        if self.selected is not None:
+            self.selected_targets = (self.selected,)
+
 
 @dataclass(frozen=True)
 class SessionName:

@@ -471,7 +471,7 @@ class NativeMessageNode(NativeSegmentNode):
 
     def children(self):
         parts = self.structured_parts()
-        if not parts or (len(parts) == 1 and not parts[0].expands_in_tree and not parts[0].children):
+        if not parts or (len(parts) == 1 and parts[0].collapses_solo_in_tree()):
             return ()
         return tuple(
             StructuredSectionNode(f"{self.key}/part/{i}", part)

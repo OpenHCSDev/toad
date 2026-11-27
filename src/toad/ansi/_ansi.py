@@ -52,6 +52,13 @@ class DECInvoke(NamedTuple):
     gr: int | None = None
     shift: int | None = None
 
+    def apply_slots(self, owner: DECState) -> None:
+        """Apply GL or GR slot selection from this DEC invocation onto the DEC state."""
+        if self.gl is not None:
+            owner.gl_slot = self.gl
+        elif self.gr is not None:
+            owner.gr_slot = self.gr
+
 
 class EscapeSequence(DeclaredFamily, affix="Sequence"):
     """External ESC introducer declarations own sequence consumption."""
@@ -705,9 +712,7 @@ class InsertMode(TerminalMode, declared_name="4"):
 class MouseMode(TerminalMode):
     @classmethod
     def change(cls, state: TerminalState, enabled: bool) -> None:
-        if state.mouse_tracking is None:
-            state.mouse_tracking = MouseTracking()
-        cls.update(state.mouse_tracking, enabled)
+        cls.update(state.ensure_mouse_tracking(), enabled)
 
     @classmethod
     @abstractmethod
@@ -726,9 +731,7 @@ class MouseTrackingMode(TerminalMode):
         if not enabled:
             state.mouse_tracking = None
         else:
-            if state.mouse_tracking is None:
-                state.mouse_tracking = MouseTracking()
-            state.mouse_tracking.tracking = cls.tracking
+            state.ensure_mouse_tracking().tracking = cls.tracking
 
 
 class MouseButtonMode(MouseTrackingMode, declared_name="1000"):
@@ -1255,10 +1258,7 @@ class DECState:
             if dec_invoke.shift:
                 self.shift = dec_invoke.shift
             else:
-                if dec_invoke.gl is not None:
-                    self.gl_slot = dec_invoke.gl
-                elif dec_invoke.gr is not None:
-                    self.gr_slot = dec_invoke.gr
+                dec_invoke.apply_slots(self)
 
     def translate(self, text: str) -> str:
         translate_table: dict[int, str] | None
@@ -1712,3 +1712,9 @@ class TerminalState:
             buffer.line_to_fold.append(len(buffer.folded_lines))
             for fold in line_record.folds:
                 buffer.folded_lines.append(fold)
+
+    def ensure_mouse_tracking(self) -> MouseTracking:
+        """Return the active mouse tracking record, creating it on first use."""
+        if self.mouse_tracking is None:
+            self.mouse_tracking = MouseTracking()
+        return self.mouse_tracking

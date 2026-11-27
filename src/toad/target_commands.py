@@ -60,6 +60,10 @@ class TargetContext(SharedTargetContext):
         self.current()
         command.execute(self)
 
+    def has_closable_session(self):
+        """Whether this context names a live session mode that can be closed."""
+        return self.mode is not None and self.app.has_session(self.mode)
+
 
 class ContextualCommand(SharedContextualCommand, CommandPresentation, ABC):
 
@@ -177,9 +181,7 @@ class CloseViewCommand(ViewCommand, declared_name="close_view"):
 
     def available(self, ctx: TargetContext) -> bool:
         return (
-            not ctx.targets
-            and ctx.mode is not None
-            and ctx.app.has_session(ctx.mode)
+            not ctx.targets and ctx.has_closable_session()
         )
 
     def execute(self, ctx: TargetContext) -> None:

@@ -334,9 +334,7 @@ class TestimonialCommand(SlashCommand, LocalCommand, declared_name="toad:testimo
 
     async def apply(self, conversation: AgentConversationCommands) -> bool:
         default = (
-            f"I'm running {conversation.agent_title} in the terminal with Toad."
-            if conversation.agent_title is not None
-            else "Try Toad, the universal interface for AI in your terminal"
+            conversation.default_testimonial_text()
         )
         conversation.app.open_url(tweet_intent_url(
             self.text or default,

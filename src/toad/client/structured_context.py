@@ -59,7 +59,9 @@ class StructuredPart(ABC):
 
     kind_title: ClassVar[str] = "Section"
     badge_titles: ClassVar[tuple[str, ...]] = ()
-    expands_in_tree: ClassVar[bool] = True
+    def collapses_solo_in_tree(self):
+        """Whether a single part with no children omits its wrapper section node."""
+        return False
 
     @property
     @abstractmethod
@@ -381,7 +383,8 @@ class AnswerPart(BodyTextPart):
     """Plain assistant answer text outside `<think>`, `<ctx>`, and `<tool_call>` blocks."""
 
     kind_title = "Answer"
-    expands_in_tree = False
+    def collapses_solo_in_tree(self):
+        return not self.children
 
     body_text: str
 
