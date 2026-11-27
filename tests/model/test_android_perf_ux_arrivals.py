@@ -1311,7 +1311,7 @@ def test_wave4_virtual_row_canvas_direct_value_and_tab_chrome_cache(monkeypatch)
     task.accept_result.assert_called_once_with("ready")
 
     # 3. QtSessionTabBar caches busy-tab QSS chrome QImage across wave frames.
-    clock = AnimationClock(lambda _interval: None)
+    clock = AnimationClock(lambda _interval: None, now=lambda: 0.5)
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.show_tabs([("#comms", "comms")])
     bar.follow_tabs((SimpleNamespace(mode_name="comms", busy=True),))

@@ -121,12 +121,14 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
                 if any(image.pixelColor(x, y) == accent for y in range(option.rect.top(), option.rect.bottom()))]
 
     left = paint_accent_xs()
-    first_ink = delegate.inks[(0, 3)]
+    assert len(delegate._banded_prepared) == 1
+    first_baked = next(iter(delegate._banded_prepared.values()))[1]
+    assert first_baked.paragraphs[0].cacheEnabled() is True
     assert all(titled.paragraphs[0].cacheEnabled() for _orig, titled, _len in delegate.bold.values())
     item.checks = 0
     paint_accent_xs()
     assert item.checks == 1
-    assert delegate.inks[(0, 3)] is first_ink
+    assert next(iter(delegate._banded_prepared.values()))[1] is first_baked
     item.painted_span = (8, 11)
     right = paint_accent_xs()
     assert left and right and max(left) < min(right)
@@ -138,9 +140,10 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     try:
         layout = bar.bold_line("toad-qt", 120)
         assert layout.cacheEnabled() is True
-        cached_inks = bar.cached_band_inks((1, 4), 7)
-        assert bar.cached_band_inks((1, 4), 7) is cached_inks
+        baked = bar.baked_band_layout(layout, (1, 4))
+        assert baked.cacheEnabled() is True
+        assert bar.baked_band_layout(layout, (1, 4)) is baked
         bar.set_colours(QColor("#00ff00"), QColor("#ffffff"))
-        assert bar.inks == {}
+        assert bar._banded == {}
     finally:
         bar.deleteLater()
