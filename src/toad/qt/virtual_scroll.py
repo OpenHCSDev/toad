@@ -450,6 +450,12 @@ class RowDocumentStore(ABC):
     @abstractmethod
     def paint_row(self, painter: QPainter, row: int, fragment, rect: QRect, clip_region: QRegion | None) -> None: ...
 
+    def begin_paint(self, painter: QPainter, viewport_rect: QRect) -> None:
+        """Optional per-frame hook invoked once before `paint_row` runs over visible rows."""
+
+    def end_paint(self) -> None:
+        """Paired cleanup hook invoked after the visible-row `paint_row` loop."""
+
     def text_width(self, width: int) -> float:
         return width
 
@@ -1241,19 +1247,23 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
         last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
         last_bottom = -1
-        for row in range(first, last + 1):
-            h = self._heights[row]
-            if h <= 0:
-                continue
-            y = self._offsets[row] - scroll_y
-            if y > clip.bottom():
-                break
-            if y + h + slide_pad - 1 < clip.top():
-                continue
-            row_w = max(vp_w, self._extents[row])
-            rect = QRect(-scroll_x, y, row_w, h)
-            self.rows.paint_row(painter, row, fragments[row], rect, dirty)
-            last_bottom = y + h
+        self.rows.begin_paint(painter, vp_rect)
+        try:
+            for row in range(first, last + 1):
+                h = self._heights[row]
+                if h <= 0:
+                    continue
+                y = self._offsets[row] - scroll_y
+                if y > clip.bottom():
+                    break
+                if y + h + slide_pad - 1 < clip.top():
+                    continue
+                row_w = max(vp_w, self._extents[row])
+                rect = QRect(-scroll_x, y, row_w, h)
+                self.rows.paint_row(painter, row, fragments[row], rect, dirty)
+                last_bottom = y + h
+        finally:
+            self.rows.end_paint()
         # Fill any empty area below the final row (or above row 0 on overscroll) when
         # not already pre-cleared for an active arrival.
         if not animating:

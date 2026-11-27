@@ -2042,3 +2042,116 @@ def test_collapsed_tool_row_prepares_inline_without_worker_roundtrip(monkeypatch
             assert delegate.is_prepared(delegate.fragment_key(frag, font, 360))
     finally:
         delegate.cleanup()
+
+
+def test_pending_reader_scroll_flushes_before_layout_and_frame_paint_caches_per_frame(monkeypatch):
+    """1. Scrolling off the tail and immediately triggering a layout (`show_rows` /
+          `request_reader_layout`) before `_scroll_frame_timer` fires flushes
+          `record_reader_scroll` first so `place_layout_reader` keeps the reader's new
+          scroll offset (0 px jump) instead of snapping back to stale `TailPosition`,
+          while `_scroll_frame` still runs `respond_to_scroll` and `prepare_viewport`.
+       2. `HistoryRowDelegate.begin_paint` / `end_paint` resolves `_backing_image_format`
+          once per frame across multiple painted rows instead of once per row."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    import inspect
+    from contextlib import nullcontext
+    from PySide6.QtCore import QRect
+    from PySide6.QtGui import QImage, QPainter, QRegion, QTextDocument
+    from toad.markdown_links import LinkContext, ReferenceContext
+    from toad.qt.history import HistoryRowDelegate, QtHistoryWindow
+    from toad.qt.virtual_scroll import NO_TAP_HIGHLIGHT
+    from toad.qt.window import RowPictures
+
+    # 1. Deferred scroll flush before layout prevents pre-scroll snap-back.
+    calls: list[tuple[str, object]] = []
+    win = QtHistoryWindow.__new__(QtHistoryWindow)
+    win._restoring = False
+    win._anchored = True
+    win._reader_scrolled = False
+    win._reader_position_dirty = False
+    win._reader_moved = 0
+    win._scrolled_to = 1000
+    win._scroll_frame_pending = False
+    win._scroll_frame_timer = MagicMock()
+    win._prepare_timer = MagicMock()
+    win._preparing = False
+    win._vbar = MagicMock()
+    win._vbar.value.return_value = 400
+    win.tap_highlight = NO_TAP_HIGHLIGHT
+    win.history_change = MagicMock(layout_requests=1)
+    win._schedule_scroll_frame = lambda: calls.append(("schedule_frame", None))
+    win.release_anchor = lambda: setattr(win, "_anchored", False)
+    win.record_reader_scroll = lambda delta: calls.append(("record_scroll", delta))
+    win.schedule_layout = lambda: calls.append(("schedule_layout", None))
+    win.execute_layout = lambda: calls.append(("execute_layout", None))
+    win.place_layout_reader = lambda: calls.append(("place_reader", None))
+    win.repin_header = lambda: calls.append(("repin_header", None))
+    win.respond_to_scroll = lambda val: calls.append(("respond_to_scroll", val))
+    win.prepare_viewport = lambda: calls.append(("prepare_viewport", None))
+    win.layout_scroll = lambda: nullcontext()
+    monkeypatch.setattr(QtHistoryWindow, "at_end", property(lambda _self: False))
+
+    # User scrolls up 600 px from 1000 -> 400; _scroll_frame has NOT fired yet.
+    win.scrolled(400)
+    assert win._reader_position_dirty is True
+    assert win._reader_scrolled is True
+    assert win._reader_moved == -600
+
+    # Layout runs immediately (e.g. incoming wire arrival before 16 ms timer).
+    win.request_reader_layout()
+    assert ("record_scroll", -600) in calls
+    assert calls.index(("record_scroll", -600)) < calls.index(("place_reader", None))
+    assert win._reader_position_dirty is False
+    assert win._reader_moved == 0
+    # Deferred scroll frame still runs lookahead + viewport prep without double-recording delta.
+    assert win._reader_scrolled is True
+    win._scroll_frame()
+    assert calls.count(("record_scroll", -600)) == 1
+    assert ("respond_to_scroll", 400) in calls
+    assert ("prepare_viewport", None) in calls
+
+    # 2. begin_paint / end_paint resolves _backing_image_format once across rows in a frame.
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+    delegate = HistoryRowDelegate(renderer, RowPictures(4 * 1024 * 1024), MagicMock())
+    doc = QTextDocument()
+    doc.setPlainText("row")
+    delegate.final_document_for = lambda _frag, _font, _w: doc
+    format_calls = 0
+    orig_format = delegate._backing_image_format
+
+    def _counting_format(widget, painter):
+        nonlocal format_calls
+        format_calls += 1
+        return orig_format(widget, painter)
+
+    delegate._backing_image_format = _counting_format
+    surface = QImage(200, 100, QImage.Format.Format_ARGB32_Premultiplied)
+    painter = QPainter(surface)
+    try:
+        delegate.begin_paint(painter, QRect(0, 0, 200, 100))
+        for idx in range(4):
+            frag = MagicMock(key=f"r{idx}", has_blocks=True, clipboard_text="row")
+            assert delegate.paint_pictures(
+                painter, frag, QRect(0, idx * 20, 200, 20), QRegion(QRect(0, 0, 200, 100))
+            ) is True
+        delegate.end_paint()
+        assert format_calls == 1
+        assert delegate._frame_paint is None
+    finally:
+        painter.end()
+        delegate.cleanup()
+
+    # 3. QtFlash.show_flash resolves BackgroundColour without NameError.
+    from toad.flash_host import ErrorTone
+    from toad.qt.prompt_stack import QtFlash
+
+    flash = QtFlash(MagicMock(), renderer)
+    try:
+        flash.show_flash("link unavailable", ErrorTone)
+        assert flash.text() == "link unavailable"
+        assert "background:" in flash.styleSheet()
+    finally:
+        flash.deleteLater()
