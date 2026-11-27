@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import builtins
 import json
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated
@@ -54,7 +54,7 @@ from toad.setting_choices import (
     UnreadCount,
     TopNavigationBar,
 )
-from toad.setting_declarations import FamilyChoices, SettingsDeclaration
+from toad.setting_declarations import Effect, FamilyChoices, SettingsDeclaration
 from toad.client.message_files import FilePicker, WindowFilePicker
 from toad.client.prompt_composer import PromptSettingEffects
 from toad.client.view_settings import ConversationSettingsOwner, ViewSettingsOwner
@@ -496,15 +496,29 @@ class SavedSettings(ExternalStore):
     def store_terminals(self, terminals) -> None:
         self.set(SETTINGS.layout.terminals, terminals)
 
+    def _apply_fields(self, fields: Iterable[DeclaredField]) -> None:
+        seen: set[object] = set()
+        for setting in fields:
+            if (effect := setting.metadata(Effect)) is None:
+                continue
+            key = effect.batch_key(setting)
+            if key not in seen:
+                seen.add(key)
+                self.applied(setting)
+
     def changed(self, changed: builtins.set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
-        for path in self.state.parameter_structure.leaf_paths():
-            if any(path.contains_path(name) for name in changed):
-                setting = DeclaredField(self.state, path)
-                self.user_set.add(setting.path)
-                self.applied(setting)
-                self.events.publish(PreferenceChanged(setting))
+        matched = [
+            DeclaredField(self.state, path)
+            for path in self.state.parameter_structure.leaf_paths()
+            if any(path.contains_path(name) for name in changed)
+        ]
+        for setting in matched:
+            self.user_set.add(setting.path)
+        self._apply_fields(matched)
+        for setting in matched:
+            self.events.publish(PreferenceChanged(setting))
 
     def discard(self) -> None:
         """Go back to what the file holds."""
@@ -617,9 +631,11 @@ class SavedSettings(ExternalStore):
             exit()
 
     def apply_all(self) -> None:
-        """Bring a starting app in line with every setting."""
-        for path in self.state.parameter_structure.leaf_paths():
-            self.applied(DeclaredField(self.state, path))
+        """Bring a starting app in line with every setting, firing each shared `Effect` once."""
+        self._apply_fields(
+            DeclaredField(self.state, path)
+            for path in self.state.parameter_structure.leaf_paths()
+        )
 
     def ensure_installation(self) -> bool:
         if self.current.anon_id:

@@ -12,10 +12,10 @@ from toad.client.history_pager import PagingWindow
 from toad.client.prompt_composer import PromptSettingEffects
 from toad.client.prompt_stack import SettingVisible
 from toad.client.view_layout import LayoutFollower
-from toad.setting_declarations import Effect
+from toad.setting_declarations import Effect, PerFieldEffect
 
 
-@Effect
+@PerFieldEffect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
     for widget in Effect.open_widgets(app, SettingVisible):
         if widget.visibility_setting == field.path.value:

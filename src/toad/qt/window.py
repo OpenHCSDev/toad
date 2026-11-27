@@ -809,13 +809,14 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         hover_bg = scheme.to_hex(scheme.hover_bg)
         selection_bg = scheme.to_hex(scheme.selection_bg)
         selection_ink = scheme.to_hex(scheme.selection_text)
-        self.setStyleSheet(
+        QtLineRenderer.apply_sheet(
+            self,
             f"QTreeWidget {{ background-color: {sidebar_bg}; color: {ink_hex};"
             f" border: none; border-radius: 3px; selection-background-color: {selection_bg}; }}"
             f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}"
             f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
             f"QScrollBar:vertical {{ width: {bar}px; }}"
-            f"QScrollBar:horizontal {{ height: {bar}px; }}"
+            f"QScrollBar:horizontal {{ height: {bar}px; }}",
         )
         self._tone_brushes: dict[type[ThemeColour], QBrush] = {}
         self._paint_subtree_row_tones(self.invisibleRootItem())
@@ -2140,13 +2141,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.restyle(offered[name])
 
     def follow_line_renderer(self) -> None:
-        self.restyle(self.renderer.scheme)
+        self.renderer.follow(self.renderer.scheme, self.settings.diff)
 
     def restyle(self, scheme: ColourScheme) -> None:
         """Every colour from ``scheme`` and the `diff` settings: the palette and stylesheet
         pyqt-reactive applies to the whole application, then the renderer every widget
         holds, which repaints each widget's own colours (`QtLineRenderer.themed`)."""
-        self.theme.apply_color_scheme(ColorScheme.from_theme(scheme))
+        if scheme != self.renderer.scheme:
+            self.theme.apply_color_scheme(ColorScheme.from_theme(scheme))
         self.renderer.follow(scheme, self.settings.diff)
 
     def follow_wheel_scroll_rows(self) -> None:

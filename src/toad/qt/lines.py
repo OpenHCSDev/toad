@@ -73,19 +73,24 @@ class QtLineRenderer(LineBlockPainter[str]):
         # HTML emission only; a source line break stays a line, as Rich draws soft breaks.
         self.markdown = MarkdownIt("gfm-like", {"breaks": True, "highlight": self.highlight})
         self.markdown.renderer.rules["link_open"] = self.link_open
-        self.follow(scheme, diff)
+        self._bind_palette(scheme, diff)
         self.width = 1
 
-    def follow(self, scheme: ColourScheme, diff: DiffSettings) -> None:
-        """Draw under this scheme with these diff settings from now on (`ui.theme`, `diff`).
-        The app's renderer is the one its widgets hold; a preparation already on the pool
-        keeps the copy it was handed (`bound`)."""
+    def _bind_palette(self, scheme: ColourScheme, diff: DiffSettings) -> None:
         self.scheme = scheme
         self.diff = diff
         self.terminal = scheme.terminal.resolve(require_terminal_palette)
         # Toad draws code in the terminal palette through Rich's ANSI syntax theme.
         self.syntax = ANSI_DARK if scheme.dark else ANSI_LIGHT
         self._token_attrs: dict[_TokenType, tuple[str | None, bool, bool, bool]] = {}
+
+    def follow(self, scheme: ColourScheme, diff: DiffSettings) -> None:
+        """Draw under this scheme with these diff settings from now on (`ui.theme`, `diff`).
+        The app's renderer is the one its widgets hold; a preparation already on the pool
+        keeps the copy it was handed (`bound`)."""
+        if scheme == self.scheme and diff == self.diff:
+            return
+        self._bind_palette(scheme, diff)
         for repaint in tuple(self.followers):
             repaint()
 

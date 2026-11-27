@@ -56,9 +56,21 @@ class FamilyChoices[ChoiceT: DeclaredChoice](AnnotationChoices):
 class Effect:
     apply: Callable[[ToadApp, DeclaredField], None]
 
+    def batch_key(self, field: DeclaredField) -> object:
+        """Coalescing key when several fields are applied together (`apply_all`, multi-field saves).
+        App-wide effects run once per batch; a `PerFieldEffect` keys on `(self, field.path)`."""
+        return self
+
     @staticmethod
     def open_widgets(app, widget_type):
         return app.settings_widgets(widget_type)
+
+
+class PerFieldEffect(Effect):
+    """An effect whose body inspects `field.path` and must run once per matching field in a batch."""
+
+    def batch_key(self, field: DeclaredField) -> object:
+        return (self, field.path)
 
 
 class EachOpenWidget(Effect):

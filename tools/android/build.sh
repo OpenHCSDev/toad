@@ -26,6 +26,10 @@ flock -n 9 || { echo "== waiting for the build already running in $APP"; flock 9
 # The APK's interpreter is the runtime's Python version: that runtime compiles the bytecode
 # it ships and runs every check above (tools/android/recipes/python3 reads this).
 export TOAD_ANDROID_PYTHON=$("$RUNTIME/bin/python" -c 'import platform; print(platform.python_version())')
+# An empty XDG_CONFIG_HOME (as systemd/ACP sessions export) violates the XDG spec and
+# makes Android Gradle Plugin resolve `.android/debug.keystore` relative to the dist dir
+# instead of `~/.config/.android/debug.keystore`.
+[ -n "${XDG_CONFIG_HOME:-}" ] || export XDG_CONFIG_HOME="${HOME}/.config"
 echo "== build (Python $TOAD_ANDROID_PYTHON)"
 cd "$APP"
 VIRTUAL_ENV="$TOOLCHAIN/venv314" PATH="$TOOLCHAIN/venv314/bin:$PATH" \
