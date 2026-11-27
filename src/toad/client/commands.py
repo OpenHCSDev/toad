@@ -201,6 +201,10 @@ class AgentConversationCommands(TranscriptConversationCommands):
     def request_new_session(self, prompt: str) -> None:
         """Open a new session in this conversation's working directory."""
 
+    def default_testimonial_text(self):
+        """Build the default testimonial message using the active agent title when present."""
+        return f"I'm running {self.agent_title} in the terminal with Toad." if self.agent_title is not None else 'Try Toad, the universal interface for AI in your terminal'
+
 
 class SharedContextualCommand(ABC):
     """A command available for a target context. Native commands inherit this

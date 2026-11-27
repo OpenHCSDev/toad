@@ -324,6 +324,10 @@ class RowMetrics:
         self.size = size
         self.extent = extent
 
+    def extent_or(self, width: int):
+        """Return the recorded row extent or the fallback viewport width."""
+        return width if self.extent is None else self.extent
+
 
 class RowSize:
     """One row slot's measured size at the current font and width, and its preparation key."""
@@ -336,6 +340,24 @@ class RowSize:
         self.font = font
         self.estimated = estimated
         self.row = row
+
+    def measured_metrics(self, width: int, owner: RowDocumentStore):
+        """Return (height, hinted_width, estimated) when this row size is populated."""
+        if self.size is not None:
+            return (self.size.height(), owner.hinted_width(self.key, width), self.estimated)
+        return None
+
+    def usable_row(self, measured: bool) -> RowSize | None:
+        """Return this row size entry when present and acceptable under the measured filter."""
+        if self.size is None or (measured and self.estimated):
+            return None
+        return self
+
+    def usable_size(self, measured: bool) -> QSize | None:
+        """Return the kept QSize when present and acceptable under the measured filter."""
+        if self.size is None or (measured and self.estimated):
+            return None
+        return self.size
 
 
 class ViewportCanvas:
@@ -552,7 +574,7 @@ class RowDocumentStore(ABC):
         if widths is None:
             return width
         entry = widths.get(width)
-        return width if entry is None or entry.extent is None else entry.extent
+        return width if entry is None else entry.extent_or(width)
 
     def measured_height(self, key: Hashable, font: QFont, width: int, formatting: RowFormatting) -> int:
         size = self.measured_size_for(key, width)
@@ -710,17 +732,17 @@ class RowDocumentStore(ABC):
         if row < 0 or row >= len(self._row_sizes):
             return None
         kept = self._row_sizes[row]
-        if kept is None or kept.size is None or (measured and kept.estimated):
+        if kept is None:
             return None
-        return kept.size
+        return kept.usable_size(measured)
 
     def kept_row(self, row: int, *, measured: bool = False) -> RowSize | None:
         if row < 0 or row >= len(self._row_sizes):
             return None
         kept = self._row_sizes[row]
-        if kept is None or kept.size is None or (measured and kept.estimated):
+        if kept is None:
             return None
-        return kept
+        return kept.usable_row(measured)
 
     def hinted_width(self, key: Hashable, layout_width: int) -> int:
         return layout_width
@@ -730,8 +752,8 @@ class RowDocumentStore(ABC):
         if not fragment.has_blocks:
             return 0, width, False
         kept = self.kept_row(row, measured=not allow_estimate)
-        if kept is not None and kept.size is not None:
-            return kept.size.height(), self.hinted_width(kept.key, width), kept.estimated
+        if kept is not None and (_found := kept.measured_metrics(width, self)) is not None:
+            return _found
         key = self.preparation_key_for(fragment, font, width)
         size = self.measured_size_for(key, width)
         if size is not None:

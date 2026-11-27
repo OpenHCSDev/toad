@@ -169,6 +169,16 @@ class FragmentLocation(ABC):
         """Already located; `UnloadedFragment` searches the remaining pages."""
         return self
 
+    def reveal_above(self, window) -> bool:
+        """Start head reveal if this fragment location is laid out above the current scroll position."""
+        if self.laid_out(window):
+            target_y = self.destination(window, 0.0)
+            if target_y < window.scroll_y:
+                window.release_anchor()
+                window.start_head_reveal(target_y)
+                return True
+        return False
+
 
 class UnloadedFragment(FragmentLocation):
     """No loaded page draws a destination for this fragment occurrence."""
@@ -191,6 +201,9 @@ class UnloadedFragment(FragmentLocation):
         for page in pages:
             return page.fragment_row(position.key, position.block).find_in(pages, position)
         return self
+
+    def reveal_above(self, window) -> bool:
+        return False
 
 
 class ArrivalTarget(ABC):

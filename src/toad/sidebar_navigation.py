@@ -92,8 +92,8 @@ class SidebarNavigation(NavigationRefresh):
             with self.sidebar.selection_change():
                 header = SidebarSelection(selected.channel, selected.channel)
                 state.selected = header if self.sidebar.row_for(header) is not None else None
-                if had_selection and not state.selected_targets and state.selected is not None:
-                    state.selected_targets = (state.selected,)
+                if had_selection and (not state.selected_targets):
+                    state.preserve_selected_target()
 
     def restore_scroll(self) -> bool:
         if not self.sidebar.model_state.shows_model():

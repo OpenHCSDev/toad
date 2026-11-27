@@ -5,6 +5,7 @@ from weakref import ref
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry.mro_dispatch import MroDispatch
+from toad.core import events as core_events
 
 
 class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
@@ -52,6 +53,18 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
 
     def close(self) -> None:
         """An absent frontend has no subscription to release."""
+
+    async def publish_transcript_snapshot(self, session, update, owner) -> None:
+        if self.target is None or not session.accepts_snapshot(update.identity, owner.agent):
+            return
+        snapshot = await owner.transcripts.publication(update)
+        if owner.session is not session:
+            return
+        if owner.surface is not self:
+            return
+        if not session.accepts_snapshot(snapshot.identity, owner.agent):
+            return
+        owner.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
 
 class ViewSurfaceBinding(SurfaceBinding, MroDispatch):

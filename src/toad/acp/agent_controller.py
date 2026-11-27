@@ -159,16 +159,7 @@ class AgentController(OperationalTerminalOwner):
     async def publish_transcript_snapshot(
         self, update: TranscriptSnapshotUpdate, binding: SurfaceBinding, session: SessionBinding
     ) -> None:
-        if binding.target is None or not session.accepts_snapshot(update.identity, self.agent):
-            return  # No view or matching request owns this publication.
-        snapshot = await self.transcripts.publication(update)
-        if self.session is not session:
-            return
-        if self.surface is not binding:
-            return
-        if not session.accepts_snapshot(snapshot.identity, self.agent):
-            return
-        self.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
+        await binding.publish_transcript_snapshot(session, update, self)
 
     def connection_closed(self) -> None:
         from toad.core.events import McpClientStopped
