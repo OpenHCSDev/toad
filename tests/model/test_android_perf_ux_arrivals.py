@@ -16,7 +16,7 @@ from toad.client.history_state import LatestReplacementViewportRequest
 from toad.key_modes import Standard, VimInsert
 from toad.markdown_links import LinkContext
 from toad.preferences import DiffSettings
-from toad.qt.history import HistoryRowDelegate, QtJumpBar
+from toad.qt.history import HistoryRowDelegate, QtHistoryWindow, QtJumpBar, RowPictures
 from toad.qt.lines import QtLineRenderer
 from toad.qt.name_wave import QtSessionTabBar, QtTabWave
 from toad.qt.overlay_scrollbar import OverlayScrollBar
@@ -2703,5 +2703,38 @@ def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_
     assert len(updates) == 1
     assert updates[0].top() == vp_geo.height() - 40
     assert updates[0].top() > 24, "opaque top band must stay excluded from dirty region"
+
+    # A mid-viewport full-width opaque cover does NOT satisfy clear+cover == vp_rect:
+    # the uncovered band on the opposite side must still be updated.
+    translucent_bottom.hide()
+    opaque_top.setGeometry(vp_geo.left(), vp_geo.top() + 100, vp_geo.width(), 24)
+    updates.clear()
+    canvas.scrollContentsBy(0, -40)
+    assert len(updates) == 1
+    assert updates[0].top() == 0 and updates[0].bottom() == 99
+
+    # 3. QtHistoryWindow.floating_covers avoids self.children() and splits opaque covers.
+    fake_win = MagicMock()
+    fake_win._viewport = canvas.viewport()
+    fake_win.sticky_header = opaque_top
+    fake_win.jump_bar = translucent_bottom
+    fake_win.children.side_effect = AssertionError("QtHistoryWindow.floating_covers must not call self.children()")
+    opaque_top.setGeometry(vp_geo.left(), vp_geo.top(), vp_geo.width(), 24)
+    covers, opaque = QtHistoryWindow.floating_covers(fake_win)
+    assert len(covers) == 1 and opaque == covers
+
+    # 4. RowPictures popitem(last=False) eviction keeps exact byte accounting.
+    pics = RowPictures(limit=200 * 4)
+    img1 = QImage(10, 10, QImage.Format.Format_RGB32)
+    img2 = QImage(10, 10, QImage.Format.Format_RGB32)
+    img3 = QImage(10, 10, QImage.Format.Format_RGB32)
+    pics.keep("a", (1,), None, img1)
+    pics.keep("b", (1,), None, img2)
+    assert pics.bytes == 200 * 4
+    pics.keep("c", (1,), None, img3)
+    assert list(pics.rows.keys()) == ["b", "c"]
+    assert pics.bytes == 200 * 4
+    pics.drop("b")
+    assert pics.bytes == 100 * 4
     host.close()
     canvas.close()
