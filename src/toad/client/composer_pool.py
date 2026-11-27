@@ -22,6 +22,26 @@ from dataclasses import dataclass
 from typing import Any
 
 
+class DraftEditorState:
+    """Native editor state retained while a pooled composer is lent to another tab.
+
+    The base member represents a fresh tab with no captured editor state; its
+    `restore_into` asks the composer to reset its editor from `text`, and its
+    `discard` is a no-op. Toolkits with stateful editors (Textual's `TextArea`
+    and embedded `NeovimEditing`) subclass this to retain and re-attach their
+    captured `EditingMode` and close it when a tab is discarded."""
+
+    def restore_into(self, composer: RebindableComposer, host: ComposerPoolHost, text: str) -> None:
+        """Restore retained state into `composer` for `host`, or initialize fresh from `text`."""
+        composer.reset_editor_draft(host, text)
+
+    def discard(self) -> None:
+        """Release any engine resources owned by this retained state when its tab closes."""
+
+
+NO_DRAFT_EDITOR_STATE = DraftEditorState()
+
+
 @dataclass(frozen=True)
 class ComposerDraft:
     """Per-conversation composer state retained while its widget is lent to another tab."""
@@ -38,7 +58,7 @@ class ComposerDraft:
     commands: tuple[object, ...] = ()
     dismissed_text: str = ""
     shell_mode: bool = False
-    editor_state: object | None = None
+    editor_state: DraftEditorState = NO_DRAFT_EDITOR_STATE
 
 
 class RebindableComposer:
@@ -52,6 +72,9 @@ class RebindableComposer:
     def capture_composer_draft(self) -> ComposerDraft:
         """Capture per-tab draft state and clear transient popups/subscriptions before detach."""
         return ComposerDraft()
+
+    def reset_editor_draft(self, host: ComposerPoolHost, text: str) -> None:
+        """Initialize this composer's editor for a fresh `host` with no captured state."""
 
     def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         """Rebind this existing composer widget to `host` and restore `draft`."""
@@ -193,11 +216,18 @@ class WorkspaceComposerPool:
             if composer is not None and composer.pool_alive():
                 draft = host.release_pooled_composer(composer)
                 if keep_draft:
+                    previous_draft = self._drafts.get(host)
+                    if previous_draft is not None:
+                        previous_draft.editor_state.discard()
                     self._drafts[host] = draft
+                else:
+                    draft.editor_state.discard()
             else:
                 self._composers.pop(kind, None)
         if not keep_draft:
-            self._drafts.pop(host, None)
+            discarded = self._drafts.pop(host, None)
+            if discarded is not None:
+                discarded.editor_state.discard()
 
     def release_matching(self, predicate: Callable[[ComposerPoolHost], bool], *, keep_draft: bool = False) -> None:
         """Release every pooled composer held by any host matching `predicate`."""
@@ -206,10 +236,14 @@ class WorkspaceComposerPool:
             self.release(holder, keep_draft=keep_draft)
         if not keep_draft:
             for host in [candidate for candidate in self._drafts if predicate(candidate)]:
-                self._drafts.pop(host, None)
+                discarded = self._drafts.pop(host, None)
+                if discarded is not None:
+                    discarded.editor_state.discard()
 
     def discard_all(self) -> None:
         """Drop every pooled reference on workspace shutdown."""
+        for draft in self._drafts.values():
+            draft.editor_state.discard()
         self._composers.clear()
         self._holders.clear()
         self._drafts.clear()
