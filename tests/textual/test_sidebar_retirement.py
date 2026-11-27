@@ -17,11 +17,12 @@ from toad.heap import HEAP, CollectedByPython, CollectedWhenStill
 from toad.plan import InProgressPlanStatus, PlanItem
 from toad.screens.main import MainScreen
 from toad.widgets.plan import Plan
+from support.textual_steps import select_thread_panel
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.project_panel import NO_PROJECT_VIEW
+from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectPanel
 from toad.widgets.project_tree_intent import NO_TREE_INTENT
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-from toad.widgets.side_bar import PanelHydration, SideBarCollapsible
+from toad.widgets.side_bar import PanelHydration
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
@@ -70,7 +71,7 @@ async def reveal(ui, screen):
 
 
 async def prepare_project(ui, sidebar):
-    sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
+    await select_thread_panel(ui, sidebar, ProjectPanel)
     await ui.until(
         lambda: sidebar.query_one_optional(ProjectDirectoryTree) is not None,
         seconds=12,
@@ -88,7 +89,7 @@ async def prepare_project(ui, sidebar):
 
 async def exercise(ui, screen, root):
     sidebar = await reveal(ui, screen)
-    relationships = sidebar.query_one(ThreadCommsSidebar)
+    relationships = await select_thread_panel(ui, sidebar, ThreadCommsSidebar)
     await ui.until(
         lambda: CollaboratingRelationshipGroup in relationships.groups,
         seconds=12,
@@ -147,17 +148,18 @@ async def exercise(ui, screen, root):
     del relationships, tree, row, group, selected, folder, deep
     await ui.step(0.05)
     gc.collect()
-    assert all(widget() is None for widget in saved), (
-        "Retired panel graph remains reachable"
-    )
+    alive = [type(widget()).__name__ for widget in saved if widget() is not None]
+    assert not alive, f"Retired panel graph remains reachable: {alive}"
     assert tree_ref() is None, "Retired DirectoryTree remains reachable"
     latest = [PlanItem("Latest while absent", "high", InProgressPlanStatus)]
     sidebar.update_plan(latest)
     await sidebar.prepare_presentation()
     await ui.panels_loaded(sidebar)
     await ui.step(0.02)
-    assert sidebar.query_one(Plan).entries is latest
-    relationships = sidebar.query_one(ThreadCommsSidebar)
+    plan = await select_thread_panel(ui, sidebar, Plan)
+    assert plan.entries is latest
+    assert all(word in viewport_text(sidebar) for word in ("Latest", "while", "absent"))
+    relationships = await select_thread_panel(ui, sidebar, ThreadCommsSidebar)
     await ui.until(
         lambda: CollaboratingRelationshipGroup in relationships.groups,
         seconds=12,
@@ -187,7 +189,6 @@ async def exercise(ui, screen, root):
         tree.virtual_size,
     )
     assert viewport.scroll_y == panel_scroll, (viewport.scroll_y, panel_scroll)
-    assert all(word in viewport_text(sidebar) for word in ("Latest", "while", "absent"))
     tree.scroll_visible(animate=False, immediate=True)
     tree.scroll_to(y=tree.max_scroll_y, animate=False, immediate=True, force=True)
     await ui.step(0.02)

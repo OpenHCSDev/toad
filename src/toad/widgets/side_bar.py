@@ -32,6 +32,7 @@ from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
+from textual.worker import WorkerCancelled
 from textual._activation import PrimaryActivation
 from textual.css.native import DeclaresTheme, Keyword, NativeDeclaration, Percent, Variable
 from textual.css.styles import Styles
@@ -1338,6 +1339,22 @@ class PanelMenu(PanelMenuModel[SideBar.Panel], FillHeight, containers.Vertical):
     async def open_selection(self):
         await self.show_panel(self.picker.value)
         self.run_worker(self.load_configuration(), group="configuration-panels", exclusive=True)
+
+    @on(events.Unmount)
+    def stop_configuration_load(self) -> None:
+        self.workers.cancel_group(self, "configuration-panels")
+
+    async def release(self) -> None:
+        """Stop pending configuration loading and drop panel references before eviction."""
+        for worker in self.workers.cancel_group(self, "configuration-panels"):
+            try:
+                await worker.wait()
+            except WorkerCancelled:
+                pass
+        self.entries = ()
+        self.pages.clear()
+        with self.prevent(widgets.Select.Changed):
+            self.picker.set_options((("", None),))
 
     async def load_configuration(self):
         try:

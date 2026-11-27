@@ -20,28 +20,21 @@ from agent_comms.registry.thread_text import (
 )
 from agent_comms.registry.threads import NativeThread
 from agent_comms.transport.tool_caller import ThreadCaller
-from agent_comms.transport.tools.served import invoke_tool
-
+from agent_comms.transport.served_tools.served import invoke_tool
+from support.textual_steps import select_thread_panel
+from toad.widgets.comms_menu import ContextMenu
 from toad.widgets.side_bar import ThreadSidebar
+from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
 async def reveal(ui, session):
-    from toad.widgets.side_bar import SideBar, SideBarCollapsible
-    from toad.widgets.thread_comms import ThreadCommsSidebar
-
     sidebar = await ui.revealed(session.query_one(ThreadSidebar))
-    tree = sidebar.query_one(ThreadCommsSidebar)
-    tree.query_ancestor(SideBarCollapsible).collapsed = False
-    await ui.step()
+    tree = await select_thread_panel(ui, sidebar, ThreadCommsSidebar)
     await ui.until(lambda: len(tree.groups) == 5, why="the five relationship groups")
     return tree
 
 
 async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(workspace):
-
-    from toad.widgets.comms_menu import ContextMenu
-    from toad.widgets.side_bar import SideBar, SideBarCollapsible
-    from toad.widgets.thread_comms import RelationshipSort
 
     comms = workspace.comms
     project = str(workspace.project)
@@ -61,13 +54,17 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         draft = "Keep the native thread draft"
         await ui.write_draft(draft)
         observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
-        service = observed.service.relationships
-        with patch.object(service, "snapshot", wraps=service.snapshot) as read:
+        with patch.object(
+            type(observed),
+            "relationships",
+            autospec=True,
+            side_effect=type(observed).relationships,
+        ) as read:
             await ui.step()
             assert read.call_count == 0, "Collapsed right panel fetched source data"
             assert not main.query_one(ThreadSidebar).panels_loaded
             tree = await reveal(ui, main)
-            assert not tree.query_ancestor(SideBarCollapsible).collapsed
+            assert tree.panel_visible
             assert read.call_count >= 1
         assert tree._snapshot.owner == "owner"
         assert tree.groups[ParentRelationshipGroup].model.entries["origin"].target == "origin"
@@ -100,7 +97,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         await ui.until(lambda: "child-one" not in tree.groups[CollaboratingRelationshipGroup].rows,
                        why="the second collaboration to leave")
 
-        sort = tree.query_ancestor(SideBarCollapsible).query_one(RelationshipSort)
+        sort = main.query_one(ThreadSidebar).query_one(RelationshipSort)
         sort.scroll_visible(animate=False)
         await ui.step()
         assert await pilot.click(sort)
@@ -122,11 +119,9 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         await ui.until(lambda: ui.selected_tab != owner_tab, why="the channel tab to open")
         channel_tab = ui.selected_tab
         channel_session = app.selected_session
-        assert not channel_session.query_one("#thread-comms-panel", SideBarCollapsible).collapsed
-        channel_tree = await reveal(ui, channel_session)
-        # A channel tab belongs to no session: its panel reads the user's relationships, never
-        # the channel's own as if the channel were a thread.
-        assert channel_tree._snapshot.owner == workspace.viewer, "Channel became the relationship owner"
+        channel_sidebar = await ui.revealed(channel_session.query_one(ThreadSidebar))
+        # A channel tab belongs to no thread: its sidebar carries view actions and settings, never a thread relationship panel.
+        assert not channel_sidebar.query(ThreadCommsSidebar)
         await ui.select_tab(owner_tab)
         assert ui.draft() == draft
         tree.groups[OutboundRelationshipGroup].rows["#team"].open_selected()
@@ -143,7 +138,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
                                       created_at=RecordedCreationTime(old_peer.created_at + 1)))
         options = app.screen.options
         open_index = next(index for index in range(options.option_count)
-                          if options.get_option_at_index(index).action == "open")
+                          if str(options.get_option_at_index(index).prompt) == "Open")
         options.focus()
         await pilot.press("home", *(["down"] * open_index), "enter")
         await ui.until(lambda: not tree.groups[CollaboratingRelationshipGroup].rows["peer"].available,
@@ -161,8 +156,8 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
             assert await pilot.click(row, button=3)
             await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the unavailable row's menu")
             options = app.screen.options
-            assert [options.get_option_at_index(index).action
-                    for index in range(options.option_count)] == ["copy"]
+            assert [str(options.get_option_at_index(index).prompt)
+                    for index in range(options.option_count)] == ["Copy name"]
             options.focus()
             await pilot.press("home", "enter")
             await ui.step()
@@ -173,8 +168,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         await ui.until(lambda: tree._snapshot is not None and tree._snapshot.owner == "renamed-owner",
                        why="the panel to follow the rename")
         await ui.select_tab(channel_tab)
-        # The channel tab is the user's, not the owner session's: renaming that thread leaves it.
         await ui.step()
-        assert channel_tree._snapshot is not None and channel_tree._snapshot.owner == workspace.viewer
+        assert not channel_sidebar.query(ThreadCommsSidebar)
         await ui.select_tab(owner_tab)
         assert ui.draft() == draft

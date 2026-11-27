@@ -1,8 +1,8 @@
 """Textual-facing: pointer toggles preserve editor/footer resources; keyboard toggles enter the pane."""
 
 from textual.widgets import Footer
-from toad.sidebar_placement import SidebarPlacement
-from toad.widgets.side_bar import SideBarToggle
+from toad.sidebar_placement import ActiveSidebarPlacement
+from toad.widgets.side_bar import PanelPicker, ThreadSidebar
 
 
 async def test_pointer_toggles_keep_editing_focus_and_keyboard_toggle_enters_the_pane(workspace):
@@ -11,7 +11,9 @@ async def test_pointer_toggles_keep_editing_focus_and_keyboard_toggle_enters_the
         prompt = ui.conversation.prompt.prompt_text_area
         await ui.write_draft("retained draft")
         bars = app.workspace_chrome.presented_sidebars()
-        assert {bar.placement_identity for bar in bars} == set(SidebarPlacement.members_with(SidebarPlacement))
+        assert {bar.placement_identity for bar in bars} == set(
+            ActiveSidebarPlacement.members_with(ActiveSidebarPlacement)
+        )
         for bar in bars:
             toggle = bar.toggle_control
             prompt.focus()
@@ -35,9 +37,14 @@ async def test_pointer_toggles_keep_editing_focus_and_keyboard_toggle_enters_the
             await ui.until(lambda: app.focused is toggle, why="native focus on the keyboard handle")
             await ui.press("enter")
             assert not bar.collapsed
-            title = bar.query_one("SideBarCollapsible CollapsibleTitle")
-            await ui.until(lambda: app.focused is title, why="the queued native focus enters the title")
-            assert app.focused is title
+            expected_focus = (
+                bar.query_one(PanelPicker) if isinstance(bar, ThreadSidebar) else bar.panels_viewport
+            )
+            await ui.until(
+                lambda expected=expected_focus: app.focused is expected,
+                why="the queued native focus enters the sidebar contents",
+            )
+            assert app.focused is expected_focus
             # Exercise native focus selection, not an overridden property that
             # deliberately sends Textual down its foreign-chain path.
             assert await pilot.click(toggle)

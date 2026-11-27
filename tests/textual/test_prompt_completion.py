@@ -16,7 +16,8 @@ from toad.widgets.project_panel import ProjectSearchButton
 from toad.widgets.prompt import AgentInfo
 from toad.widgets.prompt_popup import PromptPopup
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-from toad.widgets.side_bar import SideBarCollapsible
+from support.textual_steps import select_thread_panel
+from toad.widgets.project_panel import ProjectPanel
 
 
 def completion_peer():
@@ -124,7 +125,7 @@ async def test_channel_composer_completes_a_mention_with_tab_and_keeps_focus(wor
 async def search_button(workspace, ui, prompt):
     sidebar = await ui.revealed(ui.app.selected_session.query_one(SessionThreadSidebar))
     await ui.step()
-    sidebar.query_one("#project-panel", SideBarCollapsible).collapsed = False
+    await select_thread_panel(ui, sidebar, ProjectPanel)
     await ui.until(lambda: sidebar.query_one_optional(ProjectSearchButton) is not None, why="the search button")
     button = sidebar.query_one(ProjectSearchButton)
     button.scroll_visible(animate=False, immediate=True)
