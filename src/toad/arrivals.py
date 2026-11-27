@@ -63,16 +63,32 @@ class ViewportArrival(ArrivalTransition):
     """One unified arrival animation: items fade in (`0 -> 1`) as they translate upward into
     the viewport along `FOLLOW_ARRIVAL` on a single clock."""
 
-    def __init__(self, owner: AnimatesArrivals, keys: tuple[object, ...]) -> None:
+    def __init__(
+        self,
+        owner: AnimatesArrivals,
+        keys: tuple[object, ...],
+        source_identities: Iterable[object] = (),
+    ) -> None:
         self.owner = owner
         self.keys: tuple[object, ...] = keys
         self._key_set: frozenset[object] = frozenset(keys)
+        self._source_identities: set[object] = set(source_identities)
         self.amount: float = 0.0
         self.target: ArrivalTarget | None = None
         self.scroll_start: float = 0.0
         self.scroll_at: float = 0.0
         self.scroll_travel: float = 0.0
         self.start_transition(owner.animation_clock, FOLLOW_ARRIVAL)
+
+    def adopt_key(self, source_identity: object, key: object) -> bool:
+        """Hand a still-running live arrival to its committed saved fragment at the exact
+        current progress (`self.amount`), avoiding an opacity/offset snap mid-flight."""
+        if source_identity not in self._source_identities:
+            return False
+        if key not in self._key_set:
+            self.keys = (*self.keys, key)
+            self._key_set = frozenset(self.keys)
+        return True
 
     def attach_scroll(self, start: float, target: ArrivalTarget, destination: float) -> None:
         """Bind viewport scrolling to this arrival's clock so translation and fade finish together."""
@@ -251,22 +267,38 @@ class AnimatesArrivals:
 
     def arrive_fragments(self, fragments: Sequence[HistoryFragment], *, live: bool = False) -> None:
         """One unified entry point for every arriving item: bus messages, tool calls,
-        thinking traces, CLI drafts, and live blocks."""
+        thinking traces, CLI drafts, and live blocks.
+
+        When a live block (e.g. a fast tool call) commits to saved history while its live
+        `ViewportArrival` is still in flight, that running arrival adopts the saved
+        fragment's key at its exact current progress (`amount`) instead of snapping to
+        `SETTLED_ARRIVAL` or re-gliding the viewport for an already-visible row."""
         if not (fragments and self.animation_clock.enabled and self.arrival_animation_visible):
             return
-        keys = tuple(fragment.key for fragment in fragments)
         seen = self.live_seen_sources
         if live:
             for fragment in fragments:
                 seen.add(fragment.source_identity)
-            fade_keys = keys
-        else:
-            fade_keys = tuple(
-                fragment.key for fragment in fragments if fragment.source_identity not in seen
-            )
-            for fragment in fragments:
-                seen.discard(fragment.source_identity)
-        self.arrive(fade_keys, glide_keys=keys)
+            keys = tuple(fragment.key for fragment in fragments)
+            sources = tuple(fragment.source_identity for fragment in fragments)
+            self.arrive(keys, glide_keys=keys, source_identities=sources)
+            return
+        active = self.__dict__.get("_arrivals") or ()
+        fresh_keys: list[object] = []
+        fresh_sources: list[object] = []
+        for fragment in fragments:
+            source = fragment.source_identity
+            if any(arrival.adopt_key(source, fragment.key) for arrival in active):
+                seen.discard(source)
+                continue
+            if source in seen:
+                seen.discard(source)
+                continue
+            fresh_keys.append(fragment.key)
+            fresh_sources.append(source)
+        if fresh_keys:
+            keys = tuple(fresh_keys)
+            self.arrive(keys, glide_keys=keys, source_identities=tuple(fresh_sources))
 
     def clear_live_seen(self, sources: Iterable[object]) -> None:
         """Drop retired live-block identities once they leave the window."""
@@ -274,14 +306,20 @@ class AnimatesArrivals:
         if seen:
             seen.difference_update(sources)
 
-    def arrive(self, keys: tuple[object, ...], *, glide_keys: tuple[object, ...] | None = None) -> None:
+    def arrive(
+        self,
+        keys: tuple[object, ...],
+        *,
+        glide_keys: tuple[object, ...] | None = None,
+        source_identities: Iterable[object] = (),
+    ) -> None:
         """Animate `keys` into the viewport (synchronized upward translation + fade-in along
         `FOLLOW_ARRIVAL`) and glide a following reader smoothly to `glide_keys`."""
         if not self.animation_clock.enabled:
             return
         arrival: ViewportArrival | None = None
         if keys:
-            arrival = ViewportArrival(self, keys)
+            arrival = ViewportArrival(self, keys, source_identities=source_identities)
             self.arrivals.append(arrival)
         moved = keys if glide_keys is None else glide_keys
         if moved and self.follows_tail:

@@ -133,6 +133,7 @@ QT_ONLY = {
     'toad.qt.virtual_scroll.PinnedHeaderTapHighlight': "inverts a tapped pinned header QTextDocument inside QtStickyHeader",
     'toad.qt.virtual_scroll.RowMetrics': "cached Qt QTextDocument laid-out QSize and pixel horizontal extent per width",
     'toad.qt.virtual_scroll.RowSize': "per-slot Qt QFont/QSize cache entry for RowDocumentStore",
+    'toad.qt.virtual_scroll.ViewportCanvas': "shared Qt viewport/document canvas contract inherited by DetachedCanvas and VirtualRowCanvas; Textual has no QTextDocument row canvas",
     'toad.qt.virtual_scroll.DetachedCanvas': "null canvas target for an unattached Qt RowDocumentStore",
     'toad.qt.virtual_scroll.RowDocumentStore': "caches laid-out Qt QTextDocuments, pixel heights, and QTimer measurement slices without QStyledItemDelegate/QModelIndex",
     'toad.qt.virtual_scroll.FragmentRowList': "flat row slot list with O(1) key lookup feeding VirtualRowCanvas prefix sums (replaces QAbstractListModel)",

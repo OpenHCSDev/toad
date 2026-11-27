@@ -388,11 +388,23 @@ def test_animates_arrivals_is_shared_by_both_history_windows():
     assert isinstance(state, ViewportArrivalState) and state.active is True
     assert win.arrival_opacity("live-1") == state.opacity
 
-    # Saved commit of that same live source does not double-animate it, while a genuinely
-    # new sibling fragment (e.g. thinking trace / bus message) in the same batch DOES animate.
+    # Saved commit of that same live source while in flight adopts the running arrival
+    # cleanly (no snap to 1.0, no duplicate arrival), while a genuinely new sibling
+    # fragment (e.g. thinking trace / bus message) in the same batch starts its own arrival.
+    live_arrival = win.arrivals[0]
+    live_arrival.apply_amount(0.35)
     win.arrive_fragments((saved_tool, saved_thought), live=False)
-    assert win.arrival_opacity("saved-1") is None
+    assert win.arrival_opacity("saved-1") == 0.35
+    assert len(win.arrivals) == 2
     assert win.arrival_opacity("saved-2") is not None
+
+    # Once a live arrival has landed, committing its saved counterpart stays settled (no double-fade).
+    landed_live = _Frag(key="live-2", source_identity="src-done")
+    landed_saved = _Frag(key="saved-3", source_identity="src-done")
+    win.arrive_fragments((landed_live,), live=True)
+    win.arrivals[-1].land()
+    win.arrive_fragments((landed_saved,), live=False)
+    assert win.arrival_opacity("saved-3") is None
 
     # HeadReveal glides and shifts cleanly on layout changes.
     assert win.start_head_reveal(20.0) is True

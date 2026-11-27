@@ -715,7 +715,11 @@ class LatestPosition(NativeReaderHolder, HeldReaderDestination, TailPosition):
             window.place_reader()
 
     def arrived(self, page: ReaderPage, key: FragmentKey) -> ReaderPosition:
-        # End was pressed: the newest row stays the destination until its source settles.
+        # Explicit End jump from scrolled-up history keeps landing at the newest row;
+        # a replacement refresh while already following the tail places tall arrivals at
+        # their head identically to incremental appends.
+        if self.awaits_source_advance:
+            return ArrivalPosition(page, key)
         return self
 
     def released(self) -> ReaderPosition:

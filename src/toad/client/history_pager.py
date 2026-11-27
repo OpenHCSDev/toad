@@ -365,7 +365,11 @@ class ReaderPlacement:
         Their movement shifts the kept position, so the position kept now is
         the one placed. One that names widgets this layout did not measure
         (kept after the layout started) is placed by the layout that follows.
+        A following reader with an active arrival glide keeps gliding smoothly instead
+        of being snapped to the tail by post-refresh settlement (`_complete_latest`).
         """
+        if self.follows_tail and self.gliding_to_end():
+            return False
         position = self.reader_position
         if not position.laid_out(self):
             return False
@@ -569,8 +573,45 @@ class HistoryPager(ResumesSource):
         self._generation += 1
         self.state.request_latest(self, LatestViewportRequest(destination))
 
-    async def jump_latest(self, request: LatestViewportRequest,
-                           publication_current: Callable[[], bool] = lambda: True) -> bool:
+    def _publish_arrivals(
+        self,
+        arrivals: tuple[HistoryFragment, ...],
+        *,
+        continuing: tuple[HistoryFragment, ...] = (),
+    ) -> None:
+        """One unified arrival publication sequence shared by incremental appends
+        (`_load_page`) and source replacements (`_publish_latest` / `show_newest`)."""
+        self.window.arrivals_followed(arrivals)
+        self.hold_arrival(arrivals)
+        self.repaint(arrivals, continuing=continuing)
+
+    def _capture_arrival_context(
+        self, *, animates: bool, has_explicit_arrivals: bool = False,
+    ) -> tuple[frozenset[object] | None, tuple[HistoryFragment, ...]]:
+        """Capture currently drawn keys and active arrivals before a tail replacement."""
+        was_following = self.follows_source_tail
+        previous_keys = (
+            frozenset(fragment.key for page in self.pages for fragment in page.prepared.fragments_in_range)
+            if (not has_explicit_arrivals and not self.undrawn and was_following and animates)
+            else None
+        )
+        active_arrivals = self.window.arrival_keys() if was_following else frozenset()
+        retained = (
+            tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
+                  if fragment.key in active_arrivals)
+            if active_arrivals else ()
+        )
+        return previous_keys, retained
+
+    async def jump_latest(
+        self,
+        request: LatestViewportRequest,
+        publication_current: Callable[[], bool] = lambda: True,
+        *,
+        arrivals: tuple[HistoryFragment, ...] = (),
+        continuing: tuple[HistoryFragment, ...] = (),
+        previous_keys: frozenset[object] | None = None,
+    ) -> bool:
         """Publish one destination using its captured source and reader position.
 
         A preceding page's restoration may have left the window off its tail.
@@ -588,7 +629,10 @@ class HistoryPager(ResumesSource):
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
         with request.reading(self) as (source, release):
             prepared = await request.page(self, source)
-            if await self._publish_latest(current, source, prepared, release):
+            if await self._publish_latest(
+                current, source, prepared, release,
+                arrivals=arrivals, continuing=continuing, previous_keys=previous_keys,
+            ):
                 # Capture the source accepted with the destination's pages.
                 self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
                 return True
@@ -597,11 +641,25 @@ class HistoryPager(ResumesSource):
 
     async def publish_held_latest(self, publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Publish the newest rows, holding the reader on them until their source settles."""
-        return await self.jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)), publication_current)
+        previous_keys, retained = self._capture_arrival_context(animates=True)
+        return await self.jump_latest(
+            LatestViewportRequest(LatestPosition.hold(self.window)),
+            publication_current,
+            continuing=retained,
+            previous_keys=previous_keys,
+        )
 
-    async def _publish_latest(self, current: Callable[[], bool],
-                              source: PreparedPageSource, prepared: PreparedTranscriptPage,
-                              release: ResourceRelease) -> bool:
+    async def _publish_latest(
+        self,
+        current: Callable[[], bool],
+        source: PreparedPageSource,
+        prepared: PreparedTranscriptPage,
+        release: ResourceRelease,
+        *,
+        arrivals: tuple[HistoryFragment, ...] = (),
+        continuing: tuple[HistoryFragment, ...] = (),
+        previous_keys: frozenset[object] | None = None,
+    ) -> bool:
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
@@ -661,6 +719,14 @@ class HistoryPager(ResumesSource):
                 for page in retired:
                     page.display = False
                 self._update_edges()
+                if not arrivals and previous_keys is not None and self.pages:
+                    arrivals = tuple(
+                        fragment
+                        for fragment in self.pages[-1].prepared.fragments_in_range
+                        if fragment.key not in previous_keys
+                    )
+                if arrivals or continuing:
+                    self._publish_arrivals(arrivals, continuing=continuing)
                 self.rows_published()
                 await self.remove_children(retired)
             return True
@@ -875,6 +941,11 @@ class HistoryPager(ResumesSource):
                 sum(page.prepared.stop - page.prepared.start for _rows, page in drawn))
 
     @property
+    def undrawn(self) -> bool:
+        """Nothing of the bound source has been drawn yet."""
+        return not self.draws_rows
+
+    @property
     def draws_rows(self) -> bool:
         """Whether the loaded range draws anything: the first page that does answers, with no sum
         over the rest. Asked on every scrolled frame, so its cost must not grow with history."""
@@ -950,9 +1021,7 @@ class HistoryPager(ResumesSource):
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()
-                    self.window.arrivals_followed(arrivals)
-                    self.hold_arrival(arrivals)
-                    self.repaint(arrivals)
+                    self._publish_arrivals(arrivals)
                     self.rows_published()
                     if not local:
                         await self._page_added(staged.page, staged.fragments)
@@ -1357,31 +1426,20 @@ class ConversationPager(HistoryPager):
     async def show_newest(self, request: ReplacementViewportRequest, *,
                           arrivals: tuple[HistoryFragment, ...] = (),
                           publication_current: Callable[[], bool] = lambda: True) -> bool:
-        """Replace the drawn source, retaining the followed tail's active arrivals."""
-        was_drawn = not self.undrawn
-        was_following = self.follows_source_tail
-        previous_keys = (
-            {fragment.key for page in self.pages for fragment in page.prepared.fragments_in_range}
-            if (not arrivals and was_drawn and was_following and request.animates_arrivals)
-            else None
+        """Replace the drawn source through the same in-`preserve_history()` arrival path
+        used by incremental appends, retaining the followed tail's active arrivals."""
+        previous_keys, retained = self._capture_arrival_context(
+            animates=request.animates_arrivals,
+            has_explicit_arrivals=bool(arrivals),
         )
-        active_arrivals = self.window.arrival_keys() if was_following else frozenset()
-        retained = (tuple(fragment for page in self.pages for fragment in page.prepared.fragments_in_range
-                          if fragment.key in active_arrivals)
-                    if active_arrivals else ())
         self._generation += 1
-        published = await self.jump_latest(request, publication_current)
-        if published:
-            if not arrivals and previous_keys is not None and self.pages:
-                arrivals = tuple(
-                    fragment
-                    for fragment in self.pages[-1].prepared.fragments_in_range
-                    if fragment.key not in previous_keys
-                )
-            self.window.arrivals_followed(arrivals)
-            self.hold_arrival(arrivals)
-            self.repaint(arrivals, continuing=retained)
-        return published
+        return await self.jump_latest(
+            request,
+            publication_current,
+            arrivals=arrivals,
+            continuing=retained,
+            previous_keys=previous_keys,
+        )
 
 
 class NativePager:

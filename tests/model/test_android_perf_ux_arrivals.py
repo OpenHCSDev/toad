@@ -1844,3 +1844,201 @@ def test_qt_bus_switcher_activates_rows_closes_on_submit_and_preserves_launch_co
         switcher.deleteLater()
         host.deleteLater()
         app.processEvents()
+
+
+def test_fast_tool_commit_adopts_live_arrival_without_snap_or_scroll_jerk():
+    """When a fast tool call completes and commits to saved history mid-`ViewportArrival`:
+    1. The running `ViewportArrival` adopts the saved fragment's key by `source_identity`
+       at its exact current progress (`amount`), so opacity and upward slide continue
+       smoothly instead of snapping to `SETTLED_ARRIVAL`.
+    2. Neither an adopted live block nor an already-landed live block triggers a second
+       `glide_to_end()` that would subtract its height from `tail_scroll_y` and jerk scroll."""
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from toad.arrivals import AnimatesArrivals, SETTLED_ARRIVAL
+    from toad.client.reader_position import TailPosition
+
+    clock = AnimationClock(lambda _dt: None)
+
+    class _Window(AnimatesArrivals):
+        arrival_slide_distance = 36.0
+
+        def __init__(self) -> None:
+            self.follows_tail = True
+            self.reader_position = TailPosition()
+            self.scroll_y = 200.0
+            self.tail_scroll_y = 280.0
+            self.heights: dict[object, float] = {}
+            self.repainted: list[tuple[object, ...]] = []
+
+        @property
+        def animation_clock(self) -> AnimationClock:
+            return clock
+
+        @property
+        def arrival_animation_visible(self) -> bool:
+            return True
+
+        def arrival_rows_height(self, keys: tuple[object, ...]) -> float | None:
+            found = [self.heights[k] for k in keys if k in self.heights]
+            return sum(found) if found else None
+
+        def repaint_arrival_keys(self, keys: tuple[object, ...]) -> None:
+            self.repainted.append(keys)
+
+        @contextmanager
+        def layout_scroll(self):
+            yield
+
+    win = _Window()
+    live_frag = SimpleNamespace(key=("live", -1), source_identity="tc-fast")
+    saved_frag = SimpleNamespace(key=("saved", 42), source_identity="tc-fast")
+    win.heights[live_frag.key] = 80.0
+    win.heights[saved_frag.key] = 80.0
+
+    # 1. Live tool starts animating; advance halfway (opacity > 0 and < 1).
+    win.arrive_fragments((live_frag,), live=True)
+    assert len(win.arrivals) == 1
+    arrival = win.arrivals[0]
+    arrival.apply_amount(0.4)
+    scroll_mid = win.scroll_y
+    assert win.arrival_state(live_frag.key, 80.0).opacity == 0.4
+
+    # 2. Fast tool completes and commits to saved history mid-animation.
+    win.arrive_fragments((saved_frag,), live=False)
+    assert len(win.arrivals) == 1
+    assert win.arrivals[0] is arrival
+    saved_state = win.arrival_state(saved_frag.key, 80.0)
+    assert saved_state.active is True
+    assert saved_state.opacity == 0.4
+    # No phantom re-glide subtracted height from tail_scroll_y.
+    assert win.scroll_y == scroll_mid
+
+    # 3. Arrival lands smoothly to settled state.
+    arrival.land()
+    assert win.arrival_state(saved_frag.key, 80.0) is SETTLED_ARRIVAL
+
+    # 4. A slow tool whose live arrival already finished commits later: stays rock steady
+    #    with no fade and no scroll-backwards jerk.
+    slow_live = SimpleNamespace(key=("live", -2), source_identity="tc-slow")
+    slow_saved = SimpleNamespace(key=("saved", 43), source_identity="tc-slow")
+    win.heights[slow_live.key] = 80.0
+    win.heights[slow_saved.key] = 80.0
+    win.arrive_fragments((slow_live,), live=True)
+    win.arrivals[0].land()
+    assert win.arrivals == []
+    win.scroll_y = win.tail_scroll_y = 360.0
+    win.arrive_fragments((slow_saved,), live=False)
+    assert win.arrivals == []
+    assert win.glide is None
+    assert win.scroll_y == 360.0
+
+
+def test_place_reader_preserves_active_arrival_glide_and_latest_position_arrived():
+    """Channel source replacements (`show_newest`) share the exact same arrival behavior:
+    1. `ReaderPlacement.place_reader()` never snaps `scroll_y` while `gliding_to_end()` is True
+       (so post-refresh `_complete_latest` -> `LatestPosition.release()` cannot kill the slide).
+    2. `LatestPosition.arrived()` transitions to `ArrivalPosition` when the reader was already
+       following the tail (`awaits_source_advance=True`), while an explicit End jump
+       (`awaits_source_advance=False`) keeps landing at the newest row."""
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from toad.client.history_pager import ReaderPlacement
+    from toad.client.reader_position import ArrivalPosition, LatestPosition
+
+    placed_calls = 0
+
+    class _Pos:
+        def laid_out(self, _w) -> bool:
+            return True
+
+        def place(self, _w) -> bool:
+            nonlocal placed_calls
+            placed_calls += 1
+            return True
+
+        def placed(self, _w, _reached: bool):
+            return self
+
+    class _Win(ReaderPlacement):
+        def __init__(self, gliding: bool) -> None:
+            self.follows_tail = True
+            self._gliding = gliding
+            self.reader_position = _Pos()
+            self.scroll_y = 100.0
+
+        def gliding_to_end(self) -> bool:
+            return self._gliding
+
+        @contextmanager
+        def layout_scroll(self):
+            yield
+
+    # Active glide: place_reader() must defer to the glide instead of snapping scroll_y.
+    gliding_win = _Win(gliding=True)
+    assert gliding_win.place_reader() is False
+    assert placed_calls == 0
+
+    # Idle reader: place_reader() places normally.
+    idle_win = _Win(gliding=False)
+    assert idle_win.place_reader() is False
+    assert placed_calls == 1
+
+    # LatestPosition.arrived(): already-following replacement -> ArrivalPosition; End jump -> self.
+    page = SimpleNamespace()
+    following_latest = LatestPosition(revision=1, sources=(), awaits_source_advance=True)
+    end_jump_latest = LatestPosition(revision=1, sources=(), awaits_source_advance=False)
+    assert following_latest.arrived(page, ("k", 1)) == ArrivalPosition(page, ("k", 1))
+    assert end_jump_latest.arrived(page, ("k", 1)) is end_jump_latest
+
+
+def test_collapsed_tool_row_prepares_inline_without_worker_roundtrip(monkeypatch):
+    """A collapsed tool row (`Summary`, `renders_inline=True`) prepares synchronously on the
+    warm renderer inside `HistoryRowDelegate.styled_formatting` / `final_document_for` so a
+    fast tool completion (`revision=0 -> 1`) never flashes plain text or changes height."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    import inspect
+    from PySide6.QtGui import QFont
+    from agent_comms.nominal.field_codec import ToolCallId
+    from agent_comms.transcript.transcript_events import ToolStartTranscript
+    from toad.acp.status import ToolCallStatus
+    from toad.client.fragments import Shown
+    from toad.markdown_links import LinkContext, ReferenceContext
+    from toad.qt.agent_surface import QtLiveToolFragment
+    from toad.qt.history import HistoryRowDelegate
+    from toad.qt.window import RowPictures
+    from acp import schema
+
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    class _ExplodingPool:
+        def submit(self, *_a, **_kw):
+            raise AssertionError("collapsed tool row should prepare inline without worker pool")
+
+    delegate = HistoryRowDelegate(renderer, RowPictures(1024 * 1024), _ExplodingPool())
+    font = QFont("monospace", 10)
+    try:
+        for rev, status in ((0, "in_progress"), (1, "completed")):
+            call = schema.ToolCall(tool_call_id="tc-inline", title="Read file", kind="read", status=status)
+            ev = ToolStartTranscript(
+                tool_call_id=ToolCallId("tc-inline"),
+                tool_name="Read file",
+                raw_input={},
+                position=-1,
+                timestamp=0.0,
+            )
+            frag = QtLiveToolFragment(
+                events=(ev,),
+                tool_call=ToolCallStatus.from_acp(call),
+                output_parts=(),
+                shown=Shown(),
+                live_revision=rev,
+            )
+            doc = delegate.final_document_for(frag, font, 360)
+            assert doc is not None
+            assert delegate.is_prepared(delegate.fragment_key(frag, font, 360))
+    finally:
+        delegate.cleanup()
