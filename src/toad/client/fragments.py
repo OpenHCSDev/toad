@@ -241,18 +241,32 @@ class FragmentKey:
 
 
 @dataclass(frozen=True)
-class FragmentDetails(ToggleDetails):
-    """A disclosure names its original source occurrence, never a pointer position."""
+class FragmentToggle(ToggleDetails, declared_name=None):
+    """A disclosure link targeting one fragment occurrence (and any split parts sharing its source identity)."""
 
     key: FragmentKey
+
+    @abstractmethod
+    def toggled_shown(self, target: Shown, current: Shown) -> Shown:
+        """The replacement `Shown` for `current` when `target` is toggled."""
 
 
 @dataclass(frozen=True)
-class FragmentCollapse(ToggleDetails):
+class FragmentDetails(FragmentToggle):
+    """A disclosure names its original source occurrence, never a pointer position."""
+
+    def toggled_shown(self, target: Shown, current: Shown) -> Shown:
+        return replace(current, details_open=not target.details_open)
+
+
+@dataclass(frozen=True)
+class FragmentCollapse(FragmentToggle):
     """A message header disclosure: collapses or expands all parts of one message."""
 
     touch_priority: ClassVar[int] = 0
-    key: FragmentKey
+
+    def toggled_shown(self, target: Shown, current: Shown) -> Shown:
+        return replace(current, collapsed=not target.collapsed)
 
 
 class CursorRest:

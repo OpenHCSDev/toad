@@ -45,10 +45,10 @@ from toad.arrivals import AnimatesArrivals, SETTLED_ARRIVAL, ViewportArrivalStat
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
-from toad.client.fragments import BusMessageHistoryFragment, FragmentCollapse, FragmentDetails, HistoryFragment, Shown
+from toad.client.fragments import BusMessageHistoryFragment, FragmentCollapse, HistoryFragment, Shown
 from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
-from toad.link_opening import OpensLineLinks
+from toad.link_opening import TogglesFragmentShown
 from toad.navigation_target import NavigationTarget
 from toad.project_link import ExternalProjectLink, ProjectFileLink, ProjectLink
 from toad.client.history import ReadMarkedHistory
@@ -1344,7 +1344,7 @@ class QtStickyHeader(HeaderPin, QWidget):
                 collapse = window.top_page().collapse_link()
                 if collapse is not None:
                     window._set_tap_highlight(PinnedHeaderTapHighlight(index))
-                    window.toggle_collapse(collapse)
+                    window.toggle_fragment(collapse)
                     return True
                 return False
             top += doc_h
@@ -1463,7 +1463,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 
 class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow,
-                      QtWorkspaceHosted, VirtualRowCanvas, PagingWindow, OpensLineLinks, PinsMessageHeader,
+                      QtWorkspaceHosted, VirtualRowCanvas, PagingWindow, TogglesFragmentShown, PinsMessageHeader,
                       SettingsReading):
     """The reader window of one Qt conversation: prefix-sum virtual rows of the history's
     shown fragments, scrolled by pixel without `QListView`/`QAbstractListModel` overhead. It
@@ -1714,7 +1714,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         elif (collapse := self._header_collapse_at(row, point)) is not None:
             self._set_tap_highlight(RowHeaderTapHighlight(fragment.key))
             press.claim()
-            self.toggle_collapse(collapse)
+            self.toggle_fragment(collapse)
         elif self.reveal_head_at(point):
             press.claim()
 
@@ -1816,33 +1816,12 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.rows_changed()
             self.repin_header()
 
-    @handles(FragmentDetails)
-    def toggle_details(self, link: FragmentDetails) -> None:
-        """A tap on a ▶ row opens or closes that fragment's details (and any split parts sharing
-        its source identity, such as a long thinking block), as Textual's page does."""
-        target = next((fragment for fragment in self.model_rows.fragments if fragment.key == link.key), None)
-        if target is None:
-            return
-        opened = not target.shown.details_open
-        changes = [
-            (fragment, replace(fragment.shown, details_open=opened))
-            for fragment in self.model_rows.fragments
-            if fragment.source_identity == target.source_identity
-        ]
-        self.history.apply_shown(changes)
+    def toggleable_fragments(self) -> tuple[HistoryFragment, ...]:
+        return self.model_rows.fragments
 
-    @handles(FragmentCollapse)
-    def toggle_collapse(self, link: FragmentCollapse) -> None:
-        """A tap on a message header's ▼/▶ disclosure collapses or expands all parts of that message."""
-        target = next((fragment for fragment in self.model_rows.fragments if fragment.key == link.key), None)
-        if target is None:
-            return
-        collapsed = not target.shown.collapsed
-        changes = [
-            (fragment, replace(fragment.shown, collapsed=collapsed))
-            for fragment in self.model_rows.fragments
-            if fragment.source_identity == target.source_identity
-        ]
+    def apply_fragment_shown(
+        self, target: HistoryFragment, changes: list[tuple[HistoryFragment, Shown]]
+    ) -> None:
         self.history.apply_shown(changes)
 
     def _emit_block_menu_at(self, point: QPoint) -> None:

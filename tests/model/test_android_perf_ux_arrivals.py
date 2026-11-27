@@ -997,11 +997,11 @@ def test_parallel_render_and_hold_touch_link_priority_and_text_tap_inversion(mon
         assert isinstance(fake_win._set_tap_highlight.call_args[0][0], PinnedLinkTapHighlight)
         fake_win.dispatch_sync.assert_called_with(OpenTarget("toad-qt"))
 
-        # Tap on outer divider rule (x=2) -> PinnedHeaderTapHighlight + toggle_collapse.
+        # Tap on outer divider rule (x=2) -> PinnedHeaderTapHighlight + toggle_fragment.
         fake_win._set_tap_highlight.reset_mock()
         assert sticky.handle_tap(QPoint(2, py)) is True
         assert isinstance(fake_win._set_tap_highlight.call_args[0][0], PinnedHeaderTapHighlight)
-        fake_win.toggle_collapse.assert_called_with(frag.collapse_link)
+        fake_win.toggle_fragment.assert_called_with(frag.collapse_link)
     finally:
         sticky_parent.deleteLater()
 

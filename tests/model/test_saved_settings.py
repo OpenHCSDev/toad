@@ -17,7 +17,7 @@ from toad.acp.status import ToolCallStatus
 from formbridge.forms.declared_fields import Multiline
 from toad.preferences import SETTINGS, SavedSettings
 from toad.setting_choices import BothExpansion, Expansion, FailExpansion
-from toad.setting_declarations import FamilyChoices
+from toad.setting_declarations import Effect, FamilyChoices, PerFieldEffect
 
 SAVED = Path(__file__).resolve().parents[1] / "fixtures" / "saved-settings.json"
 
@@ -119,3 +119,14 @@ def test_a_number_setting_refuses_values_that_are_not_json_numbers(value):
     assert FieldCodec.decode(Kinds, {"number": 2}).number == 2.0
     with pytest.raises(ValueError):
         FieldCodec.decode(Kinds, {"number": value})
+
+
+def test_apply_all_coalesces_shared_effects_while_keeping_per_field_visibility():
+    fired = []
+    settings = SavedSettings({}, applied=fired.append)
+    settings.apply_all()
+    assert len(fired) == 19
+    keys = [field.metadata(Effect).batch_key(field) for field in fired]
+    assert len(keys) == len(set(keys))
+    per_field = [field.path.value for field in fired if isinstance(field.metadata(Effect), PerFieldEffect)]
+    assert len(per_field) == 5

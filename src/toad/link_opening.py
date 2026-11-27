@@ -11,7 +11,7 @@ Qt's shiboken metaclass clashes with one.
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 from functools import partial
 from pathlib import Path
 
@@ -22,6 +22,7 @@ from agent_comms.messaging.display_references import (
 )
 from metaclass_registry.mro_dispatch import MroDispatch, handles
 
+from toad.client.fragments import FragmentToggle, HistoryFragment, Shown
 from toad.client.line_blocks import LineLink, OpenHistoricalTarget, OpenReference, OpenTarget
 from toad.client.message_file_links import MessageFileLink
 from toad.navigation_target import NavigationTarget
@@ -104,3 +105,31 @@ class OpensLineLinks(MroDispatch):
     @abstractmethod
     def show_file(self, path: Path) -> None:
         """Open a file kept on this machine the way this frontend opens files."""
+
+
+class TogglesFragmentShown(OpensLineLinks):
+    """A history view whose drawn fragment disclosures toggle all parts sharing a source identity."""
+
+    @abstractmethod
+    def toggleable_fragments(self) -> Iterable[HistoryFragment]:
+        """The drawn fragments this view can toggle."""
+
+    @abstractmethod
+    def apply_fragment_shown(
+        self, target: HistoryFragment, changes: list[tuple[HistoryFragment, Shown]]
+    ) -> None:
+        """Apply toggled `Shown` states produced for `target`."""
+
+    @handles(FragmentToggle)
+    def toggle_fragment(self, link: FragmentToggle) -> None:
+        """Toggle `link` across all drawn parts sharing its fragment's source identity."""
+        fragments = self.toggleable_fragments()
+        target = next((fragment for fragment in fragments if fragment.key == link.key), None)
+        if target is None:
+            return
+        changes = [
+            (fragment, link.toggled_shown(target.shown, fragment.shown))
+            for fragment in fragments
+            if fragment.source_identity == target.source_identity
+        ]
+        self.apply_fragment_shown(target, changes)
