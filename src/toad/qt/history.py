@@ -1432,6 +1432,10 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._reader_shortcuts = scope.app.action_keys.bind_family(self, ReaderAction, self)
 
     @property
+    def geometry_revision(self) -> int:
+        return self._geometry_revision
+
+    @property
     def animation_clock(self):
         return self.configuration_scope.app.animation_clock
 

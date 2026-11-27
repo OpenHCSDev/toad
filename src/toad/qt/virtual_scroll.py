@@ -759,9 +759,13 @@ class VirtualRowCanvas(QAbstractScrollArea):
         self._layout_font_key = ""
         self._layout_pending = False
         self._layouts = 0
-        self.geometry_revision = 0
+        self._geometry_revision = 0
         self._estimating = False
         self.viewport().setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
+
+    @property
+    def geometry_revision(self) -> int:
+        return self._geometry_revision
 
     def viewport_width(self) -> int:
         return self.viewport().width()
@@ -839,7 +843,7 @@ class VirtualRowCanvas(QAbstractScrollArea):
             self._estimated[row] = False
         if head < self._dirty_offset_from:
             self._dirty_offset_from = head
-        self.geometry_revision += 1
+        self._geometry_revision += 1
         self._layout_pending = True
 
     def _rows_data_changed(self, indices: list[int]) -> None:
@@ -851,7 +855,7 @@ class VirtualRowCanvas(QAbstractScrollArea):
                 self._estimated[row] = False
                 if row < self._dirty_offset_from:
                     self._dirty_offset_from = row
-        self.geometry_revision += 1
+        self._geometry_revision += 1
         self._layout_pending = True
 
     def row_at_y(self, content_y: int) -> int:
