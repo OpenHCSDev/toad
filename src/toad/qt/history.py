@@ -358,6 +358,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         if key in self._prepared:
             self._prepared.move_to_end(key)
             return self.laid_out(key, font, width, self._prepared[key])
+        if self.prepare_inline(fragment, font, width, key=key):
+            return self.laid_out(key, font, width, self._prepared[key])
         formatting = self.keyed_formatting(key, fragment.clipboard_text, self.row_preparation(fragment, font, width))
         if formatting.final:
             return self.laid_out(key, font, width, formatting)
@@ -405,6 +407,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         if key in self._prepared:
             self._prepared.move_to_end(key)
             return self._prepared[key]
+        if self.prepare_inline(fragment, font, width, key=key):
+            return self._prepared[key]
         formatting = self.keyed_formatting(key, fragment.clipboard_text, self.row_preparation(fragment, font, width))
         if not formatting.final:
             shown = self.last_shown.get(self.row_identity(key))
@@ -434,16 +438,19 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     def is_prepared(self, key) -> bool:
         return key in self._prepared
 
-    def prepare_inline(self, fragment: HistoryFragment, font: QFont, width: int) -> bool:
+    def prepare_inline(
+        self, fragment: HistoryFragment, font: QFont, width: int, *, key=None,
+    ) -> bool:
         """Prepare a lightweight non-Markdown row (e.g. a collapsed message's header +
-        1-line summary) immediately using the already-warm `self.renderer` so first
-        collapse lays out in one frame (< 1 ms) without a RenderProcessPool round-trip."""
+        1-line summary or collapsed tool call) immediately using the already-warm
+        `self.renderer` so it lays out in one frame (< 1 ms) without a RenderProcessPool
+        round-trip."""
         if width <= 0 or not fragment.has_blocks:
             return False
-        blocks = fragment.line_blocks
+        blocks = tuple(fragment.line_blocks)
         if not blocks or not all(block.renders_inline for block in blocks):
             return False
-        key = self.fragment_key(fragment, font, width)
+        key = self.fragment_key(fragment, font, width) if key is None else key
         if key in self._prepared:
             return True
         cell, _line = self._font_metrics(font)
