@@ -275,11 +275,16 @@ class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
             scopes=lambda: self.coordination_access.connection.tab_scopes(),
         )
         self._session_tracker = SessionTracker(self.tab_order)
+        self._launch_connection = connection
         self.coordination_access = connection.open_access(self)
         # Every frontend acts on the workspace requests published on the navigator.
         self.session_navigation.bind_events()
         # One switch at a time: a second pick waits for the first to finish moving the owners.
         self.bus_switching = asyncio.Lock()
+
+    def offered_buses(self, now: float) -> tuple[BusChoice, ...]:
+        """The buses this launch can open (preserved even after switching between local and remote)."""
+        return self._launch_connection.offered_buses(now)
 
     def open_bus(self, choice: BusChoice) -> None:
         """Switch this session onto a bus the reader picked."""

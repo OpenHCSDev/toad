@@ -269,6 +269,10 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
         """A group line opens and closes its group."""
         self.setExpanded(not self.isExpanded())
 
+    def activate_in_switcher(self, switcher, window: QtToadApp) -> None:
+        """Activation inside `QtBusSwitcher`: section headers expand/collapse without closing."""
+        self.activate(window)
+
     async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
         """What `HeldRowMenu` offers for this line: nothing, for most lines."""
         return ()
@@ -548,6 +552,10 @@ class BusRow(BusChoiceLine, SidebarItem):
 
     def activate(self, window: QtToadApp) -> None:
         self.choose(window)
+
+    def activate_in_switcher(self, switcher, window: QtToadApp) -> None:
+        switcher.hide_switcher()
+        self.activate(window)
 
     async def menu_entries_in(self, listing: Welcome) -> tuple[MenuEntry, ...]:
         return self.choice.held_actions(listing)
@@ -1092,9 +1100,6 @@ class QtSidebarBuses(BusListing, RowFittedTree, ConversationRows):
 
     def picker_host(self) -> BusPickerHost:
         return self.window
-
-    def held_rows(self) -> tuple[PickerRow, ...]:
-        return BusChoice.held(time())
 
     def say_failure(self, reason: str) -> None:
         self.window.show_warning(reason, "Tailnet buses")
@@ -1852,9 +1857,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.attach()
 
     def connection_for(self, choice: BusChoice) -> CoreConnection:
-        """The connection a chosen bus names, read by the connection this window runs on
-        (`CoreConnection.chosen`)."""
-        return self.coordination_access.connection.chosen(list(choice.arguments(())))
+        """The connection a chosen bus names, read by the launch's connection capability so
+        desktop Qt can switch Local -> Remote -> Local without losing `LocalCoreConnection`."""
+        return self._launch_connection.chosen(list(choice.arguments(())))
 
     def _nav_separator(self) -> QFrame:
         """Thin 1 px vertical divider in the navigation bar, matching `QtSideBarToggle`'s splitter."""

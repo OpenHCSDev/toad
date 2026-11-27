@@ -67,6 +67,11 @@ class BusPickerHost:
     def open_bus(self, choice: BusChoice) -> None:
         raise NotImplementedError
 
+    def offered_buses(self, now: float) -> tuple[BusChoice, ...]:
+        """The buses this host can open without asking the tailnet (local + held on desktop,
+        held-only on remote-only launches like Android)."""
+        return BusChoice.offered(now)
+
     def ask_peer_for_profile(self, found: PeerBus) -> None:
         raise NotImplementedError
 
@@ -274,9 +279,10 @@ class BusListing:
         raise NotImplementedError
 
     def held_rows(self) -> tuple[PickerRow, ...]:
-        """What this machine knows without asking anyone, instantly: its own bus and the
-        remote profiles it holds. The tailnet's reported peers are merged in by `listed()`."""
-        return BusChoice.offered(time.time())
+        """What this machine knows without asking anyone, instantly: derived from the host's
+        launch connection capability (`offered_buses`). The tailnet's reported peers are merged
+        in by `listed()`."""
+        return self.picker_host().offered_buses(time.time())
 
     def show_rows(self, rows: tuple[PickerRow, ...]) -> None:
         """Draw ``rows`` in place of the ones shown."""

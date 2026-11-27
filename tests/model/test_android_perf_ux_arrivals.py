@@ -1721,3 +1721,126 @@ def test_unified_viewport_arrival_glides_tall_and_empty_messages_in_lockstep(mon
     finally:
         canvas.deleteLater()
         app.processEvents()
+
+
+def test_qt_bus_switcher_activates_rows_closes_on_submit_and_preserves_launch_connection(monkeypatch):
+    """Qt bus switching works cleanly on both Android (remote-only) and desktop (local + remote):
+    1. Clicking a `BusRow` in `QtBusSwitcher` closes the switcher and calls `host.open_bus(choice)`
+       polymorphically via `activate_in_switcher` (no `AttributeError: _BusRow`).
+    2. Clicking an `OpenSection` header toggles expansion without closing the switcher.
+    3. Pressing Enter in `BusAddress` asks the typed host and hides the switcher; `Esc` hides it.
+    4. `RemoteCoreConnection.offered_buses` omits `LocalBus` while `LocalCoreConnection.offered_buses`
+       includes it, and `QtToadApp.connection_for` preserves `_launch_connection.chosen` after
+       switching onto a remote bus so desktop can always switch back to `"This machine"`."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from types import SimpleNamespace
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QKeyEvent
+    from toad.client.bus_selection import BusChoice, LocalBus
+    from toad.client.connection import RemoteCoreConnection
+    from toad.client.local_connection import LocalCoreConnection
+    from toad.markdown_links import LinkContext, ReferenceContext
+    from toad.qt.bus_switcher import QtBusSwitcher
+    from toad.qt.window import BusRow, OpenSection, QtToadApp
+    from toad.client.session_tracker import SidebarState
+    import inspect
+
+    from pyqt_reactive.theming import ColorScheme
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    opened: list[BusChoice] = []
+    asked: list[str] = []
+    registered: list[object] = []
+
+    class _FakeHost(QWidget):
+        found_buses = ()
+
+        def __init__(self) -> None:
+            super().__init__()
+            self.renderer = renderer
+            self.theme = SimpleNamespace(color_scheme=ColorScheme.from_theme(scheme))
+            self.animation_clock = AnimationClock(lambda _dt: None)
+            self.sidebar_state = SidebarState()
+            self.discovered = 0
+
+        def open_bus(self, choice: BusChoice) -> None:
+            opened.append(choice)
+
+        def ask_typed_host(self, typed: str) -> None:
+            if typed.strip():
+                asked.append(typed.strip())
+
+        def offered_buses(self, _now: float) -> tuple[BusChoice, ...]:
+            return (LocalBus(),)
+
+        def register_bus_listing(self, listing) -> None:
+            registered.append(listing)
+
+        def deregister_bus_listing(self, listing) -> None:
+            if listing in registered:
+                registered.remove(listing)
+
+        def discover_buses(self) -> None:
+            self.discovered += 1
+
+    host = _FakeHost()
+    host.show()
+    switcher = QtBusSwitcher(host)
+    try:
+        switcher.show_switcher()
+        assert switcher.isVisible() is True
+        assert host.discovered == 1
+        assert switcher in registered
+        section = switcher._tree.topLevelItem(0)
+        assert isinstance(section, OpenSection)
+        row = section.child(0)
+        assert isinstance(row, BusRow)
+
+        # Clicking the section header toggles expansion without hiding the switcher.
+        was_expanded = section.isExpanded()
+        switcher._row_clicked(section)
+        assert section.isExpanded() is (not was_expanded)
+        assert switcher.isVisible() is True
+
+        # Clicking a BusRow hides the switcher and invokes host.open_bus(choice).
+        switcher._row_clicked(row)
+        assert switcher.isVisible() is False
+        assert switcher not in registered
+        assert opened == [LocalBus()]
+
+        # Pressing Enter in BusAddress asks the typed host and hides the switcher.
+        switcher.show_switcher()
+        assert switcher.isVisible() is True
+        switcher._address.setText("ts-gaming")
+        switcher._address.returnPressed.emit()
+        assert asked == ["ts-gaming"]
+        assert switcher.isVisible() is False
+
+        # Pressing Escape hides the switcher as promised by BusSwitcherPrompt.
+        switcher.show_switcher()
+        assert switcher.isVisible() is True
+        switcher.keyPressEvent(QKeyEvent(QKeyEvent.Type.KeyPress, Qt.Key.Key_Escape, Qt.KeyboardModifier.NoModifier))
+        assert switcher.isVisible() is False
+
+        # Remote vs local offered_buses & launch-connection retention in QtToadApp.connection_for.
+        monkeypatch.setattr(BusChoice, "held", staticmethod(lambda _now: ()))
+        assert RemoteCoreConnection.offered_buses(object(), 0.0) == ()
+        assert LocalCoreConnection.offered_buses(object(), 0.0) == (LocalBus(),)
+
+        chosen_args: list[list[str]] = []
+        sentinel = object()
+        fake_launch = SimpleNamespace(chosen=lambda args: (chosen_args.append(args), sentinel)[1])
+        fake_remote = SimpleNamespace(chosen=lambda _args: (_ for _ in ()).throw(ValueError("wrong connection")))
+        fake_app = SimpleNamespace(
+            _launch_connection=fake_launch,
+            coordination_access=SimpleNamespace(connection=fake_remote),
+        )
+        assert QtToadApp.connection_for(fake_app, LocalBus()) is sentinel
+        assert chosen_args == [[]]
+    finally:
+        switcher.deleteLater()
+        host.deleteLater()
+        app.processEvents()
