@@ -1220,58 +1220,58 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         if clip.isEmpty():
             return
         painter = QPainter(viewport)
-        bg_color = self.rows.background_qcolor()
-        fragments = self.model_rows.fragments
-        count = len(fragments)
-        if count == 0:
-            painter.fillRect(clip, bg_color)
-            painter.end()
-            return
-        self._ensure_offsets()
-        scroll_y = self.verticalScrollBar().value()
-        scroll_x = self.horizontalScrollBar().value()
-        vp_w = vp_rect.width()
-        total_h = self._offsets[count]
-        top_y = scroll_y + clip.top()
-        bot_y = scroll_y + clip.bottom()
-        animating = self.has_active_arrivals
-        slide_pad = int(math.ceil(self.arrival_slide_distance)) if animating else 0
-        if top_y >= total_h + slide_pad:
-            painter.fillRect(clip, bg_color)
-            painter.end()
-            return
-        if animating:
-            # Clear once before painting arriving rows so semi-transparent tiles and local
-            # upward slide offsets never ghost or erase sibling rows in the same burst.
-            painter.fillRect(clip, bg_color)
-        first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
-        last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
-        last_bottom = -1
-        self.rows.begin_paint(painter, vp_rect, animating=animating)
         try:
-            for row in range(first, last + 1):
-                h = self._heights[row]
-                if h <= 0:
-                    continue
-                y = self._offsets[row] - scroll_y
-                if y > clip.bottom():
-                    break
-                if y + h + slide_pad - 1 < clip.top():
-                    continue
-                row_w = max(vp_w, self._extents[row])
-                rect = QRect(-scroll_x, y, row_w, h)
-                self.rows.paint_row(painter, row, fragments[row], rect, dirty)
-                last_bottom = y + h
-        finally:
-            self.rows.end_paint()
-        # Fill any empty area below the final row (or above row 0 on overscroll) when
-        # not already pre-cleared for an active arrival.
-        if not animating:
-            if last_bottom >= 0 and last_bottom <= clip.bottom():
-                painter.fillRect(QRect(clip.left(), max(clip.top(), last_bottom), clip.width(), clip.bottom() - max(clip.top(), last_bottom) + 1), bg_color)
-            elif last_bottom < 0:
+            bg_color = self.rows.background_qcolor()
+            fragments = self.model_rows.fragments
+            count = len(fragments)
+            if count == 0:
                 painter.fillRect(clip, bg_color)
-        painter.end()
+                return
+            self._ensure_offsets()
+            scroll_y = self.verticalScrollBar().value()
+            scroll_x = self.horizontalScrollBar().value()
+            vp_w = vp_rect.width()
+            total_h = self._offsets[count]
+            top_y = scroll_y + clip.top()
+            bot_y = scroll_y + clip.bottom()
+            animating = self.has_active_arrivals
+            slide_pad = int(math.ceil(self.arrival_slide_distance)) if animating else 0
+            if top_y >= total_h + slide_pad:
+                painter.fillRect(clip, bg_color)
+                return
+            if animating:
+                # Clear once before painting arriving rows so semi-transparent tiles and local
+                # upward slide offsets never ghost or erase sibling rows in the same burst.
+                painter.fillRect(clip, bg_color)
+            first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
+            last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
+            last_bottom = -1
+            self.rows.begin_paint(painter, vp_rect, animating=animating)
+            try:
+                for row in range(first, last + 1):
+                    h = self._heights[row]
+                    if h <= 0:
+                        continue
+                    y = self._offsets[row] - scroll_y
+                    if y > clip.bottom():
+                        break
+                    if y + h + slide_pad - 1 < clip.top():
+                        continue
+                    row_w = max(vp_w, self._extents[row])
+                    rect = QRect(-scroll_x, y, row_w, h)
+                    self.rows.paint_row(painter, row, fragments[row], rect, dirty)
+                    last_bottom = y + h
+            finally:
+                self.rows.end_paint()
+            # Fill any empty area below the final row (or above row 0 on overscroll) when
+            # not already pre-cleared for an active arrival.
+            if not animating:
+                if last_bottom >= 0 and last_bottom <= clip.bottom():
+                    painter.fillRect(QRect(clip.left(), max(clip.top(), last_bottom), clip.width(), clip.bottom() - max(clip.top(), last_bottom) + 1), bg_color)
+                elif last_bottom < 0:
+                    painter.fillRect(clip, bg_color)
+        finally:
+            painter.end()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         if event.size().width() != event.oldSize().width():

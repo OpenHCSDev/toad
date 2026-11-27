@@ -318,7 +318,15 @@ class SidebarSection(MemberGroupLine, SidebarItem):
         self.toggle_members()
 
 
-class OpenSection(WelcomeSectionLine, SidebarSection):
+class OpensExpandedItem(SidebarItem):
+    """A sidebar item whose shared model owns whether it starts expanded (`opens_expanded`)."""
+
+    def placed(self) -> None:
+        super().placed()
+        self.setExpanded(self.opens_expanded())
+
+
+class OpenSection(WelcomeSectionLine, SidebarSection, OpensExpandedItem):
     """A titled section of rows that are not the sidebar model's (the buses, in the sidebar
     while it holds the window and in the bus switcher): open as the shared sidebar state says
     (`WelcomeSectionLine`), so it stays as the reader left it however often it is drawn
@@ -331,10 +339,6 @@ class OpenSection(WelcomeSectionLine, SidebarSection):
     @property
     def sidebar_state(self):
         return self.treeWidget().window.sidebar_state
-
-    def placed(self) -> None:
-        super().placed()
-        self.setExpanded(self.opens_expanded())
 
 
 class StatusSection(SidebarStatusLine, SidebarSection):
@@ -358,7 +362,7 @@ class StatusSection(SidebarStatusLine, SidebarSection):
         return True
 
 
-class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
+class ConversationRow(QtClockedWave, TargetLine, OpensExpandedItem):
     """A row that opens its target through the target's own polymorphic `open(context)`.
 
     `target` is a `NavigationTarget` (not specifically a `HistoryRouted`) because threads
@@ -379,7 +383,6 @@ class ConversationRow(QtClockedWave, TargetLine, SidebarItem):
         """A new channel line opens as its target opens by default (the feed does), as the
         Textual sidebar's ChannelGroup does; a working thread's line starts waving."""
         super().placed()
-        self.setExpanded(self.opens_expanded())
         self.follow_activity(self.busy)
 
     def take(self, line: SidebarItem) -> None:
@@ -1435,10 +1438,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         self.sync_status()
 
     @property
-    def composer_placeholder(self) -> str:
-        return self.conversation.initial_placeholder
-
-    @property
     def mode(self) -> str:
         return self.entry.mode
 
@@ -1508,9 +1507,6 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         yield self.goal_bar
         self.thread_activity = PeerActivity(self.app, self.app.renderer, peer, self.sync_working)
         yield self.thread_activity
-
-    def show_mention_candidates(self, mentions) -> None:
-        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(mentions))
 
     # Commands the composer offers after a /
 

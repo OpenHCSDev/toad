@@ -207,7 +207,7 @@ async def test_scrolling_prepared_history_keeps_its_intrinsic_content_geometry(w
         chat, history, window = await long_channel(workspace, ui)
         for _ in range(4):
             await ui.press("pageup")
-        await ui.until(lambda: window.max_scroll_y > 12,
+        await ui.until(lambda: window.max_scroll_y > 12 and history.state.accepts_source_work,
                        why="prepared rows on both sides of the scroll trial")
         window.scroll_to(y=window.max_scroll_y / 2, animate=False, immediate=True)
         await ui.step()

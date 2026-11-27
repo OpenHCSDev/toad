@@ -823,11 +823,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             dismissed_text=self.dismissed_text,
         )
 
-    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+    def rebind_toolkit_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         self.host = host
         self.info_bar.configuration_scope = host
         self.info_bar.status.configuration_scope = host
-        self.kept_delivery_preview = None
         self._last_queue_state = None
         self.given_placeholder = draft.placeholder or host.composer_placeholder
         self.mention_candidates = draft.mention_candidates
@@ -849,9 +848,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             self.failure.setText("")
             self.failure.hide()
         self.place_input_box()
-        self.update_prompt()
+
+    def after_rebind_conversation(self) -> None:
         self.fit_height()
-        self.sync_queue()
 
 
 Composer.action_methods = (

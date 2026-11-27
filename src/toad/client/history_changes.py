@@ -306,7 +306,10 @@ class NoHistoryChange:
         previous = window.scroll_y
         with window.layout_scroll():
             window.scroll_y = window.tail_scroll_y
-        return previous != window.scroll_y
+        moved = previous != window.scroll_y
+        if moved:
+            window.refresh_visible_notifications()
+        return moved
 
     def finish_layout(self, answered: int) -> None:
         """No change waits on a layout."""

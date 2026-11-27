@@ -309,9 +309,8 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
         """The widgets the kept position is measured from: layout places them even off screen."""
         return self.reader_for_layout().bodies(self)
 
-    def shift_travel(self, rows: float, destination: float) -> None:
+    def shift_toolkit_travel(self, rows: float, destination: float) -> None:
         """A running scroll animation and its target move by the rows layout moved the reader."""
-        self.shift_arrival_motion(rows)
         self.app.animator.transform_running_animation(self, "scroll_y", lambda value: value + rows)
         self.scroll_target_y = destination + rows
 
@@ -346,10 +345,7 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
     def runway(self, history) -> OffScreenRunway:
         return arranged(history).runway(arranged(self))
 
-    @property
-    def animated_travel(self) -> float:
-        if (travel := self.head_reveal_travel()) is not None:
-            return travel
+    def toolkit_animated_travel(self) -> float:
         return self.scroll_target_y - self.scroll_y if self.app.animator.is_being_animated(self, "scroll_y") else 0
 
     @property

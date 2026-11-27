@@ -66,7 +66,7 @@ from toad.client.history_pager import (
     Runway,
 )
 from toad.client.line_blocks import BlockPreparation, Divider, LineBlock, LineLink
-from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
+from toad.client.history_changes import HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
 from toad.client.prepared_pages import (
@@ -388,13 +388,19 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         header blocks are measured: past them the pin is the same in every block
         (`header_blocks`), so a `y` below them answers the first block after them."""
         blocks = fragment.line_blocks
+        if not blocks:
+            return 0, 0
         _cell, line = self._font_metrics(font)
+        if y < line:
+            return 0, 0
+        decided = fragment.header_blocks
+        if decided == 0 and len(blocks) > 1:
+            return 0, 0
         key = self.fragment_key(fragment, font, width)
         prepared = self.prepared_look(key)
         if prepared is None:
             return 0, 0
         top = 0
-        decided = fragment.header_blocks
         for index, html in enumerate(prepared.leading):
             if index == decided and index < len(blocks) - 1:
                 return index, 0
@@ -406,6 +412,29 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
                 return index, max(0, int((y - top) // line))
             top += height
         return 0, 0
+
+    def header_pin_threshold(self, fragment: HistoryFragment, font: QFont, width: int) -> float | None:
+        """Minimum pixel offset `y` inside `fragment` at which its sticky header pins
+        (`(block, row) > (header_blocks - 1, 0)`), skipping layout of the last header block
+        itself (`Divider` after the globally cached `Gap`)."""
+        decided = fragment.header_blocks
+        if decided <= 0:
+            return 0.0
+        _cell, line = self._font_metrics(font)
+        if decided == 1:
+            return line
+        blocks = fragment.line_blocks
+        key = self.fragment_key(fragment, font, width)
+        prepared = self.prepared_look(key)
+        if prepared is None:
+            return None
+        top = 0.0
+        for index in range(min(decided - 1, len(prepared.leading))):
+            block_key = blocks[index].standalone_cache_key(
+                key, index, lambda header: self.header_key(header, font, width)
+            )
+            top += self.measured_height(block_key, font, width, HtmlRow(prepared.leading[index]))
+        return top + line
 
     def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument | None:
         """A pinned header laid out as its row lays it out at this width. Reuses the same
@@ -1216,18 +1245,17 @@ class QtRowUnderTop(QtTopRow):
     def collapse_link(self) -> FragmentCollapse | None:
         return self.fragment.header_collapse_link()
 
-    @cached_property
-    def under(self) -> FragmentRowUnderTop:
-        """The block and line on the top edge, worked out when a header is pinned: every
-        scroll offset names the reader's message, and only a display frame pins."""
-        block, row = self.window.rows.block_row(self.fragment, self.window.font(), self.width, self.into)
-        return FragmentRowUnderTop(self.fragment, block, row, self.left, self.width)
-
     def reader_position(self, window: QtHistoryWindow) -> FragmentPosition:
         return FragmentPosition(self.fragment.key, self.into / self.height, self.height, block=0)
 
     def pinned_header(self, window: QtHistoryWindow) -> PinnedHeader:
-        return self.under.pinned_header()
+        fragment = self.fragment
+        dividers = fragment.pinned_dividers
+        if not dividers:
+            return PinnedHeader((), self.left, self.width, fragment.key.source)
+        threshold = self.window.rows.header_pin_threshold(fragment, self.window.font(), self.width)
+        headers = dividers if threshold is not None and self.into >= threshold else ()
+        return PinnedHeader(headers, self.left, self.width, fragment.key.source)
 
 
 @dataclass(frozen=True)
@@ -1871,13 +1899,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             return 0
         return max(0, height - self.total_height())
 
-    @property
-    def animated_travel(self) -> float:
-        """Pixels the rows are still being carried with no finger on them, as Textual answers
-        with its scroll animation's distance to its target: a head reveal's way to its head,
-        or a fling's momentum (`fling_travel`)."""
-        if (travel := self.head_reveal_travel()) is not None:
-            return travel
+    def toolkit_animated_travel(self) -> float:
+        """Pixels a fling's momentum (`fling_travel`) still carries the rows."""
         return 0.0 if self.widget_gone else self.fling_travel()
 
     def fling_travel(self) -> float:
@@ -2286,12 +2309,10 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             event.setContentPos(event.contentPos() - QPointF(0, origin))
         return handled
 
-    def shift_travel(self, rows: float, destination: float) -> None:
-        """A head reveal glides to the same message; a finger's drag or fling goes on from
-        the same rows at the same speed. QScroller prepares again from the moved origin: a
-        fling it had planned to end at the loaded edge is planned again at its present
-        speed, into the rows that landed."""
-        self.shift_arrival_motion(rows)
+    def shift_toolkit_travel(self, rows: float, destination: float) -> None:
+        """A finger's drag or fling goes on from the same rows at the same speed. QScroller
+        prepares again from the moved origin: a fling it had planned to end at the loaded edge
+        is planned again at its present speed, into the rows that landed."""
         scroller = QScroller.scroller(self.viewport())
         if scroller.state() != QScroller.State.Inactive:
             self._travel_origin += rows

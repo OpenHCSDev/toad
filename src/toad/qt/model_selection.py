@@ -34,9 +34,8 @@ from toad.acp.agent_configuration import ModelConfigurationSetting
 from toad.client.model_selection import (
     CatalogChoiceSelection,
     CatalogModelField,
-    HighlightPlacement,
-    KeepsHighlight,
     ModelSelectionCore,
+    RankedModel,
     ResetsHighlight,
     SessionChoiceSelection,
 )
@@ -121,42 +120,40 @@ class QtModelSelection(
         recent = await self.recent_choices(scope)
         self.apply_recents(generation, scope, recent)
 
-    def filter_models(self, placement: HighlightPlacement) -> None:
+    def search_query(self) -> str:
+        return self.search_input.text()
+
+    def highlighted_model_id(self) -> str | None:
         current_item = self.option_list.currentItem()
-        previous_id = current_item.data(self.MODEL_ID_ROLE) if current_item is not None else None
-        ranked, summary = self.rank_models(self.search_input.text())
+        return current_item.data(self.MODEL_ID_ROLE) if current_item is not None else None
+
+    def present_filtered_models(
+        self,
+        ranked: list[RankedModel],
+        highlighted_index: int | None,
+        summary: str,
+    ) -> None:
         self.option_list.blockSignals(True)
         self.option_list.clear()
-        ids: list[str | None] = []
         for entry in ranked:
             item = QListWidgetItem(entry.plain_label)
             item.setData(self.MODEL_ID_ROLE, entry.choice.value)
             if entry.choice.description:
                 item.setToolTip(entry.choice.description)
             self.option_list.addItem(item)
-            ids.append(entry.choice.value)
-        if ids:
-            self.option_list.setCurrentRow(placement.index(ids, previous_id))
-        else:
-            self.option_list.setCurrentRow(-1)
+        self.option_list.setCurrentRow(highlighted_index if highlighted_index is not None else -1)
         self.option_list.blockSignals(False)
         self.count_label.setText(summary)
 
     def _on_search_changed(self, _text: str) -> None:
-        self.filter_models(ResetsHighlight())
-        self.refilter = KeepsHighlight()
+        self.search_changed()
 
     def _on_row_highlighted(self, _row: int) -> None:
-        self.refilter = KeepsHighlight()
+        self.note_highlight_moved()
 
     def _on_item_activated(self, item: QListWidgetItem) -> None:
         model_id = item.data(self.MODEL_ID_ROLE)
         if model_id is not None:
-            self.select_model(model_id)
-
-    def submit(self) -> None:
-        item = self.option_list.currentItem()
-        if item is not None and (model_id := item.data(self.MODEL_ID_ROLE)) is not None:
             self.select_model(model_id)
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # type: ignore[override]

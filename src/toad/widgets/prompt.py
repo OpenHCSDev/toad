@@ -872,7 +872,7 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor.post_message(editor.Changed(editor).set_sender(editor))
         editor.update_suggestion()
 
-    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+    def rebind_toolkit_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         self.submissions = host.submissions
         self._bind_conversation_reactives(host)
         self.slash_commands = list(draft.commands)
@@ -881,11 +881,8 @@ class Prompt(NativeMethodKeys, HiddenActions, DismissibleControl, PromptSettingE
         editor = self.prompt_text_area
         editor.disabled = bool(draft.read_only_reason)
         editor.tooltip = draft.read_only_reason or None
-        self.kept_delivery_preview = None
         self.sync_configuration()
         self.sync_session()
-        self.sync_queue()
-        self.update_prompt()
 
     @property
     def input_decision(self) -> InputDecision:

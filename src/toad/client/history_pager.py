@@ -320,8 +320,6 @@ class ReaderPlacement:
                 if not restoring:
                     if rows := self.scroll_y - previous:
                         self.shift_travel(rows, destination)
-                        if not self.gliding_to_end():
-                            self.request_preparation()
                     self.lookahead.relocated(rows)
             finally:
                 self._restoring = restoring
@@ -841,6 +839,9 @@ class HistoryPager(ResumesSource):
             self.latest = self.latest.resume(self)
             self.prepare_visible_pages()
             self.state.check_edges(self)
+
+    def check_visible_notifications(self) -> None:
+        """Refresh visible delivery/read receipts; histories carrying notifications override."""
 
     def invalidate_projection(self) -> None:
         self._generation += 1

@@ -32,7 +32,7 @@ from io import StringIO
 from pathlib import Path
 
 import qasync
-from PySide6.QtCore import QEvent, QPoint, QPointF, Qt
+from PySide6.QtCore import QEvent, QEventLoop, QPoint, QPointF, Qt
 from PySide6.QtGui import QWheelEvent
 from PySide6.QtWidgets import QApplication
 
@@ -66,6 +66,11 @@ def summary(name: str, frames: list[float], latencies: list[float]) -> dict:
         "latency_ms_median": round(statistics.median(latencies), 3) if latencies else 0.0,
         "latency_ms_p95": round(pct(latencies, 0.95), 3),
     }
+
+
+def flush_qt_events() -> None:
+    """Drain Qt paint/timer events without re-entering qasync's asyncio socket notifiers."""
+    QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeSocketNotifiers)
 
 
 class ScrollDrive:
@@ -124,7 +129,7 @@ class ScrollDrive:
         """Apply one scroll position as input, flush the frame, and time both."""
         start = time.perf_counter()
         self.window.scroll_y = value
-        QApplication.processEvents()
+        flush_qt_events()
         frame = self.frame()
         latency = (time.perf_counter() - start) * 1000.0
         return frame, latency
@@ -143,7 +148,7 @@ class ScrollDrive:
 
     async def measure_fling(self) -> dict:
         self.window.scroll_y = self.window.max_scroll_y
-        QApplication.processEvents()
+        flush_qt_events()
         frames, latencies = [], []
         for value in self.fling_positions():
             frame, latency = self.at_scroll(value)
@@ -155,7 +160,7 @@ class ScrollDrive:
         """A wheel burst that reverses partway: Qt routes each step through wheelEvent."""
         viewport = self.window.viewport()
         self.window.scroll_y = self.window.max_scroll_y / 2
-        QApplication.processEvents()
+        flush_qt_events()
         frames, latencies = [], []
         for step in range(24):
             delta = -120 if step < 12 else 120  # scroll up, then reverse
@@ -164,7 +169,7 @@ class ScrollDrive:
                                 QPoint(0, 0), QPoint(0, delta), Qt.MouseButton.NoButton,
                                 Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False)
             QApplication.sendEvent(viewport, event)
-            QApplication.processEvents()
+            flush_qt_events()
             frame = self.frame()
             frames.append(frame)
             latencies.append((time.perf_counter() - start) * 1000.0)
@@ -193,14 +198,14 @@ class ScrollDrive:
         rows, which is exactly what one wire arrival runs. Time the frame and the reader's
         displacement (a jump the reader would see)."""
         self.window.scroll_y = self.window.max_scroll_y * 0.4
-        QApplication.processEvents()
+        flush_qt_events()
         newest = self.history.pages[-1]
         frames, latencies, jumps = [], [], []
         for _ in range(12):
             before = self.window.scroll_y
             start = time.perf_counter()
             newest.range_changed()
-            QApplication.processEvents()
+            flush_qt_events()
             frame = self.frame()
             frames.append(frame)
             latencies.append((time.perf_counter() - start) * 1000.0)
@@ -264,6 +269,10 @@ async def run(profile: Path, out: Path, do_profile: bool) -> None:
     finally:
         app.close()
         await app.close_client()
+        current = asyncio.current_task()
+        for task in asyncio.all_tasks():
+            if task is not current and not task.done():
+                task.cancel()
         QApplication.quit()
 
 

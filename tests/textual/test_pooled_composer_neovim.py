@@ -76,7 +76,7 @@ class _VimTab(ComposerPoolHost, SubmissionView, ProjectPathOwner, Vertical):
     def record_input(self, text: str) -> None:
         pass
 
-    async def refresh_composer(self, access) -> None:
+    def apply_compose_access(self, composer, access) -> None:
         pass
 
     @property

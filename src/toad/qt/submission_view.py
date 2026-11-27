@@ -20,12 +20,11 @@ class QtSubmissionView(SubmissionView):
 
     composer_block: str = ""
 
-    async def refresh_composer(self, access: ComposeAccess) -> None:
+    def apply_compose_access(self, composer, access: ComposeAccess) -> None:
         """Hold the composer with the destination's read-only reason, or release it, and offer
         files where the bus takes them."""
-        self.composer_block = access.block_reason
-        self.on_composer("hold", lambda composer: composer.hold(self.composer_block))
-        self.on_composer("files", lambda composer: composer.offer_files(access.takes_files))
+        composer.hold(access.block_reason)
+        composer.offer_files(access.takes_files)
 
     def draws_user_message(self, reference) -> bool:
         return self.message_history.draws(reference)

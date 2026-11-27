@@ -156,10 +156,6 @@ class CommsChatView(WireConversationView):
         await super()._command_source_changed(event)
         self.refresh_identity()
 
-    @property
-    def composer_placeholder(self) -> str:
-        return self.conversation.initial_placeholder
-
     def attach_pooled_composer(self) -> Prompt | None:
         """Register this chat's first prompt in the shared workspace pool, or check out and
         reparent the pool's live prompt when this chat is the active tab."""
@@ -256,11 +252,6 @@ class CommsChatView(WireConversationView):
     def compose_peer_activity(self, peer: ThreadIncarnation) -> ComposeResult:
         self.thread_activity = ConversationSessionDetails(peer)
         yield self.thread_activity
-
-    def show_mention_candidates(self, mentions) -> None:
-        # Queue mention updates when this chat's pooled composer is currently lent to another
-        # active tab, and apply them immediately when this chat holds it.
-        self.on_composer("mentions", lambda prompt: prompt.set_mention_candidates(mentions))
 
     def queue_controls_changed(self) -> None:
         """A message view has no goal bar to redraw."""

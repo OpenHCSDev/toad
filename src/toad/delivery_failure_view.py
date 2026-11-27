@@ -59,22 +59,17 @@ class DeliveryFailureView(ComposerPoolHost, ComposerStatus, SubmissionView, Toad
                 composer.reparent(park)
         return draft
 
-    async def refresh_composer(self, access: ComposeAccess) -> None:
-        """Draw compose from the caller's Core answer."""
-        if not self.is_attached:
-            return
+    def can_refresh_composer(self) -> bool:
+        return self.is_attached
+
+    def apply_compose_access(self, prompt: Prompt, access: ComposeAccess) -> None:
         reason = access.block_reason
-        self.composer_block = reason
-
-        def apply(prompt: Prompt) -> None:
-            prompt.offer_files(access.takes_files)
-            area = prompt.prompt_text_area
-            area.disabled = bool(reason)
-            area.tooltip = reason or None
-            if not area.disabled and self.screen.focused is None:
-                self.screen.set_focus(area)
-
-        self.on_composer("access", apply)
+        prompt.offer_files(access.takes_files)
+        area = prompt.prompt_text_area
+        area.disabled = bool(reason)
+        area.tooltip = reason or None
+        if not area.disabled and self.screen.focused is None:
+            self.screen.set_focus(area)
 
     @property
     def submission_composer(self):

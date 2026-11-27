@@ -37,6 +37,7 @@ from agent_comms.transport.tools.sidebar import (
 from agent_comms.ui_model.observation import ReadNotifications
 from metaclass_registry.mro_dispatch import handles
 
+from toad.client.composer_pool import ComposerPoolHost
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation import ConversationKind
 from toad.client.resource_release import ResourceRelease
@@ -47,7 +48,7 @@ from toad.client.conversation_capabilities import (
     ConversationSource,
 )
 
-from toad.client.fragments import EvidencedFragment, FragmentKey, MessageShown
+from toad.client.fragments import EvidencedFragment, FragmentKey, HistoryFragment, MessageShown
 from toad.client.history_preparation import HistorySourceSnapshot, PageRequest
 from toad.client.history_reads import NothingToRead, PaintedRead, ReadMarking, ReadWork
 from toad.client.message_file_links import PageFiles
@@ -198,7 +199,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
         """Read the conversation again, as the view reads it now."""
         await self.view._refresh()
 
-    def retain_painted(self, fragment: EvidencedFragment) -> None:
+    def retain_painted(self, fragment: HistoryFragment) -> None:
         """Keep actual painted evidence until its original page is acknowledged."""
         fragment.retain_painted(self)
 
@@ -262,7 +263,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
         await self.refresh_source()
 
 
-class WireView(ConversationActivity):
+class WireView(ConversationActivity, ComposerPoolHost):
     """A frontend's view of one wire conversation, as its page source, its sends and its
     commands address it. A plain parent: each toolkit's widget metaclass would conflict
     with ABCMeta.
@@ -273,6 +274,13 @@ class WireView(ConversationActivity):
 
     conversation: ConversationKind
     message_history: ReadMarkedHistory
+
+    @property
+    def composer_placeholder(self) -> str:
+        return self.conversation.initial_placeholder
+
+    def show_mention_candidates(self, mentions) -> None:
+        self.on_composer("mentions", lambda composer: composer.set_mention_candidates(mentions))
 
     def begin_submission(self, owner, submission):
         """A channel or inbox message goes where this view's page source says."""
