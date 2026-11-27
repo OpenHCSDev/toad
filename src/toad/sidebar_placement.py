@@ -97,9 +97,15 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     def handle_text(cls, size: Size) -> str: ...
 
     @classmethod
-    @abstractmethod
     def toggle_text(cls, collapsed: bool, heading: str) -> str:
         """The toggle's arrows around the bar's heading."""
+        symbol = cls.toggle_symbol(collapsed)
+        return cls._toggle_text_step(collapsed, heading, symbol)
+
+    @classmethod
+    @abstractmethod
+    def _toggle_text_step(cls, collapsed: bool, heading: str, symbol) -> str:
+        ...
 
     @classmethod
     @abstractmethod
@@ -205,9 +211,8 @@ class WidthSidebarEdge(SidebarEdge):
         return "\n".join("│" for _ in range(size.height))
 
     @classmethod
-    def toggle_text(cls, collapsed: bool, heading: str) -> str:
+    def _toggle_text_step(cls, collapsed: bool, heading: str, symbol) -> str:
         """A column: the arrow, the heading read downward, the arrow."""
-        symbol = cls.toggle_symbol(collapsed)
         return "\n".join((symbol, "", *heading, "", symbol))
 
     @classmethod
@@ -288,9 +293,8 @@ class HeightSidebarEdge(SidebarEdge):
         return "─" * size.width
 
     @classmethod
-    def toggle_text(cls, collapsed: bool, heading: str) -> str:
+    def _toggle_text_step(cls, collapsed: bool, heading: str, symbol) -> str:
         """One centered row with the edge's arrows flanking the heading (no second blank arrow row)."""
-        symbol = cls.toggle_symbol(collapsed)
         return f"{symbol}  {heading}  {symbol}"
 
     @classmethod
@@ -426,9 +430,8 @@ class BandRoom(ABC):
         """How many of the band's bars divide its width."""
 
     @classmethod
-    @abstractmethod
     def walled(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int]) -> int:
-        """Rows the folded strips take from the wall."""
+        return 0
 
     def share(self, extent: int) -> SidebarGeometry:
         return SidebarGeometry(self.beyond, extent, next(self.starts), next(self.widths))
@@ -463,10 +466,6 @@ class OpenBandRoom(BandRoom):
     def sharing(cls, folds: Sequence[type[SidebarFold]]) -> int:
         return sum(fold.shares for fold in folds)
 
-    @classmethod
-    def walled(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int]) -> int:
-        return 0
-
     def strip(self, extent: int) -> SidebarGeometry:
         return SidebarGeometry(0, self.band_extent or extent, next(self.starts), next(self.widths))
 
@@ -477,10 +476,6 @@ class FoldedBandRoom(BandRoom):
     @classmethod
     def sharing(cls, folds: Sequence[type[SidebarFold]]) -> int:
         return len(folds)
-
-    @classmethod
-    def walled(cls, folds: Sequence[type[SidebarFold]], extents: Sequence[int]) -> int:
-        return 0
 
     def strip(self, extent: int) -> SidebarGeometry:
         return self.share(extent)

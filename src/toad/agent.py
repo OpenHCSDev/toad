@@ -6,20 +6,21 @@ from typing import TYPE_CHECKING
 
 from agent_comms.registry.thread_presentation import ThreadPresentation
 
+from toad.acp.agent_configuration import AgentConfiguration
 from toad.acp.status import StopReason
 from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
-from toad.conversation_turn import NoTurn
-from toad.core.events import CoreEventStream
+from toad.client.db import DB
+from toad.conversation_turn import NoTurn, TurnOwner
+from toad.core.events import CoreEventStream, SessionAgentAttached
+from toad.session_observation import SessionObservation
 from toad.submission_queue import QueueSource
 from toad.surface_binding import SurfaceBinding
 
 if TYPE_CHECKING:
     from agent_comms.registry.thread_presentation import ExistingSessionLoadPlan
 
-    from toad.conversation_turn import TurnOwner
     from toad.screens.main import MainScreen
-    from toad.session_observation import SessionObservation
     from toad.widgets.conversation import Conversation, ConversationSessionBinding
 
 
@@ -30,12 +31,10 @@ class AgentBase(AgentConnection):
         self.project_root_path = project_root
         self.events = CoreEventStream(self)
         self.presentation = LocalAgentPresentation(self)
-        from toad.acp.agent_configuration import AgentConfiguration
 
         self.configuration = AgentConfiguration(self)
 
     def attach_view(self, view) -> None:
-        from toad.core.events import SessionAgentAttached
 
         self.attach_surface(view.agent_surface(self.events))
         view.publish_core(SessionAgentAttached())
@@ -80,7 +79,6 @@ class AgentBase(AgentConnection):
         observation.schedule(self)
 
     async def project_changed(self, path: Path) -> None:
-        from toad.client.db import DB
 
         self.project_root_path = path
         if (session_pk := self.session.pk) is not None:

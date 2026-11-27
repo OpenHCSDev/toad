@@ -23,7 +23,7 @@ from toad.widgets.prompt import Prompt
 from toad.worker_group import InputHistoryRecord
 
 
-class ComposerPark(StartsHidden, Widget):
+class ComposerPark(StartsHidden):
     """Hidden workspace slot holding detached pooled composers between tabs so closing a
     tab never unmounts or destroys a reusable composer subtree."""
 

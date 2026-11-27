@@ -13,6 +13,7 @@ from textual.reactive import var, Initialize
 from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
 from textual.css.styles import Styles
 from textual.view import AUTO, FILL
+from toad.widgets.diff_view import make_diff
 from ui_theme.scheme import BackgroundColour, PrimaryColour
 
 from toad.native_style import (
@@ -234,7 +235,6 @@ class PermissionsScreen(BackgroundArea, QuestionContext, PriorityActions, Cycles
     async def add_diff(
         self, path1: str, path2: str, before: str | None, after: str
     ) -> None:
-        from toad.widgets.diff_view import make_diff
 
         diff_view = make_diff(path1, path2, before, after)
         await diff_view.prepare()

@@ -986,7 +986,11 @@ class HoldingInspection(RevisionedInspection):
 
     @property
     def status(self) -> str:
-        return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nReading native context…"
+        thread_name = self.thread_identity.thread_name()
+        return self._status_step(thread_name)
+
+    def _status_step(self, thread_name) -> str:
+        return f"{thread_name} · {self.inspection.core.status}\nReading native context…"
 
 
 class SettledInspection(HoldingInspection, declared_name=None):
@@ -1004,9 +1008,8 @@ class SavedInspection(SettledInspection):
     def prepare_native[Result](self, consumer: Callable[[HoldingInspection], Result]) -> None:
         pass
 
-    @property
-    def status(self) -> str:
-        return (f"{self.thread_identity.thread_name()} · stopped · saved context records\n"
+    def _status_step(self, thread_name) -> str:
+        return (f"{thread_name} · stopped · saved context records\n"
                 "Live Core/native preview unavailable; no owner process is required.")
 
 
@@ -1042,9 +1045,8 @@ class NativeInspection(SettledInspection):
     def native_matches(self, current: InspectionState):
         return current.contains_native(lambda native: native is self.native)
 
-    @property
-    def status(self) -> str:
-        return (f"{self.thread_identity.thread_name()} · {self.inspection.core.status}; native base available\n"
+    def _status_step(self, thread_name) -> str:
+        return (f"{thread_name} · {self.inspection.core.status}; native base available\n"
                 f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
 
 
@@ -1057,6 +1059,5 @@ class UnavailableNativeInspection(HoldingInspection):
             return UnavailableNativeInspection(acquired.inspection, acquired.revision, self.error)
         return acquired
 
-    @property
-    def status(self) -> str:
-        return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"
+    def _status_step(self, thread_name) -> str:
+        return f"{thread_name} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"

@@ -104,18 +104,23 @@ class MessageContentEffect(MroDispatch):
         if content.text:
             self.publish(content)
 
+    def publish(self, content: TextContentBlock):
+        _step_value = self._publish_step(content)
+        self.agent.events.publish(_step_value)
+
     @abstractmethod
-    def publish(self, content: TextContentBlock): ...
+    def _publish_step(self, content: TextContentBlock):
+        ...
 
 
 class UserContentEffect(MessageContentEffect):
-    def publish(self, content: TextContentBlock):
-        self.agent.events.publish(events.UserMessage(content.type, content.text))
+    def _publish_step(self, content: TextContentBlock):
+        return events.UserMessage(content.type, content.text)
 
 
 class ThoughtContentEffect(MessageContentEffect):
-    def publish(self, content: TextContentBlock):
-        self.agent.events.publish(events.Thinking(content.type, content.text,
+    def _publish_step(self, content: TextContentBlock):
+        return (events.Thinking(content.type, content.text,
             ThoughtStream(source_claim=self.agent.controller.session.output.assistant)))
 
 
@@ -124,11 +129,11 @@ class AgentContentEffect(MessageContentEffect):
         super().__init__(agent)
         self.stream = stream
 
-    def publish(self, content: TextContentBlock):
+    def _publish_step(self, content: TextContentBlock):
         text = content.text
         if text.startswith("[agent error]"):
             text += f"\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}"
-        self.agent.events.publish(events.Update(content.type, text, self.stream))
+        return events.Update(content.type, text, self.stream)
 
 
 class SessionNotificationOwner(ClientRequestOwner):

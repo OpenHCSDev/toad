@@ -200,9 +200,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
 
     def retain_painted(self, fragment: EvidencedFragment) -> None:
         """Keep actual painted evidence until its original page is acknowledged."""
-        if fragment.evidence is not None and self._painted_reads.get(fragment.key) is not fragment:
-            self._painted_reads[fragment.key] = fragment
-            self.mark_visible_after_paint()
+        fragment.retain_painted(self)
 
     def retire_painted(self, fragments: tuple[EvidencedFragment, ...], proof: MessagePage) -> None:
         """Release only these receipts, never a newer paint of the same message."""
