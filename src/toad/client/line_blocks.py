@@ -356,13 +356,25 @@ class LineBlock:
     def prepared_rows[RowsT](self, width: int, draw: Callable[[LineBlock], RowsT]) -> RowsT:
         return draw(self)
 
+    def standalone_cache_key(self, row_key, index: int, shared_key: Callable[[LineBlock], object]):
+        """Cache key when measuring this leading block on its own: `(row_key, index)` unless
+        a subclass declares value-keyed sharing across rows and pinned headers."""
+        return (row_key, index)
+
     @property
     def selection_text(self) -> str:
         return ""
 
 
+class SharedStandaloneBlock(LineBlock):
+    """A value-keyed leading block whose standalone layout is shared across rows and pinned headers."""
+
+    def standalone_cache_key(self, row_key, index: int, shared_key: Callable[[LineBlock], object]):
+        return shared_key(self)
+
+
 @dataclass(frozen=True)
-class Divider(LineBlock):
+class Divider(SharedStandaloneBlock):
     """A rule carrying a title: who speaks, or who sent a message to whom.
 
     Title text without a link is drawn in the rule's role; a linked span keeps
@@ -485,7 +497,7 @@ class Summary(SpanText):
 
 
 @dataclass(frozen=True)
-class Gap(LineBlock):
+class Gap(SharedStandaloneBlock):
     """One blank line between messages."""
 
     renders_inline: ClassVar[bool] = True

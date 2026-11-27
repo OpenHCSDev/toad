@@ -2155,3 +2155,82 @@ def test_pending_reader_scroll_flushes_before_layout_and_frame_paint_caches_per_
         assert "background:" in flash.styleSheet()
     finally:
         flash.deleteLater()
+
+
+def test_block_row_and_pinned_header_share_one_cached_document_and_prepare_inline(monkeypatch):
+    """`HistoryRowDelegate.block_row` and `header_document` share one cache key via
+    `Divider.standalone_cache_key` so crossing a message during scroll lays its header out
+    once instead of twice, and `header_document` prepares a cold `Divider` inline without a
+    worker-pool round-trip."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+    import inspect
+    from agent_comms.messaging.messages import InfoKind, Message
+    from agent_comms.transcript.transcript_events import IncomingTranscript
+    from PySide6.QtGui import QFont
+    from toad.client.message_file_links import NO_PAGE_FILES
+    from toad.client.transcript_fragments import transcript_fragments
+    from toad.markdown_links import LinkContext, ReferenceContext
+    from toad.qt.history import HistoryRowDelegate
+    from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
+    from toad.qt.window import RowPictures
+
+    scheme = current_scheme(os.environ)
+    concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
+
+    class _ExplodingPool:
+        def submit(self, *_a, **_kw):
+            raise AssertionError("header_document should prepare inline Divider without worker pool")
+
+    delegate = HistoryRowDelegate(renderer, RowPictures(4 * 1024 * 1024), _ExplodingPool())
+    font = QFont("monospace", 10)
+    try:
+        msg = Message(sender="toad-qt", target="#comms", body="Body line 1\nBody line 2", type=InfoKind)
+        frag = transcript_fragments(
+            (IncomingTranscript.of(msg, reader="user"),),
+            resolve_sent=lambda _r: {},
+            classes=QT_FRAGMENT_CLASSES,
+            files=NO_PAGE_FILES,
+        )[0]
+        header = frag.pinned_dividers[0]
+        # 1. Cold header_document prepares inline without touching RenderProcessPool.
+        cold_doc = delegate.header_document(header, font, 360)
+        assert cold_doc is not None
+
+        # 2. Prepared rows: block_row measures leading Gap + Divider and shares both:
+        #    - header_document reuses the exact cached Divider doc (0 extra layouts),
+        #    - a second message's block_row reuses the cached Gap doc (only 1 layout for its Divider).
+        delegate._documents.clear()
+        delegate._metrics.clear()
+        msg2 = Message(sender="other", target="#comms", body="Second body", type=InfoKind)
+        frag2 = transcript_fragments(
+            (IncomingTranscript.of(msg2, reader="user"),),
+            resolve_sent=lambda _r: {},
+            classes=QT_FRAGMENT_CLASSES,
+            files=NO_PAGE_FILES,
+        )[0]
+        for f in (frag, frag2):
+            prep = delegate.row_preparation(f, font, 360)
+            delegate._row_prepared(delegate.fragment_key(f, font, 360), prep.render())
+
+        new_doc_calls = 0
+        orig_new_document = delegate.new_document
+
+        def _counting_new_doc(f, w):
+            nonlocal new_doc_calls
+            new_doc_calls += 1
+            return orig_new_document(f, w)
+
+        delegate.new_document = _counting_new_doc
+        delegate.block_row(frag, font, 360, 40)
+        assert new_doc_calls == 2  # Gap once + Divider 1 once
+        pinned_doc = delegate.header_document(header, font, 360)
+        assert pinned_doc is not None
+        assert new_doc_calls == 2  # header_document hits the exact Divider doc from block_row
+        delegate.block_row(frag2, font, 360, 40)
+        assert new_doc_calls == 3  # Gap reused; only Divider 2 laid out
+        assert delegate.header_document(frag2.pinned_dividers[0], font, 360) is not None
+        assert new_doc_calls == 3
+    finally:
+        delegate.cleanup()

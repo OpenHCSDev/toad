@@ -65,7 +65,7 @@ from toad.client.history_pager import (
     ReaderPlacement,
     Runway,
 )
-from toad.client.line_blocks import BlockPreparation, Divider, LineLink
+from toad.client.line_blocks import BlockPreparation, Divider, LineBlock, LineLink
 from toad.client.history_changes import FragmentRowUnderTop, HeaderPin, PinnedHeader, PinsMessageHeader, TopPage
 from toad.client.history_preparation import HistorySourceSnapshot
 from toad.client.history_state import LiveTranscript
@@ -279,13 +279,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         fill the width. A draft or live row grows, so its revision is part of the key."""
         return self.drawn_key((fragment.key, fragment.shown, fragment.revision), font, width)
 
-    def header_key(self, header: Divider, font: QFont, width: int):
-        """A pinned header on its own: prepared, kept and laid out as a row is."""
+    def header_key(self, header: LineBlock, font: QFont, width: int):
+        """A standalone block (pinned header or gap) on its own: prepared, kept and laid out as a row is."""
         return self.drawn_key(self.header_shown(header), font, width)
 
     @staticmethod
-    def header_shown(header: Divider) -> tuple:
-        """A header's place in a key, where a row's has its fragment, look and revision."""
+    def header_shown(header: LineBlock) -> tuple:
+        """A standalone block's place in a key, where a row's has its fragment, look and revision."""
         return header, None, 0
 
     def _font_spec(self, font: QFont) -> tuple[str, float]:
@@ -397,18 +397,26 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         for index, html in enumerate(prepared.leading):
             if index == decided and index < len(blocks) - 1:
                 return index, 0
-            height = self.measured_height((key, index), font, width, HtmlRow(html))
+            block_key = blocks[index].standalone_cache_key(
+                key, index, lambda header: self.header_key(header, font, width)
+            )
+            height = self.measured_height(block_key, font, width, HtmlRow(html))
             if y < top + height or index == len(blocks) - 1:
                 return index, max(0, int((y - top) // line))
             top += height
         return 0, 0
 
     def header_document(self, header: Divider, font: QFont, width: int) -> QTextDocument | None:
-        """A pinned header laid out as its row lays it out at this width, or none while it is
-        prepared. Its rich text came with its row (`RenderedRow.pinned`); a header no row brought
-        in this look (the width or the links just changed) is prepared as a row is, in a
-        render process, and the pin is drawn again when it lands."""
+        """A pinned header laid out as its row lays it out at this width. Reuses the same
+        cache key as `block_row` so crossing a message during scroll lays its header out once,
+        and prepares a lightweight `Divider` (`renders_inline=True`) inline on the warm
+        renderer if its cache entry is cold (e.g. immediately after resize or theme switch)."""
         key = self.header_key(header, font, width)
+        if key not in self._prepared and width > 0 and header.renders_inline:
+            cell, _line = self._font_metrics(font)
+            cols = max(1, int((width - 8) / cell))
+            html = self.renderer.at_width(cols).html((header,))
+            self._row_prepared(key, RenderedRow(html, (), ()))
         formatting = self.keyed_formatting(key, "", self.block_preparation((header,), font, width))
         return self.laid_out(key, font, width, formatting) if formatting.final else None
 
