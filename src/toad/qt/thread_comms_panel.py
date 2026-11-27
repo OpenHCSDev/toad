@@ -93,9 +93,11 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         # The thread sidebar's search narrows the relationship rows, as Textual's
         # `ThreadCommsSidebar` follows its sidebar's search (`SearchFollower`).
         self._search = search
-        search.subscribe(lambda _text: self.present())
+        search.subscribe(lambda _text: self._reapply_search())
         self._states: dict[SessionIdentity, RelationshipTreeState] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
+        self._snapshot_identity: SessionIdentity | None = None
+        self._revision: object = None
         self._refresh_task: asyncio.Task | None = None
         column = QVBoxLayout(self)
         column.setContentsMargins(UiGap.frame, UiGap.normal, UiGap.frame, UiGap.normal)
@@ -144,7 +146,15 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         self._categories.set_category(category, on)
         self._sync_checks()
 
-    def present(self) -> None:
+    def _reapply_search(self) -> None:
+        if self._snapshot is not None and self._snapshot_identity == self.thread_identity:
+            self._apply(self._snapshot)
+        else:
+            self.present()
+
+    def present(self, *, force: bool = False) -> None:
+        if force:
+            self._revision = None
         self._sync_checks()
         asyncio.ensure_future(self._refresh())
 
@@ -153,25 +163,32 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
             return
         self._refresh_task = asyncio.current_task()
         try:
-            identity = self.thread_identity
-            root = identity.root_path
-            if root is None:
-                self._context.setText("No thread root")
-                self._tree.clear()
-                return
-            app = self._app
-            access = app.coordination_access
-            service = await self.observed_source(access, app.preparation, root)
-            if service is None or identity != self.thread_identity:
-                return
-            snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
-            if identity != self.thread_identity:
-                return
-            self._apply(snapshot)
+            await self.thread_identity.inspect_owner(
+                self._refresh_owner,
+                self.show_source_unavailable,
+            )
         finally:
             self._refresh_task = None
 
+    async def _refresh_owner(self, identity) -> None:
+        app = self._app
+        service = await self.observed_source(app.coordination_access, app.preparation, identity.root_path)
+        if service is None or identity != self.thread_identity:
+            return
+        revision = await app.preparation.run_thread(service.wire_revision)
+        if identity == self._snapshot_identity and revision == self._revision:
+            return
+        snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
+        if identity != self.thread_identity:
+            return
+        self._snapshot_identity = identity
+        self._revision = revision
+        self._apply(snapshot)
+
     def show_source_unavailable(self, text: str) -> None:
+        self._snapshot = None
+        self._snapshot_identity = None
+        self._revision = None
         self._context.setText(text)
         self._tree.clear()
 
@@ -210,7 +227,11 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
     def _item_clicked(self, item: QTreeWidgetItem) -> None:
         shown = self._row_entry(item)
         if shown is not None and shown[1].available:
-            asyncio.ensure_future(self._open_current(*shown))
+            asyncio.ensure_future(
+                self.open_current_relationship(
+                    self._app.coordination_access, self._app.preparation, *shown
+                )
+            )
 
     def _offer_row_menu(self, point) -> None:
         """The relationship's own menu (`RelationshipLine.menu_entries`) for the row under
@@ -225,32 +246,24 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         self._app.offer_entries(entries)
 
     def relationship_opener(self, line: QtRelationshipItem):
-        """Open reads the list again first (`_open_current`), as Textual's opener does."""
-        return lambda: asyncio.ensure_future(self._open_current(line.group, line.entry))
+        """Open reads the list again first (`open_current_relationship`), as Textual does."""
+        return lambda: asyncio.ensure_future(
+            self.open_current_relationship(
+                self._app.coordination_access, self._app.preparation, line.group, line.entry
+            )
+        )
 
     def copy_name(self, name: str) -> None:
         self._app.copy_to_clipboard(name)
 
-    async def _open_current(self, group, entry: RelationshipEntry) -> None:
-        """Open the relationship as it stands now: the list read again, and a relationship
-        that changed since it was drawn is not opened (Textual's `_navigate_current`)."""
-        app = self._app
-        identity = self.thread_identity
-        if identity.root_path is None:
-            return
-        if identity.root_path != app.coordination_access.observation.observed().root:
-            app.show_warning(self.wrong_bus_warning, "Comms")
-            return
-        service = await self.observed_source(app.coordination_access, app.preparation, identity.root_path)
-        if service is None:
-            return
-        snapshot = await app.preparation.run_thread(service.relationships, identity.thread_name())
-        current = snapshot.current_entry(group, entry)
-        if current is None:
-            app.show_warning(self.changed_entry_warning, "Comms")
-            self.present()
-            return
-        app.open_target(entry_target(current))
+    def notify_comms_warning(self, message: str) -> None:
+        self._app.show_warning(message, "Comms")
+
+    def refresh_after_changed_entry(self) -> None:
+        self.present(force=True)
+
+    def select_relationship_target(self, target) -> None:
+        self._app.open_target(target)
 
     def _item_expanded(self, item: QTreeWidgetItem) -> None:
         group_type = item.data(0, Qt.ItemDataRole.UserRole)
@@ -277,4 +290,4 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
                 app.preparation, service, identity, snapshot.sortable_groups, order)
         finally:
             if identity == self.thread_identity:
-                self.present()
+                self.present(force=True)

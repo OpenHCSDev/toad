@@ -621,3 +621,95 @@ def test_gui_and_tui_share_theme_tones_and_resolve_identical_colours() -> None:
             assert f"background-color:{renderer.colour(role)}" in html
 
 
+def test_relationship_panel_owns_open_current_and_target_on_both_frontends():
+    import asyncio
+    from pathlib import Path
+    from agent_comms.registry.relationships import RelationshipEntry
+    from agent_comms.registry.thread_identity import RecordedThreadIncarnation
+    from toad.client.relationship_tree_state import RelationshipPanel
+    from toad.qt.thread_comms_panel import QtThreadCommsPanel
+    from toad.thread_identity import NoThreadIdentity, ThreadIdentity
+    from toad.widgets.thread_comms import ThreadCommsSidebar
+
+    for member in ("open_current_relationship", "open_relationship_target"):
+        _owned_by(RelationshipPanel, member, QtThreadCommsPanel, ThreadCommsSidebar)
+    assert "_open_current" not in vars(QtThreadCommsPanel)
+
+    events: list[tuple] = []
+
+    class _Prep:
+        async def run_thread(self, fn, *args):
+            return fn(*args)
+
+    class _Observed:
+        def __init__(self, root: Path):
+            self.root = root
+
+    class _Service:
+        def __init__(self, current):
+            self._current = current
+
+        def relationships(self, _name: str):
+            current = self._current
+            return type("_Snap", (), {"current_entry": lambda _s, _g, _e: current})()
+
+    class _Access:
+        def __init__(self, observed_root: Path, service):
+            self.observation = type("_Obs", (), {"observed": lambda _s: _Observed(observed_root)})()
+            self._service = service
+
+        def observing(self, _root):
+            return self._service
+
+    class _ProbePanel(RelationshipPanel):
+        def __init__(self, identity):
+            self.thread_identity = identity
+            self._states = {}
+
+        def notify_comms_warning(self, message: str) -> None:
+            events.append(("warn", message))
+
+        def refresh_after_changed_entry(self) -> None:
+            events.append(("refresh",))
+
+        def select_relationship_target(self, target) -> None:
+            events.append(("open", target))
+
+        def show_source_unavailable(self, text: str) -> None:
+            events.append(("unavail", text))
+
+    entry = RelationshipEntry(
+        target="peer",
+        kind="thread",
+        available=True,
+    )
+    bound = ThreadIdentity(RecordedThreadIncarnation(name="me", created_at=1.0), "/tmp/bus-a")
+
+    async def _run() -> None:
+        # 1. Detached identity silently does nothing without touching access.
+        await _ProbePanel(NoThreadIdentity()).open_current_relationship(None, _Prep(), object, entry)
+        assert events == []
+
+        # 2. Stale entry warns and refreshes.
+        await _ProbePanel(bound).open_current_relationship(
+            _Access(Path("/tmp/bus-a"), _Service(None)), _Prep(), object, entry
+        )
+        assert events == [("warn", RelationshipPanel.changed_entry_warning), ("refresh",)]
+        events.clear()
+
+        # 3. Wrong bus warns instead of selecting target.
+        await _ProbePanel(bound).open_current_relationship(
+            _Access(Path("/tmp/bus-b"), _Service(entry)), _Prep(), object, entry
+        )
+        assert events == [("warn", RelationshipPanel.wrong_bus_warning)]
+        events.clear()
+
+        # 4. Matching bus selects the current entry target.
+        await _ProbePanel(bound).open_current_relationship(
+            _Access(Path("/tmp/bus-a"), _Service(entry)), _Prep(), object, entry
+        )
+        assert len(events) == 1 and events[0][0] == "open"
+
+    asyncio.run(_run())
+
+
