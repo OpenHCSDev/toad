@@ -226,6 +226,8 @@ with tempfile.TemporaryDirectory() as recipes:
           "from toad.client.application_actions import ApplicationAction; "
           "blank = [action.__name__ for action in ApplicationAction.declarations() if not action.summary()]; "
           "blank and sys.exit(f'error: application actions with an empty summary at -O{sys.flags.optimize}: {blank}'); "
+          "from agent_comms.installer.harness_install import HarnessSession; "
+          "'claude_bridge' in HarnessSession.__registry__ or sys.exit('error: HarnessSession discovery missed claude_bridge'); "
           "print('shipped app imports toad.qt.main; every application action has a summary'); print(json.dumps(sorted(sys.modules)))")],
         capture_output=True, text=True, timeout=120, cwd=recipes, check=False,
         env=os.environ | {"PYTHONOPTIMIZE": str(optimize)})
