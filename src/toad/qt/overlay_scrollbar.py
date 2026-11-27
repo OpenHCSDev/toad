@@ -15,8 +15,8 @@ from PySide6.QtCore import QEvent, QObject, QRect, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QAbstractScrollArea, QAbstractSlider, QScrollBar
 from ui_theme.clock import AnimationClock
-from ui_theme.scheme import BackgroundColour, SurfaceHoverColour
 
+from toad.client.theme_tones import ScrollbarTones
 from toad.motion import SCROLLBAR_FADE, TransitionTarget
 from toad.qt.lines import QtLineRenderer
 from toad.qt.widget_animation import WidgetAnimation
@@ -60,8 +60,9 @@ class OverlayScrollBar(QScrollBar):
         self.thickness = 0
         self.fade: ScrollbarFade | None = None
         self.handle_opacity = 1.0
-        self._bg_color = QColor(BackgroundColour.rgb(renderer.scheme).hex)
-        self._handle_color = QColor(SurfaceHoverColour.rgb(renderer.scheme).hex)
+        self._bg_color = QColor(renderer.theme(ScrollbarTones.track_colour))
+        self._handle_color = QColor(renderer.theme(ScrollbarTones.thumb_colour))
+        self._active_color = QColor(renderer.theme(ScrollbarTones.active_colour))
         self._last_thumb = QRect()
         self._last_moved = 0.0
         self.still = QTimer(self)
@@ -119,8 +120,9 @@ class OverlayScrollBar(QScrollBar):
     def paint_colours(self) -> None:
         """Cache the track background and raised handle colours; `paintEvent` draws both
         directly with `WA_OpaquePaintEvent`."""
-        self._bg_color = QColor(BackgroundColour.rgb(self.renderer.scheme).hex)
-        self._handle_color = QColor(SurfaceHoverColour.rgb(self.renderer.scheme).hex)
+        self._bg_color = QColor(self.renderer.theme(ScrollbarTones.track_colour))
+        self._handle_color = QColor(self.renderer.theme(ScrollbarTones.thumb_colour))
+        self._active_color = QColor(self.renderer.theme(ScrollbarTones.active_colour))
         if self.isVisible():
             self.update()
 
@@ -136,7 +138,7 @@ class OverlayScrollBar(QScrollBar):
                     painter.setOpacity(self.handle_opacity)
                 radius = max(1.0, thumb.width() / 2.0)
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(self._handle_color)
+                painter.setBrush(self._active_color if self.isSliderDown() else self._handle_color)
                 painter.drawRoundedRect(thumb, radius, radius)
         painter.end()
 

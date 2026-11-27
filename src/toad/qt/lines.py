@@ -17,7 +17,7 @@ from rich.cells import cell_len
 from rich.style import Style
 from rich.syntax import ANSI_DARK, ANSI_LIGHT
 from ui_theme.colour import require_terminal_palette
-from ui_theme.scheme import ColourScheme, RuleColour, ThemeColour
+from ui_theme.scheme import ColourScheme, ThemeColour
 
 from toad.client.line_blocks import (
     Body,
@@ -240,7 +240,7 @@ class QtLineRenderer(LineBlockPainter[str]):
         room = CellRoom(self.width)
         groups = [row for group in DIVIDER_TIME.project_value(block.timestamp, block.spans, room)
                   for row in room.wrapped(group)]
-        colour = self.theme(RuleColour)
+        colour = self.colour(block.role)
         rule = f'<td valign="middle"><hr style="background-color:{colour};color:{colour}"/></td>'
         return "".join(
             f'<table width="100%" cellspacing="0" cellpadding="0"><tr>'

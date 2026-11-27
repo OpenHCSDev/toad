@@ -17,7 +17,7 @@ from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, TabHistoryControls
 from toad.widgets.footer import ToadFooter
 from toad.widgets.switch_toast import SwitchToast
-from ui_theme.scheme import HeaderToneColour
+from toad.client.theme_tones import WorkspaceTabTones
 from toad.tone_paint import TonePaint
 from toad.layout_preferences import FollowsLayoutPreferences
 from toad.session_presentation import NativeSessionSurface
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 class WorkspaceHeader(FollowsLayoutPreferences, TonePaint, WidgetView, Horizontal):
     COMPOSITING_LAYER = True
-    tone = HeaderToneColour
+    tone = WorkspaceTabTones.bar_tone
     width = FILL
     height = AUTO
 

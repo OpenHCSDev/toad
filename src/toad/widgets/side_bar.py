@@ -38,6 +38,7 @@ from textual.css.styles import Styles
 from textual.widget import Widget
 
 from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour, PrimaryColour, SuccessColour
+from toad.client.theme_tones import SidebarToggleToneColour
 
 from toad.core.projection import MroProjection
 from toad.native_style import (
@@ -555,7 +556,7 @@ class SideBarToggle(
     """Collapse target spanning the conversation-facing resize edge."""
 
     native_theme = (
-        NativeDeclaration.of(Styles.background, Variable(PrimaryColour.name), Percent(8)),
+        NativeDeclaration.of(Styles.background, Variable(SidebarToggleToneColour.name)),
     )
 
     def apply_native_layout(self) -> None:

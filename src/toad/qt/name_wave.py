@@ -16,6 +16,7 @@ from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLa
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
 from ui_theme.effects import Band
+from ui_theme.scheme import ColourScheme, ThemeColour
 
 from toad.client.name_wave import BandCells, NameWave
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
@@ -45,11 +46,13 @@ class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
     KEPT = 256
     """How many rows' bold titles are kept; past it they are all dropped and made again."""
 
-    def __init__(self, accent: QColor, *args) -> None:
+    def __init__(self, accent: QColor, scheme: ColourScheme, *args) -> None:
         super().__init__(*args)
         self.accent = accent
+        self.scheme = scheme
         self.accent_format = QTextCharFormat()
         self.accent_format.setForeground(accent)
+        self._row_tone_colours: dict[type[ThemeColour], QColor] = {}
         # A row's prepared text and the same text with its title bold, by the prepared text's
         # identity: pyqt-reactive hands the same prepared text back until the row's text,
         # font or width changes, and a changed one is another object.
@@ -63,6 +66,26 @@ class QtNameWaveDelegate(BandCells, MultilinePreviewItemDelegate):
         self.title_length = 0
         self._painted_index: object = None
         self._painted_span: tuple[int, int] | None = None
+
+    def row_tone_qcolor(self, tone: type[ThemeColour]) -> QColor:
+        cached = self._row_tone_colours.get(tone)
+        if cached is None:
+            cached = self._row_tone_colours[tone] = QColor(tone.rgb(self.scheme).hex)
+        return cached
+
+    def paint(self, painter: QPainter, option, index) -> None:  # type: ignore[override]
+        view = self.parent()
+        item = view.itemFromIndex(index)
+        if item is not None:
+            tone = item.row_tones[index.row() % 2]
+            band = QRect(
+                option.rect.left(),
+                option.rect.top(),
+                max(option.rect.width(), view.viewport().width() - option.rect.left()),
+                option.rect.height(),
+            )
+            painter.fillRect(band, self.row_tone_qcolor(tone))
+        super().paint(painter, option, index)
 
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
@@ -258,6 +281,13 @@ class QtSessionTabBar(BandCells, TearOffTabBar):
         self._tab_chrome: dict[tuple, QImage] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
+
+    def set_colours(self, accent: QColor, ink: QColor) -> None:
+        self.accent = accent
+        self.ink = ink
+        self.accent_format.setForeground(accent)
+        self._tab_chrome.clear()
+        self.update()
 
     def show_tabs(self, entries: list[tuple[str, str]]) -> bool:
         """Draw ``entries`` (title, mode) as the bar's tabs; whether anything changed. The same

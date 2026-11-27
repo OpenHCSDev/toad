@@ -17,6 +17,7 @@ from pyqt_reactive.widgets.status_line import NoticeLine
 from ui_theme.clock import AnimationClock
 
 from toad.client.pending import PendingWork, ShowsPending
+from toad.client.theme_tones import FloatSurfaceTones
 from toad.qt.activity import ActivitySweep
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
@@ -65,14 +66,14 @@ class QtNoticeCard(QFrame):
     """One notice floating over the page, in its severity's colour, put away after the
     host's notice seconds or by a tap, as a Textual toast is."""
 
-    def __init__(self, scheme: ColorScheme, text: str, role: StatusColorRole, seconds: float,
+    def __init__(self, scheme: ColorScheme, background_hex: str, text: str, role: StatusColorRole, seconds: float,
                  parent: QWidget) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.text = text
         self.setObjectName("notice")
         self.setStyleSheet(
-            f"#notice {{ background: {scheme.to_hex(scheme.panel_bg)};"
+            f"#notice {{ background: {background_hex};"
             f" border-left: 4px solid {role.color_hex(scheme)}; border-radius: 4px; }}")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(UiGap.tight, UiGap.tight, UiGap.tight, UiGap.tight)
@@ -110,6 +111,7 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         super().__init__(window)
         self.setWindowFlags(Qt.WindowType.Widget)
         self.scheme = scheme
+        self.renderer = renderer
         self.notices = QVBoxLayout()
         self.notices.setSpacing(UiGap.tight)
         layout = QVBoxLayout(self)
@@ -127,7 +129,8 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         """Draw what floats in `scheme` from now on; a notice already shown keeps its colours
         until it goes."""
         self.scheme = scheme
-        self.pending.setStyleSheet(f"background: {scheme.to_hex(scheme.panel_bg)}; border-radius: 4px;")
+        float_bg = self.renderer.theme(FloatSurfaceTones.background_tone)
+        self.pending.setStyleSheet(f"background: {float_bg}; border-radius: 4px;")
 
     def _notice_cards(self) -> list[QtNoticeCard]:
         """Direct child notice cards in insertion order, without touching ``QLayout.itemAt``
@@ -140,7 +143,8 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
             self.notices.removeWidget(stale)
             stale.setParent(None)
             stale.deleteLater()
-        card = QtNoticeCard(self.scheme, text, role, seconds, self)
+        float_bg = self.renderer.theme(FloatSurfaceTones.background_tone)
+        card = QtNoticeCard(self.scheme, float_bg, text, role, seconds, self)
         card.destroyed.connect(self.follow_content)
         self.notices.addWidget(card)
         self.follow_content()
