@@ -63,7 +63,7 @@ from toad.core.events import CoordinationObserved, ThreadRowsChanged
 from toad.core.link_context_changed import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
-from toad.history_jump import ReaderWindow
+from toad.history_jump import PagedReader
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.client.session_scope import SessionOrigin, SessionScope
@@ -1196,7 +1196,7 @@ class TranscriptPresentation(TranscriptPages, EntryPlacement):
 
         if any(candidate.display for candidate in candidates):
             # Their rows leave the window now; the reader stays on theirs.
-            contents.query_ancestor(ReaderWindow).keep_reader()
+            contents.query_ancestor(PagedReader).keep_reader()
         for candidate in candidates:
             candidate.display = False
         retirement = asyncio.create_task(

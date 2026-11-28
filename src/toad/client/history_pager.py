@@ -181,6 +181,11 @@ class PagingWindow(ReaderWindow):
     arrival_burst: ArrivalBurst = NO_BURST
     """The messages that last arrived together at the end the reader follows."""
 
+    @property
+    def scroll_in_motion(self) -> bool:
+        """Whether an active drag, fling, or unsettled scroll burst is moving this window."""
+        return False
+
     def arrivals_followed(self, arrivals: tuple[HistoryFragment, ...]) -> None:
         """`arrivals` were published at the followed end: they join the burst while the reader
         follows it, or while the burst is still arriving (Textual stops following where it

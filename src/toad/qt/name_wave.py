@@ -325,7 +325,7 @@ class QtClockedWave(NameWave):
 
     @property
     def animation_visible(self) -> bool:
-        return self.wave_visible()
+        return self.wave_visible() and not self.wave_clock().scrolling
 
     def wave_running(self) -> bool:
         return self.animation is not None
@@ -431,7 +431,7 @@ class QtTabMarquee(TitleMarquee):
 
     @property
     def animation_visible(self) -> bool:
-        return self.bar.isVisible()
+        return self.bar.isVisible() and not self.bar.clock.scrolling
 
     def marquee_running(self) -> bool:
         return self.animation is not None

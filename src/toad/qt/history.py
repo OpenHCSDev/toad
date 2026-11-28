@@ -76,7 +76,7 @@ from toad.client.reader_position import (
     FragmentLocation, FragmentPosition, ReaderPage, ReaderPosition, RowPosition, TailPosition,
     UnloadedFragment,
 )
-from toad.history_jump import FollowsTail, JumpsToLatest, ReaderWindow
+from toad.history_jump import FollowsTail, JumpsToLatest, PagedReader
 from toad.no_worker import NoTask
 from toad.qt.live_turn import QtLiveBlock
 from toad.qt.workspace_frame import QtWorkspaceHosted
@@ -1204,13 +1204,6 @@ class QtHistoryNotifications(OneHistoryNotifications):
     notification_work = NoTask()
     _notifications_timer: QTimer | None = None
 
-    def check_notifications(self) -> None:
-        """Defer notification re-subscription while a finger is actively dragging or flinging
-        QScroller; `QtHistoryWindow._on_scroller_state` flushes the instant motion settles."""
-        if self.message_history.window.actively_scrolling:
-            return
-        super().check_notifications()
-
     def report_queue_evidence(self) -> None:
         """New queue evidence repaints the composer's queue rows, as Textual's
         `Conversation.queue_evidence_changed` does through its submissions. Skip scheduling
@@ -1534,7 +1527,7 @@ class QtJumpBar(LatestJumpBar, QPushButton):
         self.setVisible(shown)
 
 
-class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, ReaderWindow,
+class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, PagedReader,
                       QtWorkspaceHosted, VirtualRowCanvas, PagingWindow, TogglesFragmentShown, PinsMessageHeader,
                       SettingsReading):
     """The reader window of one Qt conversation: prefix-sum virtual rows of the history's
@@ -1665,6 +1658,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def _on_widget_destroyed(self, *_args) -> None:
         self.stop_arrival_motion()
+        self.animation_clock.set_scrolling(self, False)
 
     async def acquire_links(self, app) -> None:
         """The names this conversation's bodies link through; redraw rows only if links changed."""
@@ -2200,6 +2194,8 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def hideEvent(self, event) -> None:  # type: ignore[override]
         super().hideEvent(event)
         self.actively_scrolling = False
+        self._settle_timer.stop()
+        self._sync_clock_scrolling()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         """A window that follows the latest message stays on it when its height changes: the
@@ -2317,10 +2313,18 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             return False
         return self.start_head_reveal(self.scroll_y + top)
 
+    @property
+    def scroll_in_motion(self) -> bool:
+        """Whether a finger drag/fling or an unsettled scroll burst is moving the viewport."""
+        return self.actively_scrolling or self._settle_timer.isActive()
+
+    def _sync_clock_scrolling(self) -> None:
+        self.animation_clock.set_scrolling(self, self.scroll_in_motion)
+
     def _on_scroller_state(self, state) -> None:
         """A finger taking the rows stops a head reveal; a press that stops a fling is
-        remembered, so its release is not read as a tap on a row. Notification checks wait
-        until the drag/fling settles instead of firing hundreds of Core subscriptions mid-fling."""
+        remembered, so its release is not read as a tap on a row. Notification checks,
+        read-marking, and decorative chrome animations wait until motion settles."""
         scrolling = state in (QScroller.State.Dragging, QScroller.State.Scrolling)
         was_scrolling = self.actively_scrolling
         self.actively_scrolling = scrolling
@@ -2334,8 +2338,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self._overshoot = 0.0
             self._travel_origin = 0.0
         if was_scrolling and not scrolling:
-            for history in tuple(self.histories):
-                history.notification_view.check_notifications_after_refresh()
+            if self._settle_timer.isActive():
+                self._settle_timer.stop()
+                self._sync_clock_scrolling()
+                self._settle()
+            else:
+                self._sync_clock_scrolling()
+                self.request_preparation()
+        else:
+            self._sync_clock_scrolling()
 
     _travel_origin = 0.0
     """How far layout has moved the reader since the finger now scrolling them came down.
@@ -2451,6 +2462,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self._last_scroll_at = monotonic()
         if not self._settle_timer.isActive():
             self._settle_timer.start(int(self.lookahead.idle_seconds * 1000))
+            self._sync_clock_scrolling()
 
     def _on_settle_timer(self) -> None:
         if self.widget_gone:
@@ -2459,6 +2471,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         if remaining_ms > 15:
             self._settle_timer.start(remaining_ms)
             return
+        self._sync_clock_scrolling()
         self._settle()
 
     def after_source_presented(self, callback, *arguments) -> None:

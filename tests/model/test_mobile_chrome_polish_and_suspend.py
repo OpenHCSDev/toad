@@ -250,3 +250,131 @@ def test_wire_view_skips_rpc_storm_on_pure_activity_or_read_ticks():
     reg_change = replace(base, catalog=(rev(3),))
     assert WireView._conversation_stores_changed(seen, reg_change)
     assert reg_change.changed_since(RegistrationsView(), base)
+
+
+def test_scroll_in_motion_defers_notifications_reads_style_and_decorative_clock():
+    """Active scroll motion defers notification WS re-subscriptions, painted read-mark RPCs,
+    lazy message_style reads, and infinite decorative chrome animations until settle, without
+    duplicate `ReaderWindow` names in either frontend's MRO."""
+    from types import SimpleNamespace
+    from PySide6.QtGui import QColor
+    from PySide6.QtWidgets import QApplication
+    from agent_comms.messaging.message_reference import MessageReference
+    from agent_comms.messaging.read_basis import NoDisplaySelection
+    from toad.client.history import ReadMarkedHistory
+    from toad.client.history_notifications import OneHistoryNotifications, SourceNotifications
+    from toad.client.history_pager import PagingWindow
+    from toad.client.history_reads import NothingToRead
+    from toad.history_jump import PagedReader
+    from toad.qt.history import QtHistoryWindow
+    from toad.qt.name_wave import QtSessionTabBar, QtTabWave
+    from toad.qt.widget_animation import QtAnimationClock
+    from toad.widgets.history_anchor import HistoryWindow
+
+    # No duplicate ReaderWindow name in either frontend MRO (IDEN-2).
+    for cls in (QtHistoryWindow, HistoryWindow):
+        names = [c.__name__ for c in cls.__mro__]
+        assert names.count("ReaderWindow") == 1
+        assert issubclass(cls, PagedReader)
+        assert issubclass(cls, PagingWindow)
+
+    # Scroll-motion deferral on SourceNotifications + ReadMarkedHistory.
+    class _FakeWindow(PagingWindow):
+        def __init__(self) -> None:
+            self._moving = True
+
+        @property
+        def scroll_in_motion(self) -> bool:
+            return self._moving
+
+    win = _FakeWindow()
+    subscribed: list[tuple] = []
+    marked: list[str] = []
+    styled: list[str] = []
+    scheduled: list[object] = []
+
+    class _FakeHistory(SourceNotifications, ReadMarkedHistory):
+        can_draw_on_screen = True
+        is_attached = True
+        window = win
+        notification_references = (MessageReference(seq=1, message_id="1-abc"),)
+
+        def __init__(self, view) -> None:
+            self.notification_view = view
+            self._painted_reads = {"k": SimpleNamespace(evidence="proof")}
+            self._read_mark_scheduled = False
+            self.page_source = SimpleNamespace(painted_read=lambda _h: SimpleNamespace(start=lambda _m: marked.append("read")))
+
+        def notification_identity_for(self, _wanted):
+            return NoDisplaySelection()
+
+        def read_running(self) -> bool:
+            return False
+
+        def call_after_refresh(self, cb, *args) -> None:
+            scheduled.append((cb, args))
+
+        def follow_message_style(self) -> None:
+            styled.append("style")
+
+    class _FakeView(OneHistoryNotifications):
+        def __init__(self) -> None:
+            self.app = SimpleNamespace(coordination_access=SimpleNamespace(shows_notifications=lambda _v: False))
+            self.message_history = _FakeHistory(self)
+
+        def subscribe_notifications(self, references) -> bool:
+            subscribed.append(tuple(references))
+            return True
+
+        def report_queue_evidence(self) -> None:
+            pass
+
+        def run_notification_work(self, work) -> None:
+            pass
+
+        def check_notifications_after_refresh(self) -> None:
+            pass
+
+    view = _FakeView()
+    hist = view.message_history
+
+    # While scrolling: notifications, read-marks, after-paint schedule, and style lookup all defer.
+    view.check_notifications()
+    hist.mark_visible_after_paint()
+    assert isinstance(hist.read_visible(), NothingToRead)
+    assert subscribed == []
+    assert marked == []
+    assert scheduled == []
+    assert styled == []
+
+    # Once scroll settles: notifications, read-marks, and style flush cleanly.
+    win._moving = False
+    view.check_notifications()
+    hist.mark_visible()
+    hist.mark_visible_after_paint()
+    assert len(subscribed) == 1
+    assert marked == ["read"]
+    assert len(scheduled) == 1
+
+    # QtAnimationClock pauses decorative chrome targets while scrolling and resumes on settle.
+    _app = QApplication.instance() or QApplication([])
+    intervals: list[float | None] = []
+    clock = QtAnimationClock(intervals.append)
+    bar = QtSessionTabBar(clock, QColor("#ff8800"), QColor("#eeeeee"))
+    bar.show()
+    wave = QtTabWave(bar, "t1")
+    wave.start_wave()
+    assert wave.animation_visible is True
+    assert bar.marquee.animation_visible is True
+    owner = object()
+    clock.set_scrolling(owner, True)
+    assert clock.scrolling is True
+    assert wave.animation_visible is False
+    assert bar.marquee.animation_visible is False
+    assert intervals[-1] is None
+    clock.set_scrolling(owner, False)
+    assert clock.scrolling is False
+    assert wave.animation_visible is True
+    assert intervals[-1] is not None
+    wave.stop_wave()
+    bar.deleteLater()

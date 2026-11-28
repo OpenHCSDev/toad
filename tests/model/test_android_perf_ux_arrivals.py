@@ -377,15 +377,16 @@ def test_scroll_perf_optimizations_cache_overlays_and_keep_animations_live(monke
     from PySide6.QtWidgets import QListView
     from toad.markdown_links import ReferenceContext
     from toad.qt.activity import ActivitySweep
+    from toad.qt.widget_animation import QtAnimationClock
 
     scheduled: list[float | None] = []
-    clock = AnimationClock(scheduled.append)
+    clock = QtAnimationClock(scheduled.append)
     scheme = current_scheme(os.environ)
     concrete = [c for c in ReferenceContext.__subclasses__() if not inspect.isabstract(c)][0]
     renderer = QtLineRenderer(scheme, LinkContext(Path("."), concrete()), DiffSettings())
 
-    # 1. Ambient animations (tab waves and ActivitySweep loading spinner) stay live and are never
-    #    paused while scrolling.
+    # 1. Decorative chrome animations (tab waves and ActivitySweep) run when idle and yield
+    #    while a viewport is actively scrolling, resuming cleanly on settle.
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.show_tabs([("#comms", "comms")])
     bar.show()
@@ -393,6 +394,12 @@ def test_scroll_perf_optimizations_cache_overlays_and_keep_animations_live(monke
     assert wave.animation_visible is True
     sweep = ActivitySweep(renderer, clock)
     sweep.show()
+    assert sweep.animation_visible is True
+    clock.set_scrolling(bar, True)
+    assert wave.animation_visible is False
+    assert sweep.animation_visible is False
+    clock.set_scrolling(bar, False)
+    assert wave.animation_visible is True
     assert sweep.animation_visible is True
     sweep.deleteLater()
 
@@ -444,6 +451,7 @@ def test_failed_observation_notifications_do_not_crash_on_resume() -> None:
 
     class FakeHistory:
         can_draw_on_screen = True
+        notifications_deferred = False
         notification_references = (MessageReference(seq=1, message_id="1-abc"),)
 
         def notification_identity_for(self, wanted):
@@ -1318,7 +1326,8 @@ def test_wave4_virtual_row_canvas_direct_value_and_tab_chrome_cache(monkeypatch)
     task.accept_result.assert_called_once_with("ready")
 
     # 3. QtSessionTabBar caches busy-tab QSS chrome QImage across wave frames.
-    clock = AnimationClock(lambda _interval: None, now=lambda: 0.5)
+    from toad.qt.widget_animation import QtAnimationClock
+    clock = QtAnimationClock(lambda _interval: None, now=lambda: 0.5)
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
     bar.show_tabs([("#comms", "comms")])
     bar.follow_tabs((SimpleNamespace(mode_name="comms", busy=True),))
@@ -3046,7 +3055,8 @@ def test_compact_marquee_tabs_and_multifile_pickers(monkeypatch, tmp_path) -> No
     # 1. Compact tabs: short tabs stay tight; 3 long tabs fit inside a 300 px Android strip;
     #    marquee runs ONLY while overflowing and advances offset after the pause.
     now = [0.0]
-    clock = AnimationClock(lambda _dt: None, now=lambda: now[0])
+    from toad.qt.widget_animation import QtAnimationClock
+    clock = QtAnimationClock(lambda _dt: None, now=lambda: now[0])
     strip = QScrollArea()
     bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"), QColor("#aaaaaa"))
     bar.setTabsClosable(True)

@@ -12,7 +12,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QLinearGradient, QPainter
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pyqt_reactive.widgets.fitted_text import ElidedLine
-from ui_theme.clock import Animation, AnimationClock
+from ui_theme.clock import Animation
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 from ui_theme.scheme import BackgroundColour
 
@@ -23,7 +23,7 @@ from toad.qt.core_events import QtCoreObserver
 from toad.qt.lines import QtLineRenderer
 from toad.status_thread import ObservedActivity
 from toad.qt.metrics import UiGap
-from toad.qt.widget_animation import WidgetAnimation
+from toad.qt.widget_animation import QtAnimationClock, WidgetAnimation
 
 
 class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
@@ -36,7 +36,7 @@ class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
     backing store continuously.
     """
 
-    def __init__(self, renderer: QtLineRenderer, clock: AnimationClock) -> None:
+    def __init__(self, renderer: QtLineRenderer, clock: QtAnimationClock) -> None:
         super().__init__()
         self.renderer = renderer
         self.working = False
@@ -73,6 +73,10 @@ class ActivitySweep(SweepEffect, WidgetAnimation, QWidget):
     def repaint(self) -> None:
         """A shared clock tick invalidates this strip; Qt schedules its native paint."""
         self.update()
+
+    @property
+    def animation_visible(self) -> bool:
+        return super().animation_visible and not self.clock.scrolling
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QPainter(self)

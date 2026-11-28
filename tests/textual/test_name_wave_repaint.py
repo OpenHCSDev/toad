@@ -35,9 +35,9 @@ class RecordedTabBar:
     """What a tab title's wave asks of its bar: the band's cells, and to paint its tab."""
 
     def __init__(self, spans: list[tuple[int, int]]) -> None:
-        from ui_theme.clock import AnimationClock
+        from toad.qt.widget_animation import QtAnimationClock
 
-        self.clock = AnimationClock(lambda interval: None)
+        self.clock = QtAnimationClock(lambda interval: None)
         self.spans = iter(spans)
         self.repainted: list[str] = []
 
@@ -162,9 +162,9 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     assert len(delegate._row_images[id(kept_item_row)][1]) == before_variants + 1
 
     from toad.qt.name_wave import QtSessionTabBar
-    from ui_theme.clock import AnimationClock
+    from toad.qt.widget_animation import QtAnimationClock
 
-    bar = QtSessionTabBar(AnimationClock(lambda _dt, _cb: None), accent, QColor("#eeeeee"))
+    bar = QtSessionTabBar(QtAnimationClock(lambda _dt: None), accent, QColor("#eeeeee"))
     try:
         layout = bar.bold_line("toad-qt", 120)
         assert layout.cacheEnabled() is True

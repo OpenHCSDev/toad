@@ -57,7 +57,6 @@ from toad.qt.finger_press import FingerPress
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.qt.tap_flash import QtPushButton, QtTextButton
-from ui_theme.clock import AnimationClock
 from ui_theme.scheme import (
     AlternateRowToneColour,
     ColourScheme,
@@ -74,7 +73,7 @@ from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ACTIVE_PRESENCE, ApplicationPresence, ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
-from toad.qt.widget_animation import frame_interval
+from toad.qt.widget_animation import QtAnimationClock, frame_interval
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
@@ -1764,7 +1763,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._animations_paused = False
         self._layout_pending = False
         self._presence: ApplicationPresence = ACTIVE_PRESENCE
-        self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
+        self.animation_clock = QtAnimationClock(self._schedule_animation, enabled=animations_enabled())
         # Notices and the work the reader waits on float over the pages, never in their layout.
         self.float_layer = QtFloatLayer(
             self.theme.color_scheme, self.renderer, self.animation_clock, self)

@@ -157,7 +157,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
-        if self.can_draw_on_screen:
+        if self.can_draw_on_screen and not self.window.scroll_in_motion:
             self.mark_visible()
             self.follow_message_style()
 
@@ -183,7 +183,10 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
 
     def mark_visible_after_paint(self) -> None:
         """Try marking read again once the frontend has painted its next frame, coalesced so
-        painting many rows in one scroll frame schedules one callback instead of N."""
+        painting many rows in one scroll frame schedules one callback instead of N. Defers
+        while the window is actively scrolling; settle flushes `prepare_viewport()` once."""
+        if self.window.scroll_in_motion:
+            return
         if not self._read_mark_scheduled:
             self._read_mark_scheduled = True
             self.call_after_refresh(self._run_scheduled_mark_visible)
@@ -218,7 +221,7 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
         return tuple(self._painted_reads.values())
 
     def read_visible(self) -> PaintedRead:
-        if not self.is_attached:
+        if not self.is_attached or self.window.scroll_in_motion:
             return NothingToRead()
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
             return NothingToRead()

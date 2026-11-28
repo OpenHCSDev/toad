@@ -143,7 +143,7 @@ class FollowsTail(JumpsToLatest):
         self.rejoin_reached_tail()
 
 
-class ReaderWindow(JumpsToLatest):
+class PagedReader(JumpsToLatest):
     """A history window the reader keys move: a page either way, or back to the latest
     (`reader_actions`). Textual's `HistoryWindow` and Qt's `QtHistoryWindow` both list it."""
 

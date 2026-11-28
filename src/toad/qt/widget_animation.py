@@ -17,6 +17,35 @@ from PySide6.QtWidgets import QWidget
 from ui_theme.clock import AnimationClock
 
 
+class QtAnimationClock(AnimationClock):
+    """Qt's shared animation clock: tracks scrolling history windows so infinite decorative
+    chrome effects (name waves, tab marquees, activity sweeps) yield while scrolling without
+    stalling finite transitions (arrivals, fades, tab open/close) or expanding Android's
+    backing-store dirty bounding box to a full-screen GPU upload."""
+
+    def __init__(self, schedule, *, enabled: bool = True, frame_interval: float = 1 / 60,
+                 now=None) -> None:
+        if now is None:
+            super().__init__(schedule, enabled=enabled, frame_interval=frame_interval)
+        else:
+            super().__init__(schedule, now=now, enabled=enabled, frame_interval=frame_interval)
+        self._scrolling_owners: set[int] = set()
+
+    @property
+    def scrolling(self) -> bool:
+        return bool(self._scrolling_owners)
+
+    def set_scrolling(self, owner: object, active: bool) -> None:
+        was = self.scrolling
+        oid = id(owner)
+        if active:
+            self._scrolling_owners.add(oid)
+        else:
+            self._scrolling_owners.discard(oid)
+        if self.scrolling != was:
+            self.refresh()
+
+
 def frame_interval(screen: QScreen | None) -> float:
     """Seconds between the frames `screen` shows: one over its refresh rate (a Pixel 8a's 120 Hz),
     or 60 Hz where it reports none (offscreen, some remote displays). Motion ticks at it
