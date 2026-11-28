@@ -3,6 +3,8 @@ import json
 import os
 import signal
 import sys
+from abc import ABC
+from dataclasses import dataclass
 from functools import cached_property
 from inspect import isabstract
 from pathlib import Path
@@ -89,6 +91,32 @@ class ToadLoadingIndicator(TransparentBackground, LoadingIndicator):
 
 
 
+class BusPickResult(ABC):
+    """Result of the bus picker dialog: either a chosen PickerRow or dismissal."""
+
+    def picked_bus(self, owner: ToadApp) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: PickerRow | None) -> 'BusPickResult':
+        return AbsentBusPickResult() if value is None else HeldBusPickResult(value)
+
+
+@dataclass(frozen=True)
+class AbsentBusPickResult(BusPickResult):
+    """Absent `BusPickResult` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldBusPickResult(BusPickResult):
+    """Held `BusPickResult` carrying its present value."""
+
+    value: PickerRow
+
+    def picked_bus(self, owner: ToadApp) -> None:
+        self.value.chosen(owner)
+
+
 class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, CorePrewarm, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
@@ -166,10 +194,9 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
         self.call_from_thread(self.exit, Succeeded(runtime))
         raise asyncio.CancelledError
 
-    def picked_bus(self, row: PickerRow | None) -> None:
+    def picked_bus(self, row: BusPickResult) -> None:
         """The picked row says what picking it does; a dismissed picker changes nothing."""
-        if row is not None:
-            row.chosen(self)
+        row.picked_bus(self)
 
     def tailnet_answered(self, answer: TailnetAnswer) -> None:
         self.tailnet_answers.publish(answer)
@@ -242,7 +269,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     # The default notice stays on the base so a Qt frontend still gets the menu item.
 
     def open_bus_switcher(self) -> None:
-        self.push_screen(BusChoices(), self.picked_bus)
+        self.push_screen(BusChoices(), lambda row: self.picked_bus(BusPickResult.from_optional(row)))
 
     async def edit_settings(self) -> None:
         self.run_worker(self._edit_settings_worker)

@@ -2,7 +2,7 @@
 
 from toad.screens.welcome import WelcomeScreen
 from toad.screens.workspace import SessionHost, WorkspaceScreen
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from collections.abc import Callable
 from pathlib import Path
@@ -185,6 +185,36 @@ class SessionStartFailed(RuntimeError):
     """A session's own startup failed; the app has already shown that error."""
 
 
+class ObservedWireRoot(ABC):
+    """Currently observed bus wire root path, or absence when detached."""
+
+    @abstractmethod
+    def target_for(self, owner: VisiblePublication) -> NavigationTarget:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: Path | None) -> 'ObservedWireRoot':
+        return AbsentObservedWireRoot() if value is None else HeldObservedWireRoot(value)
+
+
+@dataclass(frozen=True)
+class AbsentObservedWireRoot(ObservedWireRoot):
+    """Absent `ObservedWireRoot` carrying no value."""
+
+    def target_for(self, owner: VisiblePublication) -> NavigationTarget:
+        return NoTarget()
+
+
+@dataclass(frozen=True)
+class HeldObservedWireRoot(ObservedWireRoot):
+    """Held `ObservedWireRoot` carrying its present value."""
+
+    value: Path
+
+    def target_for(self, owner: VisiblePublication) -> NavigationTarget:
+        return owner.view.navigation_target if owner.view is not None and owner.view.belongs_to_wire(self.value) else NoTarget()
+
+
 @dataclass(frozen=True)
 class VisiblePublication:
     """The selected view, published when the source changes. The view owns its target and its
@@ -192,11 +222,9 @@ class VisiblePublication:
 
     view: SessionScope | None
 
-    def target_for(self, root: Path | None) -> NavigationTarget:
+    def target_for(self, root: ObservedWireRoot) -> NavigationTarget:
         return (
-            self.view.navigation_target
-            if root is not None and self.view is not None and self.view.belongs_to_wire(root)
-            else NoTarget()
+            root.target_for(self)
         )
 
 
@@ -283,7 +311,7 @@ class WorkspaceSessions(WorkspaceViews):
 
     def visible_target(self, root: Path | None) -> NavigationTarget:
         """The selected logical destination, including while a modal covers its frame."""
-        return self._publication.target_for(root)
+        return self._publication.target_for(ObservedWireRoot.from_optional(root))
 
     def target_for_mode(self, identity: str, root: Path | None) -> NavigationTarget:
         """Resolve a transition's destination from its original workspace view."""

@@ -339,6 +339,13 @@ class RichPresentation:
             return tuple(lines)
         return tuple(line._apply_link_style(style) for line in lines)
 
+    def apply_justify(self, renderable):
+        """Return a copy of the Rich Text with this presentation's justification applied when declared."""
+        if self.justify is not None:
+            renderable = renderable.copy()
+            renderable.justify = self.justify
+        return renderable
+
 
 def prepare_rich(source: RichSource, presentation: RichPresentation) -> PreparedRichContent:
     """Measure/highlight/wrap/segment with native Rich entirely in a worker."""
@@ -357,9 +364,9 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
         renderable = text
     elif isinstance(renderable, str):
         renderable = Text.from_markup(renderable, justify=presentation.justify)
-    elif isinstance(renderable, Text) and presentation.justify is not None:
-        renderable = renderable.copy()
-        renderable.justify = presentation.justify
+    else:
+        if isinstance(renderable, Text):
+            renderable = presentation.apply_justify(renderable)
     width = max(1, measure(console, renderable, options.max_width,
                            container_width=options.max_width) if presentation.auto_width else options.max_width)
     segments = console.render(

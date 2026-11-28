@@ -329,6 +329,11 @@ class RowMetrics:
         """Return the recorded row extent or the fallback viewport width."""
         return width if self.extent is None else self.extent
 
+    def record_initial_size(self, width: int, owner: RowDocumentStore, doc_size) -> None:
+        """Record the first measured QSize for this row metrics entry if not yet cached."""
+        if self.size is None:
+            self.size = QSize(width, math.ceil(doc_size.height()) + owner.ROW_PADDING)
+
 
 class RowSize:
     """One row slot's measured size at the current font and width, and its preparation key."""
@@ -583,8 +588,7 @@ class RowDocumentStore(ABC):
         extent = math.ceil(doc_size.width())
         if extent > width:
             entry.extent = extent
-        if entry.size is None:
-            entry.size = QSize(width, math.ceil(doc_size.height()) + self.ROW_PADDING)
+        entry.record_initial_size(width, self, doc_size)
         if len(self._documents) > self.MAX_DOCUMENTS:
             self._documents.popitem(last=False)
         return document

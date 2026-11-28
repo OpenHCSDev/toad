@@ -25,14 +25,12 @@ class InputModality(ABC):
     @classmethod
     def hover_rule(cls, rule: str) -> str:
         """Emit a QSS `:hover` rule only when this modality actually has a hovering pointer."""
-        return rule if cls.hover_highlights else ""
+        return rule
 
     @classmethod
     def hover_or_pressed(cls, selector: str, body: str) -> str:
         """Style `:hover, :pressed` on pointer devices and `:pressed` alone on touch screens."""
-        if cls.hover_highlights:
-            return f"{selector}:hover, {selector}:pressed {{ {body} }}"
-        return f"{selector}:pressed {{ {body} }}"
+        return f'{selector}:hover, {selector}:pressed {{ {body} }}'
 
     @classmethod
     @abstractmethod
@@ -89,3 +87,11 @@ class TouchInput(InputModality):
     @classmethod
     def row_subtext(cls, description: str) -> str:
         return description
+
+    @classmethod
+    def hover_or_pressed(cls, selector: str, body: str) -> str:
+        return f'{selector}:pressed {{ {body} }}'
+
+    @classmethod
+    def hover_rule(cls, rule: str) -> str:
+        return ''

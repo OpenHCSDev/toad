@@ -11,7 +11,11 @@ from collections.abc import Callable
 from typing import ClassVar
 
 from toad.client.menu_entry import MenuEntry
-from toad.client.relationship_row_menu import menu_entries_for_row
+from toad.client.relationship_row_menu import (
+    AbsentRowOpenAction,
+    HeldRowOpenAction,
+    menu_entries_for_row,
+)
 from toad.command_catalog import CommandCatalog
 
 
@@ -159,7 +163,7 @@ class RelationshipLine(TargetLine):
         return menu_entries_for_row(
             target_name=self.target_name,
             copy=tree.copy_name,
-            open_callback=tree.relationship_opener(self) if self.available else None,
+            open_callback=HeldRowOpenAction(tree.relationship_opener(self)) if self.available else AbsentRowOpenAction(),
         )
 
 

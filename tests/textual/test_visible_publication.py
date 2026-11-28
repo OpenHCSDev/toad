@@ -7,7 +7,11 @@ Nothing caches the target, so a change in the view's navigation_target is seen o
 from pathlib import Path
 
 from toad.navigation_target import NoTarget
-from toad.workspace_sessions import VisiblePublication
+from toad.workspace_sessions import (
+    AbsentObservedWireRoot,
+    HeldObservedWireRoot,
+    VisiblePublication,
+)
 
 
 class FakeTarget:
@@ -26,26 +30,26 @@ class FakeView:
 def test_a_bound_view_answers_only_for_its_own_root():
     target = FakeTarget()
     publication = VisiblePublication(FakeView(Path("/a"), target))
-    assert publication.target_for(Path("/a")) is target
-    assert isinstance(publication.target_for(Path("/b")), NoTarget)
+    assert publication.target_for(HeldObservedWireRoot(Path("/a"))) is target
+    assert isinstance(publication.target_for(HeldObservedWireRoot(Path("/b"))), NoTarget)
 
 
 def test_an_unbound_view_answers_for_any_root():
     target = FakeTarget()
     publication = VisiblePublication(FakeView(None, target))
-    assert publication.target_for(Path("/a")) is target
-    assert publication.target_for(Path("/b")) is target
+    assert publication.target_for(HeldObservedWireRoot(Path("/a"))) is target
+    assert publication.target_for(HeldObservedWireRoot(Path("/b"))) is target
 
 
 def test_no_root_gets_no_target_even_from_a_bound_view():
     publication = VisiblePublication(FakeView(Path("/a"), FakeTarget()))
-    assert isinstance(publication.target_for(None), NoTarget)
+    assert isinstance(publication.target_for(AbsentObservedWireRoot()), NoTarget)
 
 
 def test_a_cleared_source_publishes_nothing_for_any_root():
     publication = VisiblePublication(None)
-    assert isinstance(publication.target_for(Path("/a")), NoTarget)
-    assert isinstance(publication.target_for(Path("/b")), NoTarget)
+    assert isinstance(publication.target_for(HeldObservedWireRoot(Path("/a"))), NoTarget)
+    assert isinstance(publication.target_for(HeldObservedWireRoot(Path("/b"))), NoTarget)
 
 
 def test_the_target_is_read_live_from_the_view_not_cached():
@@ -53,4 +57,4 @@ def test_the_target_is_read_live_from_the_view_not_cached():
     publication = VisiblePublication(view)
     renamed = FakeTarget()
     view.navigation_target = renamed
-    assert publication.target_for(Path("/a")) is renamed
+    assert publication.target_for(HeldObservedWireRoot(Path("/a"))) is renamed

@@ -361,6 +361,36 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
         return access.observe_remote(self, served_root)
 
 
+class FailureSurfaceTitle(ABC):
+    """Optional error dialog title deciding whether a failure shows a notice or reports fatally."""
+
+    @abstractmethod
+    def _surface(self, error: Exception, app: CommsHost) -> None:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: str | None) -> FailureSurfaceTitle:
+        return AbsentFailureSurfaceTitle() if value is None else HeldFailureSurfaceTitle(value)
+
+
+@dataclass(frozen=True)
+class AbsentFailureSurfaceTitle(FailureSurfaceTitle):
+    """Absent `FailureSurfaceTitle` carrying no value."""
+
+    def _surface(self, error: Exception, app: CommsHost) -> None:
+        app.report_fatal(error)
+
+
+@dataclass(frozen=True)
+class HeldFailureSurfaceTitle(FailureSurfaceTitle):
+    """Held `FailureSurfaceTitle` carrying its present value."""
+
+    value: str
+
+    def _surface(self, error: Exception, app: CommsHost) -> None:
+        app.show_error(error, self.value)
+
+
 class ObservationFailureReport(MroDispatch):
     """Route observation disconnects by failure kind: expected remote socket drops log
     quietly and auto-retry without popping an error toast; real Core service crashes
@@ -377,7 +407,7 @@ class ObservationFailureReport(MroDispatch):
     def service_failed(
         self, ending: ServiceFailed, error: Exception, app: CommsHost, title: str | None,
     ) -> object:
-        self._surface(error, app, title)
+        self._surface(error, app, FailureSurfaceTitle.from_optional(title))
         return self.DISCARD
 
     @handles(RelayEnding)
@@ -394,15 +424,12 @@ class ObservationFailureReport(MroDispatch):
 
     @handles(Exception)
     def unexpected(self, error: Exception, app: CommsHost, title: str | None) -> object:
-        self._surface(error, app, title)
+        self._surface(error, app, FailureSurfaceTitle.from_optional(title))
         return self.DISCARD
 
     @staticmethod
-    def _surface(error: Exception, app: CommsHost, title: str | None) -> None:
-        if title is None:
-            app.report_fatal(error)
-        else:
-            app.show_error(error, title)
+    def _surface(error: Exception, app: CommsHost, title: FailureSurfaceTitle) -> None:
+        title._surface(error, app)
 
 
 OBSERVATION_FAILURE_REPORT = ObservationFailureReport()
@@ -457,6 +484,36 @@ class ObservationRetry:
         if self.last_arrival is None:
             return "No observation result had reached the UI yet."
         return f"The last observation result reached the UI {now - self.last_arrival:.1f} s before this."
+
+
+class PreviousObservedRoot(ABC):
+    """Previously observed bus root path compared for cache retention."""
+
+    @abstractmethod
+    def retains_root_cache(self, owner: Observing) -> bool:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: Path | None) -> PreviousObservedRoot:
+        return AbsentPreviousObservedRoot() if value is None else HeldPreviousObservedRoot(value)
+
+
+@dataclass(frozen=True)
+class AbsentPreviousObservedRoot(PreviousObservedRoot):
+    """Absent `PreviousObservedRoot` carrying no value."""
+
+    def retains_root_cache(self, owner: Observing) -> bool:
+        return True
+
+
+@dataclass(frozen=True)
+class HeldPreviousObservedRoot(PreviousObservedRoot):
+    """Held `PreviousObservedRoot` carrying its present value."""
+
+    value: Path
+
+    def retains_root_cache(self, owner: Observing) -> bool:
+        return owner.root == self.value
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -564,7 +621,7 @@ class Observation(ABC):
         for view in tuple(access.sidebar_views):
             self.show_sidebar(view)
 
-    def retains_root_cache(self, previous_root: Path | None) -> bool:
+    def retains_root_cache(self, previous_root: PreviousObservedRoot) -> bool:
         """Whether attaching this observation preserves cached per-root read receipts and
         thread status (transient failures keep the last root's cache until a different root
         attaches)."""
@@ -585,7 +642,7 @@ class Observation(ABC):
         subscribers = tuple(dict.fromkeys((
             *access.notification_views, *previous.pending_notification_views(),
         )))
-        if not self.retains_root_cache(access._last_observed_root):
+        if not self.retains_root_cache(PreviousObservedRoot.from_optional(access._last_observed_root)):
             access.thread_status.clear()
             access.notification_known.clear()
         self.record_observed_root(access)
@@ -984,8 +1041,8 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         except ObservationEnded:
             pass
 
-    def retains_root_cache(self, previous_root: Path | None) -> bool:
-        return previous_root is None or self.root == previous_root
+    def retains_root_cache(self, previous_root: PreviousObservedRoot) -> bool:
+        return previous_root.retains_root_cache(self)
 
     def record_observed_root(self, access: CoordinationAccess) -> None:
         access._last_observed_root = self.root
