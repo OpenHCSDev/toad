@@ -146,7 +146,7 @@ class OneHistoryNotifications(HistoryNotifications):
 
     @property
     def notification_root(self) -> str:
-        return str(self.app.source().root)
+        return self.coordination_root or str(self.app.source().root)
 
     def subscribe_notifications(self, references) -> bool:
         """Route through the current `Observation` so a disconnected or closed observation

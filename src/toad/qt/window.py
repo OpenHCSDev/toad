@@ -1246,7 +1246,7 @@ class ChannelTreeSidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine,
         thread here on each observation was 17% of the phone's UI thread during a burst of
         arrivals (2026-11-18)."""
         super().present(**changes)
-        model = self.model_state.shown if self.model_state.shows_model() else None
+        model = self.model_state.shown if self.model_state.shows_model() else self.model_state.retained_model()
         if model is None and self.groups:
             self.groups = {}
             self.redraw(lambda top: None)
@@ -1487,12 +1487,14 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
         label = entry.unobserved_tab().label()
         self._setup_conversation(app)
         self.message_history = QtWireHistory(self.messages, self, app)
-        source = app.source()
         # WireSource IS a BusQueueSource (client/history.py): the submissions read its
-        # pending/queued/held state as `CommsChatView` does.
+        # pending/queued/held state as `CommsChatView` does. Resolve live CoreAccess via
+        # `app.coordination_access` instead of `app.source().core` so opening or restoring
+        # a tab during a disconnect never crashes `__init__` and reconnects seamlessly.
         wire = WireSource(
-            source.root, self.conversation, source.project, entry.viewer, self.configuration_state.fields.ui.message_style(),
-            access=app.coordination_access, core=source.core, fragments=QtWireFragment)
+            Path(entry.key.root), self.conversation, entry.project, entry.viewer,
+            self.configuration_state.fields.ui.message_style(),
+            access=app.coordination_access, fragments=QtWireFragment)
         self.queue_source = wire
         self.message_history.initialize_source(wire)
         self.message_history.observe_source()
@@ -1565,7 +1567,9 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     async def thread_label_read(self) -> None:
         # The label reads Core's thread references: off the GUI loop, as compose access is.
         # Read on the loop it held a tab's opening for 104 ms on the desktop (frame probe).
-        references = await self.app.preparation.run_thread(self.app.source().references)
+        # Resolve `app.source()` inside `run_thread` so a disconnected FailedObservation
+        # raises inside the worker where `_refresh_thread_config` catches transient errors.
+        references = await self.app.preparation.run_thread(lambda: self.app.source().references())
         label = self.conversation.label(references)
         self._composer_label = label
         self.on_composer("label", lambda composer: composer.labelled(label))
@@ -1590,7 +1594,7 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     def compose_peer_activity(self, peer: ThreadIncarnation) -> Iterator[QtGoalBar | PeerActivity]:
         # The peer's goal sits over its activity and the composer, as the TUI's goal bar
         # sits over its prompt.
-        self.goal_bar = QtGoalBar(self.app, self.app.renderer, peer)
+        self.goal_bar = QtGoalBar(self.app, self.app.renderer, peer, root=self.coordination_root)
         yield self.goal_bar
         self.thread_activity = PeerActivity(self.app, self.app.renderer, peer, self.sync_working)
         yield self.thread_activity

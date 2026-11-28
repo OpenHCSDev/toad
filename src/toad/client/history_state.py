@@ -33,8 +33,7 @@ TRANSIENT_SOURCE_ERRORS = (
     ObservationEnded,
     ObserverUnattached,
     RouteChangedError,
-    ConnectionError,
-    TimeoutError,
+    OSError,
     http.client.HTTPException,
 )
 

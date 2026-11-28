@@ -72,7 +72,7 @@ def test_conversation_family_resolves_copied_pages_and_current_labels(
     page = conversation.page(
         WireSource(comms.root, conversation, comms.registry.require(viewer).worktree, viewer, IrcMessageStyle(),
                    access=AppAgents.unrun(tmp_path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                      core=LocalCoreAccess(comms), fragments=WireFragment),
+                      fixed_core=LocalCoreAccess(comms), fragments=WireFragment),
         PageBounds(limit=8),
     )
     assert body in [message.body for message in page.messages]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import http.client
+import socket
 import threading
 import time
 from dataclasses import dataclass
@@ -14,6 +15,7 @@ from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.coordination.errors import ReloadRequired, TranscriptChanged
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.transcript_sources import LatestPage, Through, UnreadTranscriptCursor
+from agent_comms.messaging.display_references import ProjectReferences
 from agent_comms.presentation import NoRevision
 from agent_comms.transcript.transcript_drafts import NoDraft
 from agent_comms.transcript.transcripts import TranscriptPage
@@ -28,7 +30,8 @@ from agent_comms.ui_model.observation_wire import ObserverDied
 from agent_comms.ui_model.sidebar import SidebarModel
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
+from pyqt_reactive.theming import ColorScheme, StatusColorRole
 from yarl import URL
 
 from toad.client.application import ACTIVE_PRESENCE
@@ -48,9 +51,16 @@ from toad.client.connection import (
     RemoteObserving,
     UnselectedRoute,
 )
-from toad.client.sidebar_state import SidebarStateMachine
+from toad.client.history import WireSource
+from toad.client.history_state import TRANSIENT_SOURCE_ERRORS
+from toad.client.sidebar_state import FailedSidebarState, SidebarStateMachine
+from toad.markdown_links import LinkContext
+from toad.motion import AnimationClock
+from toad.preferences import DiffSettings
+from toad.qt.float_layer import QtFloatLayer
 from toad.qt.history import HistoryRowDelegate, RowPictures
 from toad.qt.lines import QtLineRenderer
+from toad.qt.theme import current_scheme
 from toad.qt.transcript_history import QtTranscriptHistory
 from toad.qt.window import PRESENCE_TRANSITIONS
 from toad.client.history_pager import (
@@ -813,3 +823,104 @@ def test_qt_transcript_history_undrawn_and_stopped_prepare_inline_do_not_crash()
     delegate._application_state_changed(Qt.ApplicationState.ApplicationActive)
     assert not delegate._suspend_release_timer.isActive()
     assert released == []
+
+
+def test_failed_observation_retains_sidebar_model_and_oserror_is_transient():
+    # Network-handoff OSErrors (ENETUNREACH, gaierror) are transient, never permanent tab retirement.
+    assert issubclass(socket.gaierror, TRANSIENT_SOURCE_ERRORS)
+    assert issubclass(OSError, TRANSIENT_SOURCE_ERRORS)
+
+    # Sidebar retains its last SidebarModel across a transient FailedObservation -> same-root reconnect.
+    replaced: list[str] = []
+
+    class FakeSidebar(SidebarStateMachine):
+        def accepts_observation(self) -> bool:
+            return True
+
+        def sync(self, *, change, reorder: bool = False) -> None:
+            pass
+
+        def show_status(self, text: str) -> None:
+            pass
+
+        def hide_status(self) -> None:
+            pass
+
+        def coordination_access(self):
+            return SimpleNamespace(update_sidebar_interest=lambda: None)
+
+        def model_replaced(self) -> None:
+            replaced.append("replaced")
+
+    sidebar_view = FakeSidebar()
+    root_a = Path("/bus-a")
+    root_b = Path("/bus-b")
+    obs_a1 = RemoteObserving(
+        sidebar=SidebarModel(lambda cb: None),
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_a,
+        access=SimpleNamespace(),
+    )
+    obs_a2 = RemoteObserving(
+        sidebar=obs_a1.sidebar,
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_a,
+        access=SimpleNamespace(),
+    )
+    obs_b = RemoteObserving(
+        sidebar=SidebarModel(lambda cb: None),
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_b,
+        access=SimpleNamespace(),
+    )
+    failed = FailedObservation(OSError("network unreachable"), UnselectedRoute(), access=SimpleNamespace())
+
+    sidebar_view.bind_observation(obs_a1)
+    assert replaced == ["replaced"]
+    sidebar_view.bind_failed_observation(failed)
+    assert isinstance(sidebar_view.model_state, FailedSidebarState)
+    assert sidebar_view.model_state.retained_model() is obs_a1.sidebar
+    assert sidebar_view.model_state.serves(root_a) is True
+    assert replaced == ["replaced"]
+    sidebar_view.bind_observation(obs_a2)
+    assert replaced == ["replaced"]
+    sidebar_view.bind_observation(obs_b)
+    assert replaced == ["replaced", "replaced"]
+
+    # WireSource resolves live CoreAccess dynamically so constructing a tab while disconnected succeeds.
+    live_core = object()
+    access = SimpleNamespace(observation=failed)
+    wire = WireSource(
+        root_a, SimpleNamespace(), SimpleNamespace(), "user", SimpleNamespace(),
+        access=access, fragments=SimpleNamespace(),
+    )
+    with pytest.raises(OSError, match="network unreachable"):
+        _ = wire.core
+    access.observation = SimpleNamespace(observed=lambda: SimpleNamespace(core=live_core))
+    assert wire.core is live_core
+
+    # QtFloatLayer sizes wrapped multi-line error toasts to full heightForWidth instead of clipping.
+    _app = QApplication.instance() or QApplication([])
+    win = QWidget()
+    win.resize(320, 720)
+    scheme = current_scheme({"HOME": str(Path.home())})
+    cs = ColorScheme.from_theme(scheme)
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), ProjectReferences()), DiffSettings())
+    clock = AnimationClock(lambda _: None, enabled=False)
+    layer = QtFloatLayer(cs, renderer, clock, win)
+    long_msg = (
+        "History: OSError: Network is unreachable while reading #model\n"
+        "Log: /data/data/org.toadcomms.toadcomms/files/state/toad/logs/errors/"
+        "History_2026-11-27T23_13_56_123456.txt"
+    )
+    layer.post(long_msg, StatusColorRole.ERROR, 5.0)
+    win.show()
+    _app.processEvents()
+    card = layer._notice_cards()[0]
+    line = card.layout().itemAt(0).widget()
+    needed = line.heightForWidth(max(1, line.width()))
+    assert line.height() >= needed
+    assert layer.height() >= card.height() >= needed

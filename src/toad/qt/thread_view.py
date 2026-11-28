@@ -187,7 +187,9 @@ class QtThreadView(
         The composer is built once the transcript has painted (`reserve_composer`); its
         slot is reserved here so it lands in order, with the question under it."""
         self.thread_activity = QtSessionDetails(self, app.renderer)
-        self.goal_bar = None if incarnation is None else QtGoalBar(app, app.renderer, incarnation)
+        self.goal_bar = None if incarnation is None else QtGoalBar(
+            app, app.renderer, incarnation, root=self.coordination_root
+        )
         self.activity = tuple(row for row in (self.thread_activity, self.goal_bar) if row is not None)
         self._composer_slot = QVBoxLayout()
         self._composer_slot.setContentsMargins(0, 0, 0, 0)

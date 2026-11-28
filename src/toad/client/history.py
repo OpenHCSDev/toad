@@ -595,10 +595,17 @@ class WireSource(BusQueueSource, ConversationSource):
     me: str
     style: WireMessageStyle
     access: CoordinationAccess = field(kw_only=True)
-    core: CoreAccess = field(kw_only=True)
+    fixed_core: CoreAccess | None = field(default=None, kw_only=True)
     fragments: type[EvidencedFragment] = field(kw_only=True)
     tail_limit: int = 20
     page_limit: int = 40
+
+    @property
+    def core(self) -> CoreAccess:
+        """The live CoreAccess: explicit override when supplied (unit tests), else resolved
+        from the current Observation so opening a view during a disconnect never fails in
+        `__init__` and reconnecting automatically picks up the fresh CoreAccess."""
+        return self.fixed_core if self.fixed_core is not None else self.access.observation.observed().core
 
     def observe(self, seen: ConversationObservation) -> SourceObservation:
         """The observed state owns how changed or unchanged history is drawn."""

@@ -146,10 +146,12 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
 
     document_share = 0.2
 
-    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation) -> None:
+    def __init__(self, app: ClientApplication, renderer: QtLineRenderer, peer: ThreadIncarnation,
+                 *, root: str | None = None) -> None:
         super().__init__()
         self.app, self.peer = app, peer
-        self.goal_source = CommsGoalSource(app, peer, str(app.source().root))
+        self.root = root if root is not None else str(app.source().root)
+        self.goal_source = CommsGoalSource(app, peer, self.root)
         self.session = QtGoalSession(self)
         self.goal_observation = GoalObservation(self)
         self._goal_display: GoalDisplay = NoGoal()
@@ -233,7 +235,7 @@ class QtGoalBar(QtCoreObserver, GoalBarOwner, GoalCollapse, QWidget, metaclass=P
         self.is_attached = True
         self.observe_core_callback(
             self.coordination.events, ThreadRowsChanged, self.rows_changed,
-            factory=partial(ThreadCallbackSubscription, scope=(str(self.app.source().root), self.peer.name)))
+            factory=partial(ThreadCallbackSubscription, scope=(self.root, self.peer.name)))
         self.goal_observation.invalidate()
 
     def rows_changed(self, event: ThreadRowsChanged) -> None:

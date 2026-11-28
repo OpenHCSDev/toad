@@ -48,6 +48,14 @@ class SidebarModelState(ABC):
     def serves(self, path) -> bool:
         return False
 
+    def retained_root(self):
+        """Last observed bus root kept across a transient outage, or None."""
+        return None
+
+    def retained_model(self) -> SidebarModel | None:
+        """Last shown SidebarModel kept across a transient outage, or None."""
+        return None
+
     def observes(self, observed: Observing) -> bool:
         return False
 
@@ -81,6 +89,17 @@ class Detached(SidebarModelState):
 @dataclass(frozen=True)
 class FailedSidebarState(SidebarModelState):
     observed: FailedObservation
+    retained_root_path: object = None
+    retained_sidebar: SidebarModel | None = None
+
+    def serves(self, path) -> bool:
+        return self.retained_root_path is not None and self.retained_root_path == path
+
+    def retained_root(self):
+        return self.retained_root_path
+
+    def retained_model(self) -> SidebarModel | None:
+        return self.retained_sidebar
 
     def shows_child(self, view: SidebarStateMachine, child) -> bool:
         return child is view.unavailable
@@ -102,6 +121,12 @@ class BoundSidebar(SidebarModelState):
 
     def serves(self, path) -> bool:
         return self.observed.root == path
+
+    def retained_root(self):
+        return self.observed.root
+
+    def retained_model(self) -> SidebarModel | None:
+        return self.observed.sidebar
 
     def observes(self, observed: Observing) -> bool:
         return self.observed is observed
@@ -204,9 +229,17 @@ class SidebarStateMachine(SidebarSubscriber[Observing, FailedObservation]):
         self.unsubscribe()
 
     def bind_failed_observation(self, observed: FailedObservation) -> None:
+        previous = self.model_state
+        retained_root = previous.retained_root()
+        retained_model = previous.retained_model()
         self.unsubscribe()
-        self.model_state = FailedSidebarState(observed)
-        self.model_replaced()
+        self.model_state = FailedSidebarState(
+            observed,
+            retained_root_path=retained_root,
+            retained_sidebar=retained_model,
+        )
+        if retained_model is None:
+            self.model_replaced()
         self.present()
 
     def bind_observation(self, observed: Observing) -> None:

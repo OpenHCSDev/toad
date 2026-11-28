@@ -251,6 +251,10 @@ class QtConversation(
             else:
                 composer, reused = build(), False
         except Exception as error:
+            # Keep the placeholder slot resumable instead of stranding a permanently blank box.
+            self._composer_reserved = reserved
+            if shiboken6.isValid(self) and shiboken6.isValid(self.messages):
+                self.messages.viewport().installEventFilter(self)
             self.app.show_error(error, "Composer mount failed")
             return
         if reused:
