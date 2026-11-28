@@ -159,12 +159,16 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         rid = id(row)
         wraps = row.wrap_mode.wrapped if row.wrap_mode is not None else view.wordWrap()
         vp_width = vp.width()
+        hovered = view.underMouse() and rect.contains(vp.mapFromGlobal(QCursor.pos()))
         variant = (
             running,
             span,
             rect.width(),
             rect.height(),
-            option.state._value_,
+            item is not None and item.isSelected(),
+            view.hasFocus(),
+            view.isActiveWindow(),
+            hovered,
             wraps,
             vp_width,
             dpr,
