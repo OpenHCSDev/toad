@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Never
 from agent_comms.errors import RelationViolationError
 from agent_comms.nominal.field_codec import AcpSessionId
 from agent_comms.registry.agent_settings_wire import AgentSettingsScope, GlobalSettingsScope
+from agent_comms.registry.threads import Thread
 from metaclass_registry import AbstractHooksMeta
 
 from toad.agent_binding import AgentConnection, NoAgentConnection
@@ -120,9 +121,15 @@ class SessionScope:
         """A view without a configurable subject offers no configuration operations."""
         return ()
 
+    thread_class: ClassVar[type[Thread] | None] = None
+
     def agent_settings_target(self) -> tuple[AgentSettingsScope, str]:
         """The Core agent-settings scope and optional channel for this view."""
         return (GlobalSettingsScope(), "")
+
+    def agent_settings_thread_class(self) -> type[Thread] | None:
+        """Core ``Thread`` subclass owned by this view, exposing its inherited config dataclass."""
+        return self.thread_class
 
     async def view_menu_entries(self) -> tuple:
         """A view without a subject or tab offers no right-click menu options."""

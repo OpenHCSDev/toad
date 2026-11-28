@@ -18,25 +18,30 @@ from agent_comms.registry.agent_settings_wire import (
     ThreadSettingsScope,
 )
 from agent_comms.registry.thread_model import DeclaredModel
+from agent_comms.registry.thread_settings import (
+    CliInboxSettings,
+    CliTransportMode,
+    CliWakePolicy,
+    ThreadSettings,
+)
+from agent_comms.registry.threads import ExternalThread, NativeThread
 from agent_comms.team.rule_deal import FullDealMode, RequiredRuleCheckPolicy
 from agent_comms.transport.tools.sidebar import (
     CommsAgentSettingsTool,
     CommsSetAgentSettingsTool,
 )
 from objectstate import ObjectStateRegistry, set_base_config_type
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from toad.client.agent_settings_state import (
     AgentSettingsChain,
     AgentSettingsPanel,
-    scope_label,
 )
 from toad.forms.editors import (
     ChoicesEditor,
     EnumEditor,
     IntEditor,
     StructuredEditor,
-    ThreadModelEditor,
 )
 from toad.forms.object_configuration import ObjectFormView
 from toad.navigation_target import (
@@ -46,16 +51,19 @@ from toad.navigation_target import (
     NoTarget,
     ThreadTarget,
 )
-from toad.preferences import ToadSettings
+from toad.preferences import SavedSettings, ToadSettings
+from toad.qt.acp_tab import QtAcpSessionView
+from toad.qt.config_window import ToadConfigWindow
 from toad.qt.forms import (
     QtChoicesEditor,
     QtEnumEditor,
     QtIntEditor,
     QtObjectFormView,
     QtStructuredEditor,
-    QtThreadModelEditor,
 )
+from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.placement import QtAgentSettingsProperties
+from toad.qt.settings_screen import QtSettingsScreen
 
 
 @pytest.fixture(scope="module")
@@ -74,34 +82,44 @@ def test_agent_settings_chain_inheritance_provenance_reset_and_forms(
     channel_scope = ChannelSettingsScope("agent-comms", "#comms")
     thread_scope = ThreadSettingsScope("agent-comms", "toad-qt")
 
-    core_settings.update_scope(project_scope, {"thread.thinking_level": "low"})
+    core_settings.update_scope(
+        project_scope,
+        {"thread.thinking_level": "low", "cli_inbox.transport": "zmq_tcp"},
+    )
     core_settings.update_scope(channel_scope, {"rule_gate.mode": "full"})
     core_settings.update_scope(thread_scope, {"thread.service_tier": "priority"})
 
     projection = core_settings.projection(thread_scope, channel="#comms")
     emitted: list[tuple[AgentSettingsScope, dict[str, object]]] = []
-    chain = AgentSettingsChain(projection, lambda s, u: emitted.append((s, u)))
+    chain = AgentSettingsChain(
+        projection,
+        lambda s, u: emitted.append((s, u)),
+        thread_class=NativeThread,
+    )
     try:
         assert chain.scopes == (global_scope, project_scope, channel_scope, thread_scope)
         thread_state = chain.state_for(thread_scope)
 
-        # Both Qt and Textual render all 10 GlobalAgentSettings fields over the same ObjectState.
+        # Both Qt and Textual render all 14 GlobalAgentSettings fields (thread + cli_inbox + rule_gate).
         qt_form = QtObjectFormView.whole(thread_state)
         qt_form.follow_state()
-        assert len(qt_form.values) == 10
-        assert isinstance(qt_form.values["thread.model"].editor, QtThreadModelEditor)
+        assert len(qt_form.values) == 14
+        assert isinstance(qt_form.values["thread.model"].editor, QtChoicesEditor)
         assert isinstance(qt_form.values["thread.thinking_level"].editor, QtChoicesEditor)
         assert isinstance(qt_form.values["thread.service_tier"].editor, QtEnumEditor)
         assert isinstance(qt_form.values["thread.context_edit_policy"].editor, QtEnumEditor)
+        assert isinstance(qt_form.values["cli_inbox.wake_policy"].editor, QtEnumEditor)
+        assert isinstance(qt_form.values["cli_inbox.transport"].editor, QtEnumEditor)
         assert isinstance(qt_form.values["rule_gate.mode"].editor, QtChoicesEditor)
         assert isinstance(qt_form.values["rule_gate.owner_prompts"].editor, QtIntEditor)
         assert isinstance(qt_form.values["rule_gate.refresh_remaining"].editor, QtStructuredEditor)
 
         tui_form = ObjectFormView.whole(thread_state)
-        assert len(tui_form.values) == 10
-        assert isinstance(tui_form.values["thread.model"].editor, ThreadModelEditor)
+        assert len(tui_form.values) == 14
+        assert isinstance(tui_form.values["thread.model"].editor, ChoicesEditor)
         assert isinstance(tui_form.values["thread.thinking_level"].editor, ChoicesEditor)
         assert isinstance(tui_form.values["thread.service_tier"].editor, EnumEditor)
+        assert isinstance(tui_form.values["cli_inbox.transport"].editor, EnumEditor)
         assert isinstance(tui_form.values["rule_gate.mode"].editor, ChoicesEditor)
         assert isinstance(tui_form.values["rule_gate.owner_prompts"].editor, IntEditor)
         assert isinstance(tui_form.values["rule_gate.refresh_remaining"].editor, StructuredEditor)
@@ -113,6 +131,16 @@ def test_agent_settings_chain_inheritance_provenance_reset_and_forms(
         assert qt_form.values["rule_gate.mode"].source.text() == "Inherited from Channel #comms"
         assert qt_form.values["thread.service_tier"].source.text() == "Override for Thread toad-qt"
         assert qt_form.values["rule_gate.audit"].source.text() == "Built-in default"
+
+        # NativeThread thread_config_state binds LazyThreadSettings with live parent provenance.
+        native_cfg_state = chain.thread_config_state
+        assert native_cfg_state is not None
+        assert native_cfg_state.parameters["service_tier"] is ServiceTier.PRIORITY
+        assert native_cfg_state.parameters["thinking_level"] is None
+        assert native_cfg_state.get_resolved_value("thinking_level") is LowThinkingLevel
+        source_scope, source_type = native_cfg_state.get_provenance("thinking_level")
+        assert chain.inherited_text(source_scope) == "Inherited from Project agent-comms"
+        assert source_type is ThreadSettings
 
         # Edit thread.model -> emits only thread scope and updates provenance live.
         emitted.clear()
@@ -140,11 +168,30 @@ def test_agent_settings_chain_inheritance_provenance_reset_and_forms(
         chain.close()
         assert ObjectStateRegistry.get_by_scope(prefix) is None
 
+    # ExternalThread DM tab binds LazyCliInboxSettings with wake_policy / transport inheritance.
+    cli_emitted: list[tuple[AgentSettingsScope, dict[str, object]]] = []
+    cli_chain = AgentSettingsChain(
+        projection,
+        lambda s, u: cli_emitted.append((s, u)),
+        thread_class=ExternalThread,
+    )
+    try:
+        cli_cfg_state = cli_chain.thread_config_state
+        assert cli_cfg_state is not None
+        assert cli_cfg_state.parameters["transport"] is None
+        assert cli_cfg_state.get_resolved_value("transport") is CliTransportMode.ZMQ_TCP
+        src_scope, src_type = cli_cfg_state.get_provenance("transport")
+        assert cli_chain.inherited_text(src_scope) == "Inherited from Project agent-comms"
+        assert src_type is CliInboxSettings
+        cli_cfg_state.update_parameter("wake_policy", CliWakePolicy.MANUAL)
+        assert cli_emitted == [(thread_scope, {"cli_inbox.wake_policy": "manual"})]
+    finally:
+        cli_chain.close()
 
-def test_qt_agent_settings_panel_round_trip_and_scope_switch(
+
+def test_qt_agent_settings_panel_round_trip_config_window_and_scope_switch(
     qt_app: QApplication, tmp_path: Path
 ) -> None:
-    del qt_app
     core_settings = AgentSettings.at(tmp_path)
     calls: list[object] = []
 
@@ -186,6 +233,7 @@ def test_qt_agent_settings_panel_round_trip_and_scope_switch(
     view = SimpleNamespace(
         coordination_root=str(tmp_path),
         agent_settings_target=lambda: (ThreadSettingsScope("agent-comms", "toad-qt"), "#comms"),
+        agent_settings_thread_class=lambda: NativeThread,
     )
 
     async def exercise() -> None:
@@ -195,6 +243,20 @@ def test_qt_agent_settings_panel_round_trip_and_scope_switch(
         assert panel.scope_combo.count() == 4
         assert panel.scope_combo.currentText() == "Thread toad-qt"
         assert panel._form is not None
+
+        # Open ConfigWindow from the sidebar panel -> materializes scope + NativeThread tabs.
+        config_win = panel.open_config_window()
+        assert isinstance(config_win, ToadConfigWindow)
+        assert [tab.spec.label for tab in config_win._tabs] == [
+            "Global",
+            "Project agent-comms",
+            "Channel #comms",
+            "Thread toad-qt",
+            "Thread toad-qt (Native)",
+        ]
+        for _ in range(5):
+            qt_app.processEvents()
+        assert config_win._tabs[0].form_manager is not None
 
         # Switch to Project scope and edit thinking_level -> persists to Core and cascades to Thread.
         panel.select_agent_scope(ProjectSettingsScope("agent-comms"))
@@ -217,6 +279,30 @@ def test_qt_agent_settings_panel_round_trip_and_scope_switch(
     asyncio.run(exercise())
 
 
+def test_qt_settings_screen_hosts_config_window_and_dm_tabs_declare_thread_subclasses(
+    qt_app: QApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    assert QtAcpSessionView.thread_class is NativeThread
+    assert QtMailboxView.thread_class is ExternalThread
+
+    monkeypatch.setattr(SavedSettings, "path", classmethod(lambda cls: tmp_path / "toad.json"))
+    saved = SavedSettings()
+    app = SimpleNamespace(saved_settings=saved)
+    owner_widget = QWidget()
+    ObjectStateRegistry.register(saved.state)
+    try:
+        screen = QtSettingsScreen(app, parent=owner_widget)  # type: ignore[arg-type]
+        assert isinstance(screen, ToadConfigWindow)
+        assert screen.edited_settings is saved
+        screen.show()
+        for _ in range(5):
+            qt_app.processEvents()
+        assert screen._tabs[0].form_manager is not None
+        screen.close()
+    finally:
+        ObjectStateRegistry.unregister(saved.state)
+
+
 def test_navigation_target_agent_settings_scopes_and_labels() -> None:
     view = SimpleNamespace(
         navigation_context=SimpleNamespace(
@@ -237,8 +323,8 @@ def test_navigation_target_agent_settings_scopes_and_labels() -> None:
         ThreadSettingsScope("agent-comms", "comms-a"),
         "",
     )
-    assert scope_label(GlobalSettingsScope()) == "Global"
-    assert scope_label(ProjectSettingsScope("agent-comms")) == "Project agent-comms"
-    assert scope_label(ChannelSettingsScope("agent-comms", "#comms")) == "Channel #comms"
-    assert scope_label(ThreadSettingsScope("agent-comms", "toad-qt")) == "Thread toad-qt"
+    assert GlobalSettingsScope().label == "Global"
+    assert ProjectSettingsScope("agent-comms").label == "Project agent-comms"
+    assert ChannelSettingsScope("agent-comms", "#comms").label == "Channel #comms"
+    assert ThreadSettingsScope("agent-comms", "toad-qt").label == "Thread toad-qt"
     assert AgentSettingsPanel.panel_spec.title == "Agent settings"

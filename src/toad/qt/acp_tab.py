@@ -16,10 +16,11 @@ from __future__ import annotations
 from functools import partial
 from operator import attrgetter
 from time import time_ns
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import shiboken6
 from agent_comms.nominal.field_codec import NoAcpSessionId
+from agent_comms.registry.threads import NativeThread, Thread
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QDialog
@@ -60,6 +61,8 @@ class QtAcpSessionView(
 ):
     """One agent session's tab: its identity line, the transcript through Qt's history
     window, the agent's live turn as rows, and the operational composer."""
+
+    thread_class: ClassVar[type[Thread]] = NativeThread
 
     def __init__(
         self,

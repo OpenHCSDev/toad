@@ -3,9 +3,10 @@
 Core owns ``GlobalAgentSettings`` (``Global -> Project -> [Channel] -> Thread``) and
 exposes each scope's authored ancestor layers via ``CommsAgentSettingsTool`` /
 ``CommsSetAgentSettingsTool``. This module hydrates those ancestor layers into one linked
-``ObjectState`` chain registered under an isolated ``ScopeKey`` namespace so both Textual's
-``ObjectFormView`` and Qt's ``QtObjectFormView`` render live inheritance, exact provenance
-labels, and Reset-to-inherit with zero duplicate form code.
+``ObjectState`` chain registered under an isolated ``ScopeKey`` namespace so Textual's
+``ObjectFormView``, Qt's ``QtObjectFormView``, and ``pyqt_reactive.ConfigWindow`` render
+live inheritance, exact provenance labels, thread-subclass configs (``NativeThread`` ->
+``ThreadSettings`` vs ``ExternalThread`` -> ``CliInboxSettings``), and Reset-to-inherit.
 """
 
 from __future__ import annotations
@@ -14,28 +15,28 @@ import itertools
 from abc import abstractmethod
 from collections.abc import Callable, Coroutine, Mapping
 from dataclasses import dataclass, fields
-from functools import cache, singledispatch
+from functools import cache
 from typing import ClassVar
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from agent_comms.nominal.field_codec import FieldCodec, FieldPlan
-from agent_comms.registry.agent_settings import GlobalAgentSettings
-from agent_comms.registry.agent_settings_wire import (
-    AgentOnlySettingsScope,
-    AgentSettingsScope,
-    ChannelSettingsScope,
-    GlobalSettingsScope,
-    ProjectSettingsScope,
-    ScopedSettingsProjection,
-    ThreadSettingsScope,
+from agent_comms.registry.agent_settings import (
+    AgentSettingsConfig,
+    GlobalAgentSettings,
+    lazy_config_type_for,
 )
+from agent_comms.registry.agent_settings_wire import (
+    AgentSettingsScope,
+    ScopedSettingsProjection,
+)
+from agent_comms.registry.threads import Thread
 from agent_comms.transport.request import CoreAccess
 from agent_comms.transport.tools.sidebar import (
     CommsAgentSettingsTool,
     CommsSetAgentSettingsTool,
 )
 from metaclass_registry import AbstractHooksMeta
-from objectstate import LazyDataclassFactory, ObjectState, ObjectStateRegistry, ScopeKey
+from objectstate import ObjectState, ObjectStateRegistry, ScopeKey
 from pydantic import JsonValue
 from python_introspect import ParameterInfo
 
@@ -43,37 +44,6 @@ from toad.client.sidebar_panels import PanelSpec
 from toad.object_configuration import ObjectSettingField
 
 _CHAIN_IDS = itertools.count(1)
-
-
-@singledispatch
-def scope_label(scope: AgentSettingsScope) -> str:
-    """Plain-English label for one nominal ``AgentSettingsScope`` member."""
-    return scope.scope_id or "Global"
-
-
-@scope_label.register(GlobalSettingsScope)
-def _global_scope_label(_scope: GlobalSettingsScope) -> str:
-    return "Global"
-
-
-@scope_label.register(ProjectSettingsScope)
-def _project_scope_label(scope: ProjectSettingsScope) -> str:
-    return f"Project {scope.project}"
-
-
-@scope_label.register(ChannelSettingsScope)
-def _channel_scope_label(scope: ChannelSettingsScope) -> str:
-    return f"Channel {scope.channel}"
-
-
-@scope_label.register(ThreadSettingsScope)
-def _thread_scope_label(scope: ThreadSettingsScope) -> str:
-    return f"Thread {scope.thread}"
-
-
-@scope_label.register(AgentOnlySettingsScope)
-def _agent_scope_label(scope: AgentOnlySettingsScope) -> str:
-    return f"Agent {scope.thread}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,7 +62,7 @@ def agent_group_schemas() -> tuple[AgentGroupSchema, ...]:
     groups: list[AgentGroupSchema] = []
     for item in fields(GlobalAgentSettings):
         concrete_type = type(getattr(defaults, item.name))
-        lazy_type = LazyDataclassFactory.make_lazy_simple(concrete_type)
+        lazy_type = lazy_config_type_for(concrete_type)
         plans = {plan.name: plan for plan in FieldCodec.field_plans(concrete_type)}
         groups.append(AgentGroupSchema(item.name, concrete_type, lazy_type, plans))
     return tuple(groups)
@@ -107,15 +77,12 @@ def agent_field_plans() -> dict[str, tuple[AgentGroupSchema, FieldPlan]]:
     }
 
 
-@cache
-def lazy_global_agent_settings_type() -> type:
-    agent_group_schemas()
-    return LazyDataclassFactory.make_lazy_simple(GlobalAgentSettings)
-
-
-def _new_lazy_agent_settings() -> object:
-    """Fresh lazy ``GlobalAgentSettings`` with every group lazy so every leaf starts ``None``."""
-    return lazy_global_agent_settings_type()()
+def group_schema_for_config_type(config_type: type) -> AgentGroupSchema | None:
+    """Return the ``GlobalAgentSettings`` group owning ``config_type``, if any."""
+    return next(
+        (group for group in agent_group_schemas() if group.concrete_type is config_type),
+        None,
+    )
 
 
 @cache
@@ -192,11 +159,11 @@ class AgentScopeState(ObjectState):
     ) -> None:
         self.chain = chain
         self.agent_scope = agent_scope
-        self.scope_label = scope_label(agent_scope)
+        self.scope_label = agent_scope.label
         self._hydrating = False
         self._authored_raw: dict[str, object] = {}
         super().__init__(
-            _new_lazy_agent_settings(),
+            AgentSettingsConfig(),
             scope_id=registry_scope,
             parent_state=parent_state,
         )
@@ -205,23 +172,6 @@ class AgentScopeState(ObjectState):
 
     def field(self, path: str) -> AgentSettingField:
         return AgentSettingField(self, self.parameter_structure.path(path))
-
-    def _most_specific_notification_fields(self, fields: set[str]) -> set[str]:
-        """Emit declared leaf paths (e.g. ``thread.model``) instead of internal subfields of
-        dataclass values (e.g. ``thread.model.text``) that are not registered parameters."""
-        plans = agent_field_plans()
-        normalized: set[str] = set()
-        for path in fields:
-            if path in plans:
-                normalized.add(path)
-                continue
-            owner = next(
-                (plan_path for plan_path in plans if path.startswith(f"{plan_path}.")),
-                None,
-            )
-            if owner is not None:
-                normalized.add(owner)
-        return normalized
 
     def inherited_label(self, path: str) -> str:
         scope_id, _owner = self.get_provenance(path)
@@ -269,28 +219,103 @@ class AgentScopeState(ObjectState):
         self.off_state_changed(self._state_changed)
 
 
+class ThreadConfigScopeState(ObjectState):
+    """Thread-subclass ``ObjectState`` (``LazyThreadSettings`` / ``LazyCliInboxSettings``).
+
+    Inherits live defaults and provenance from the thread scope's parent layer in
+    ``AgentSettingsChain`` while persisting local overrides back to the thread scope in Core.
+    """
+
+    def __init__(
+        self,
+        *,
+        chain: AgentSettingsChain,
+        agent_scope: AgentSettingsScope,
+        thread_class: type[Thread],
+        group: AgentGroupSchema,
+        registry_scope: str,
+        parent_state: ObjectState,
+    ) -> None:
+        self.chain = chain
+        self.agent_scope = agent_scope
+        self.thread_class = thread_class
+        self.group = group
+        self.scope_label = f"{agent_scope.label} ({thread_class.tab_kind_label})"
+        self._hydrating = False
+        self._authored_raw: dict[str, object] = {}
+        super().__init__(
+            group.lazy_type(),
+            scope_id=registry_scope,
+            parent_state=parent_state,
+        )
+        self._authored_raw = {name: self.parameters.get(name) for name in group.plans}
+        self.on_state_changed(self._state_changed)
+
+    def apply_wire_overrides(self, overrides: Mapping[str, JsonValue]) -> None:
+        """Hydrate only this thread config group's authored overrides without echoing back."""
+        self._hydrating = True
+        try:
+            for field_name, plan in self.group.plans.items():
+                raw_wire = overrides.get(f"{self.group.name}.{field_name}")
+                target_value = (
+                    None
+                    if raw_wire is None
+                    else FieldCodec.decode(plan.annotation, raw_wire)
+                )
+                if self.parameters.get(field_name) != target_value:
+                    self.update_parameter(field_name, target_value)
+                self._authored_raw[field_name] = target_value
+            self.mark_saved()
+        finally:
+            self._hydrating = False
+
+    def _state_changed(self, paths: set[str]) -> None:
+        if self._hydrating or not paths:
+            return
+        updates: dict[str, JsonValue] = {}
+        for field_name in sorted(paths):
+            plan = self.group.plans.get(field_name)
+            if plan is None:
+                continue
+            raw_value = self.parameters.get(field_name)
+            if raw_value == self._authored_raw.get(field_name):
+                continue
+            self._authored_raw[field_name] = raw_value
+            updates[f"{self.group.name}.{field_name}"] = (
+                None if raw_value is None else FieldCodec.encode(raw_value, plan.annotation)
+            )
+        if updates:
+            self.chain.emit_edits(self.agent_scope, updates)
+
+    def close(self) -> None:
+        self.off_state_changed(self._state_changed)
+
+
 class AgentSettingsChain:
     """Linked ``ObjectState`` ancestry hydrated from one Core ``ScopedSettingsProjection``.
 
     Registers a read-only built-in defaults floor followed by one ``AgentScopeState`` per
-    scope in ``projection.ancestry``, using nested ``ScopeKey`` segments under a private
-    prefix so ``ObjectStateRegistry.registered_ancestors`` walks the exact ancestry chain
-    without colliding with ``ToadSettings`` (``""``) or open view configurations.
+    scope in ``projection.ancestry``, plus an optional ``ThreadConfigScopeState`` for the
+    active DM tab's ``Thread`` subclass (``NativeThread`` -> ``ThreadSettings``,
+    ``ExternalThread`` -> ``CliInboxSettings``).
     """
 
     def __init__(
         self,
         projection: ScopedSettingsProjection,
         on_edit: Callable[[AgentSettingsScope, dict[str, JsonValue]], None],
+        *,
+        thread_class: type[Thread] | None = None,
     ) -> None:
         self._on_edit = on_edit
         self._prefix = str(ScopeKey.of("agent_settings", f"chain{next(_CHAIN_IDS)}"))
+        self.thread_class = thread_class
         self._states: dict[AgentSettingsScope, AgentScopeState] = {}
         self._registry_to_scope: dict[str, AgentSettingsScope] = {}
         self._registered: list[ObjectState] = []
 
         defaults = GlobalAgentSettings()
-        self.defaults_state = ObjectState(_new_lazy_agent_settings(), scope_id=self._prefix)
+        self.defaults_state = ObjectState(AgentSettingsConfig(), scope_id=self._prefix)
         for group in agent_group_schemas():
             group_value = getattr(defaults, group.name)
             for field_name in group.plans:
@@ -321,6 +346,30 @@ class AgentSettingsChain:
             self._registry_to_scope[registry_scope] = scope
             parent = state
 
+        self.thread_config_state: ThreadConfigScopeState | None = None
+        if thread_class is not None:
+            group = group_schema_for_config_type(thread_class.config_type)
+            if group is not None:
+                target_scope = self.scopes[-1]
+                parent_for_thread = (
+                    self._states[self.scopes[-2]]
+                    if len(self.scopes) >= 2
+                    else self.defaults_state
+                )
+                thread_scope_key = ScopeKey.SEPARATOR.join(
+                    (parent_for_thread.scope_id, thread_class.config_type.__name__)
+                )
+                self.thread_config_state = ThreadConfigScopeState(
+                    chain=self,
+                    agent_scope=target_scope,
+                    thread_class=thread_class,
+                    group=group,
+                    registry_scope=thread_scope_key,
+                    parent_state=parent_for_thread,
+                )
+                ObjectStateRegistry.register(self.thread_config_state)
+                self._registered.append(self.thread_config_state)
+
         self.apply_projection(projection)
 
     def state_for(self, scope: AgentSettingsScope) -> AgentScopeState:
@@ -330,6 +379,11 @@ class AgentSettingsChain:
         for scope in self.scopes:
             state = self._states[scope]
             state.apply_wire_overrides(projection.layers.get(scope.scope_id, {}))
+        if self.thread_config_state is not None:
+            target_scope = self.scopes[-1]
+            self.thread_config_state.apply_wire_overrides(
+                projection.layers.get(target_scope.scope_id, {})
+            )
 
     def inherited_text(self, registry_scope: str | None) -> str:
         if not registry_scope or registry_scope == self._prefix:
@@ -337,7 +391,7 @@ class AgentSettingsChain:
         source = self._registry_to_scope.get(registry_scope)
         if source is None:
             return "Built-in default"
-        return f"Inherited from {scope_label(source)}"
+        return f"Inherited from {source.label}"
 
     def core_scope_for_registry(self, registry_scope: str | None) -> str:
         if not registry_scope or registry_scope == self._prefix:
@@ -353,6 +407,9 @@ class AgentSettingsChain:
         self._on_edit(scope, updates)
 
     def close(self) -> None:
+        if self.thread_config_state is not None:
+            self.thread_config_state.close()
+            self.thread_config_state = None
         for state in self._states.values():
             state.close()
         for state in reversed(self._registered):
@@ -367,7 +424,7 @@ class AgentSettingsPanel(metaclass=AbstractHooksMeta):
 
     Textual's ``AgentSettingsProperties`` and Qt's ``QtAgentSettingsProperties`` inherit
     this directly, sharing scope resolution, Core load/persist round-trips, and the linked
-    ``AgentSettingsChain`` while supplying only native selector + ``ObjectFormView`` hosting.
+    ``AgentSettingsChain`` while supplying only native selector + form/ConfigWindow hosting.
     """
 
     panel_spec: ClassVar[PanelSpec] = PanelSpec(
@@ -379,6 +436,7 @@ class AgentSettingsPanel(metaclass=AbstractHooksMeta):
     _selected_scope: AgentSettingsScope | None
     _target_scope: AgentSettingsScope
     _channel: str
+    _thread_class: type[Thread] | None
 
     def init_agent_settings(self, app, view) -> None:
         self._settings_app = app
@@ -386,6 +444,7 @@ class AgentSettingsPanel(metaclass=AbstractHooksMeta):
         self._chain = None
         self._selected_scope = None
         self._target_scope, self._channel = view.agent_settings_target()
+        self._thread_class = view.agent_settings_thread_class()
 
     def _core_access(self) -> CoreAccess:
         access = self._settings_app.coordination_access
@@ -412,7 +471,11 @@ class AgentSettingsPanel(metaclass=AbstractHooksMeta):
         if not self.settings_panel_alive():
             return
         self.close_agent_settings_chain()
-        self._chain = AgentSettingsChain(projection, self._on_chain_edit)
+        self._chain = AgentSettingsChain(
+            projection,
+            self._on_chain_edit,
+            thread_class=self._thread_class,
+        )
         self._selected_scope = AgentSettingsScope.parse(projection.scope)
         self.show_agent_settings_chain(
             self._chain.scopes,
