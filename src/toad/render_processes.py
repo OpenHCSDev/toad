@@ -18,7 +18,7 @@ from typing import TypeVar
 from agent_comms.execution import launch_root
 from agent_comms.execution.child_process import ProcessName, WorkerStart
 from agent_comms.execution.helper_workers import HelperWorkers
-from agent_comms.execution.launch_runtime import ThreadLaunch
+from agent_comms.execution.thread_launch import ThreadLaunch
 
 from toad.render_backend import Renderer, RenderTask, capture_submitted
 from toad.work_preparation import PreparedValue

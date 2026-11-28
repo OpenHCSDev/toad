@@ -23,7 +23,7 @@ from agent_comms.acp_extension import (
 from agent_comms.execution.session_updates import encode_updates
 from agent_comms.comms import wire
 from agent_comms.coordination.work import CoordinationWork
-from agent_comms.execution.launch_runtime import ThreadLaunch
+from agent_comms.execution.thread_launch import ThreadLaunch
 from agent_comms.execution.pi_wire import McpLiveAcknowledgement, McpServerReceipt
 from agent_comms.execution.turn_lease import NoFinishedTurn
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, InputId, TurnId
