@@ -10,20 +10,26 @@ transcript.
 """
 from __future__ import annotations
 
+import asyncio
 from abc import abstractmethod
 from collections.abc import Awaitable, Iterable, Sequence
 from typing import TYPE_CHECKING, ClassVar
 
 from functools import partial
 
+import shiboken6
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
+from toad.client.model_selection import ModelChoice, merge_provider_model_choices
 from toad.client.session_tracker import SessionDetails
 from toad.transcript_scope import TranscriptScope
 from ui_theme.scheme import ForegroundColour
 
+from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.registry.threads import ModelChoice as CoreModelChoice
+from agent_comms.transport.tools.commands import CommsModelTool, ModelChanged, NamedSubject
 from agent_comms.ui_model.delivery import DeliveryView
 from toad.command_catalog import AddressesItsThread
 from toad.client.draft_fragments import DRAFT_FRAGMENTS
@@ -34,6 +40,7 @@ from toad.qt.bound_view import QtBoundViewHost
 from toad.qt.composer import Composer
 from toad.qt.conversation import QtConversation
 from toad.qt.goal import QtGoalBar
+from toad.qt.model_selection import QtModelChoiceDialog
 from toad.qt.transcript_fragments import QT_FRAGMENT_CLASSES
 from toad.qt.metrics import UiGap
 from toad.qt.prompt_stack import QtInputDeliveryDetails, QtSessionDetails
@@ -78,6 +85,64 @@ class QtThreadView(
     """Textual's `OperationalSessionDetails`: ``▶ <status> · …`` over its details."""
     question: QtQuestion | None = None
     interactive_dialog: QtInteractiveDialog | None = None
+    _model_dialog: QtModelChoiceDialog | None = None
+
+    def model_picker_choices(self) -> tuple[ModelChoice, ...]:
+        """Generic provider-driven model choices offered by `/model` on every thread tab."""
+        return merge_provider_model_choices()
+
+    def current_model_value(self) -> str:
+        """Current wire model identifier for this thread tab, or empty when undeclared."""
+        return ""
+
+    def focus_model_choice(self) -> None:
+        """Open the unified provider-driven model picker (`/model`) for this thread tab."""
+        choices = self.model_picker_choices()
+        if not choices:
+            self.flash("This session has no advertised models")
+            return
+        if self._model_dialog is not None and shiboken6.isValid(self._model_dialog):
+            self._model_dialog.raise_()
+            self._model_dialog.activateWindow()
+            return
+        dialog = QtModelChoiceDialog.for_provider_catalog(
+            self.model_picker_choices,
+            self.current_model_value,
+            self.model_history_scope,
+            self.window(),
+        )
+        self._model_dialog = dialog
+        dialog.finished.connect(self._model_dialog_finished)
+        dialog.open_picker()
+
+    def _model_dialog_finished(self, result: int) -> None:
+        dialog, self._model_dialog = self._model_dialog, None
+        if dialog is None:
+            return
+        chosen = dialog.chosen
+        dialog.deleteLater()
+        if result == int(QDialog.DialogCode.Accepted) and chosen is not None and shiboken6.isValid(self):
+            self.run_worker(partial(self.apply_thread_model_choice, chosen), group="model")
+
+    async def apply_thread_model_choice(self, model_id: str) -> ModelChanged | None:
+        """Apply a model choice through Core's `CommsModelTool` (cross-provider switches fork)."""
+        thread_name = self.thread_identity.thread_name()
+        if not thread_name:
+            self.flash_error("No bound thread for model change")
+            return None
+        choice = FieldCodec.decode(CoreModelChoice, model_id)
+        result = await asyncio.to_thread(
+            lambda: self.app.coordination_access.open_current().core.call(
+                CommsModelTool(thread=NamedSubject(thread_name), model=choice)
+            )
+        )
+        if result.forked_from is not None:
+            self.flash_success(
+                f"Forked {result.forked_from} → {result.thread} ({result.model})"
+            )
+        else:
+            self.flash_success(f"Model {result.model}")
+        return result
 
     @abstractmethod
     def composer_class(self) -> type[Composer]:

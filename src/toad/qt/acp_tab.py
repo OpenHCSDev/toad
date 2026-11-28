@@ -18,17 +18,18 @@ from operator import attrgetter
 from time import time_ns
 from typing import TYPE_CHECKING, ClassVar
 
-import shiboken6
 from agent_comms.nominal.field_codec import NoAcpSessionId
+from agent_comms.registry.thread_model import ModelSelection
 from agent_comms.registry.threads import NativeThread, Thread
+from agent_comms.transport.tools.commands import ModelChanged
 from metaclass_registry.mro_dispatch import handles
 from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QDialog
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 
 from toad.agent import AgentBase
 from toad.agent_binding import AgentConnection
 from toad.client.db import DB
+from toad.client.model_selection import ModelChoice, merge_provider_model_choices
 from toad.client.session_entry import NativeSessionEntry
 from toad.client.session_scope import BoundSources
 from toad.client.tab_identity import SessionTabIdentity
@@ -38,7 +39,6 @@ from toad.core.configuration_events import ChangeModel
 from toad.core.input_events import UserInputSubmitted
 from toad.launch_binding import AgentBinding, AgentConversation, AgentOrigin
 from toad.qt.composer import ProjectComposer
-from toad.qt.model_selection import QtModelChoiceDialog
 from toad.qt.thread_view import QtThreadView
 from toad.qt.window import QtSessionEntry
 from toad.session_titles import FirstPromptTitle, SessionTitles
@@ -85,7 +85,6 @@ class QtAcpSessionView(
         self._initial_prompt = initial_prompt
         self._native_agent_started_here = False
         self._attached = False
-        self._model_dialog: QtModelChoiceDialog | None = None
         # As Textual's Conversation: a session with no saved agent session guesses its title
         # from its first prompt (`FirstPromptTitle`; a resumed one keeps the saved name).
         self._auto_title_eligible = True
@@ -142,33 +141,22 @@ class QtAcpSessionView(
     def model_history_scope(self) -> str:
         return self.launch.selected_agent("", attrgetter("identity"))
 
-    def focus_model_choice(self) -> None:
-        """Open the shared searchable model picker for this ACP session (`/model`)."""
-        setting = self.agent_binding.configuration.model
-        if not setting.available and not setting.choices:
-            self.flash("This session has no advertised models")
-            return
-        if self._model_dialog is not None and shiboken6.isValid(self._model_dialog):
-            self._model_dialog.raise_()
-            self._model_dialog.activateWindow()
-            return
-        dialog = QtModelChoiceDialog.for_session(
-            lambda: self.agent_binding.configuration.model,
-            self.model_history_scope,
-            self.window(),
-        )
-        self._model_dialog = dialog
-        dialog.finished.connect(self._model_dialog_finished)
-        dialog.open_picker()
+    def model_picker_choices(self) -> tuple[ModelChoice, ...]:
+        """Merge live ACP advertised models with Core's generic ``ModelProvider`` catalog."""
+        return merge_provider_model_choices(self.agent_binding.configuration.model.choices)
 
-    def _model_dialog_finished(self, result: int) -> None:
-        dialog, self._model_dialog = self._model_dialog, None
-        if dialog is None:
-            return
-        chosen = dialog.chosen
-        dialog.deleteLater()
-        if result == int(QDialog.DialogCode.Accepted) and chosen is not None and shiboken6.isValid(self):
-            self.run_worker(partial(self.apply_model_change, ChangeModel(chosen)), group="model")
+    def current_model_value(self) -> str:
+        return self.agent_binding.configuration.model.current
+
+    async def apply_thread_model_choice(self, model_id: str) -> ModelChanged | None:
+        """Convert cross-provider switches into Core forks; keep same-provider switches in place."""
+        if (
+            ModelSelection.crosses_provider_values(self.current_model_value(), model_id)
+            and self.thread_identity.optional_thread_incarnation() is not None
+        ):
+            return await super().apply_thread_model_choice(model_id)
+        await self.apply_model_change(ChangeModel(model_id))
+        return None
 
     # ---- The bound agent ----
 

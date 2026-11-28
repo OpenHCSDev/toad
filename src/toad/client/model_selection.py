@@ -15,6 +15,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
+from agent_comms.registry.thread_model import ModelSelection
+
 from toad.acp.agent_configuration import ModelConfigurationSetting
 from toad.client.command_draft import PreparedChoices
 
@@ -77,13 +79,15 @@ class RankedModel:
     choice: ModelChoice
     is_current: bool
     is_recent: bool
+    will_fork: bool = False
 
     @property
     def plain_label(self) -> str:
         prefix = "✓ " if self.is_current else "  "
         recent = " · recent" if self.is_recent else ""
         detail = f" · {self.choice.value}" if self.choice.value != self.choice.name else ""
-        return f"{prefix}{self.choice.name}{recent}{detail}"
+        fork_tag = " · ↪ forks" if self.will_fork else ""
+        return f"{prefix}{self.choice.name}{recent}{detail}{fork_tag}"
 
 
 class ModelSelectionCore:
@@ -190,6 +194,7 @@ class ModelSelectionCore:
                 choice=model,
                 is_current=model.value == current,
                 is_recent=model.value in recent,
+                will_fork=ModelSelection.crosses_provider_values(current, model.value),
             )
             for *_, model in scored
         ]
@@ -257,3 +262,34 @@ class SessionChoiceSelection(ModelSelectionCore):
     @property
     def current(self) -> str:
         return self.model_setting().current
+
+
+def merge_provider_model_choices(
+    advertised: Sequence[ModelChoice] = (),
+) -> tuple[ModelChoice, ...]:
+    """Combine live advertised choices with Core's generic ``ModelProvider`` catalog."""
+    seen: dict[str, ModelChoice] = {}
+    for choice in advertised:
+        if choice.value:
+            seen.setdefault(choice.value, choice)
+    for choice in ModelSelection.provider_catalog_choices():
+        seen.setdefault(choice.value, choice)
+    return tuple(seen.values())
+
+
+class ProviderChoiceSelection(ModelSelectionCore):
+    """Generic provider-driven model selection shared by native and CLI-inbox thread tabs."""
+
+    @abstractmethod
+    def provider_choices(self) -> Sequence[ModelChoice]: ...
+
+    @abstractmethod
+    def provider_current(self) -> str: ...
+
+    @property
+    def choices(self) -> Sequence[ModelChoice]:
+        return self.provider_choices()
+
+    @property
+    def current(self) -> str:
+        return self.provider_current()
