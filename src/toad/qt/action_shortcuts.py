@@ -25,18 +25,22 @@ from typing import Any
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QWidget
+from textual.keys import key_to_character
 
 from toad.keymap import KeyInvocationId, KeymapRow
 from toad.widget_actions import DeclaredWidgetActions
 
 
 def _qt_sequences(key: str) -> tuple[QKeySequence, ...]:
-    """Textual-style key spellings (``ctrl+d``, ``G``, ``escape``, ``enter``) as `QKeySequence`s.
+    """Textual-style key spellings (``ctrl+d``, ``G``, ``escape``, ``enter``, ``ctrl+comma``)
+    as `QKeySequence`s.
 
     Qt accepts ``Ctrl+D`` style strings directly; a lone capital letter means Shift+<letter>
     in Textual's convention (``Shift+G``). Qt separates main-keyboard ``Return`` from numpad
     ``Enter`` while Textual spells both ``enter``, so any ``enter`` spelling maps to both
     ``Return`` and ``Enter`` (including modified forms like ``ctrl+enter`` / ``shift+enter``).
+    Named punctuation keys (``comma``, ``exclamation_mark``, ``left_square_bracket``) translate
+    from Textual's own ``key_to_character`` table so none collapse to an empty ``QKeySequence``.
     """
     spelling = key.strip()
     if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
@@ -48,6 +52,9 @@ def _qt_sequences(key: str) -> tuple[QKeySequence, ...]:
         return (QKeySequence(f"{prefix}Return"), QKeySequence(f"{prefix}Enter"))
     if tail == "plus":
         return (QKeySequence(f"{prefix}+"), QKeySequence(f"{prefix}Shift+="))
+    character = key_to_character(tail)
+    if character is not None and character.isprintable() and character != " ":
+        return (QKeySequence(f"{prefix}{character}"),)
     return (QKeySequence(spelling),)
 
 

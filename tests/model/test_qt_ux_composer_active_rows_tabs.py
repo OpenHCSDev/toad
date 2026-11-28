@@ -557,11 +557,12 @@ def test_qt_vimium_hints_polymorphic_dispatch_and_themed_keymap_screen() -> None
     from toad.client.hints import ContextHint, OpenContextHintsAction, OpenHintsAction, PrimaryHint
     from toad.hint_labels import FullKeyHintLabels, NextLetterHintLabels
     from toad.keymap import KeyInvocationId, Keymap
+    from toad.client.theme_tones import FloatToneColour
     from toad.qt.action_shortcuts import ActionKeys
     from toad.qt.hints import QtHintOverlay
     from toad.qt.keymap_screen import QtKeymapScreen
     from toad.qt.tap_flash import QtPushButton
-    from ui_theme.scheme import BackgroundColour, SurfaceColour
+    from ui_theme.scheme import BackgroundColour
 
     app = _app()
     scheme = SCHEMES[0]
@@ -618,11 +619,13 @@ def test_qt_vimium_hints_polymorphic_dispatch_and_themed_keymap_screen() -> None
     assert len(tab_menus) == 1
     assert not overlay.isVisible()
 
-    # 3. ActionKeys.focused_invocations() reports real bound actions, and QtKeymapScreen themes cleanly.
+    # 3. ActionKeys.focused_invocations() reports real bound actions, ctrl+comma maps to Ctrl+,,
+    # and QtKeymapScreen themes cleanly across schemes including ansi-dark.
     settings = SimpleNamespace(ui=SimpleNamespace(key_mode=VimNormal, keymap=Keymap()))
     ak = ActionKeys(lambda: settings)
     ak.bind(host, KeymapAction(), lambda: None, Qt.ShortcutContext.ApplicationShortcut)
-    ak.bind(host, SettingsAction(), lambda: None, Qt.ShortcutContext.ApplicationShortcut)
+    settings_shortcut = ak.bind(host, SettingsAction(), lambda: None, Qt.ShortcutContext.ApplicationShortcut)
+    assert [seq.toString() for seq in settings_shortcut.keys()] == ["Ctrl+,"]
     ak.bind(host, OpenHintsAction(), lambda: None, Qt.ShortcutContext.WindowShortcut)
     focused = ak.focused_invocations()
     assert KeyInvocationId(KeymapAction().key_identity()) in focused
@@ -633,7 +636,15 @@ def test_qt_vimium_hints_polymorphic_dispatch_and_themed_keymap_screen() -> None
     host.run_operation = lambda _kind, fn: None
     dialog = QtKeymapScreen(host, focused)
     assert renderer.theme(BackgroundColour) in dialog.styleSheet()
-    assert renderer.theme(SurfaceColour) in dialog.styleSheet()
+    assert renderer.theme(FloatToneColour) in dialog.styleSheet()
     assert dialog.table.rowCount() >= 2
     dialog.close()
+
+    from toad.qt.theme import offered_schemes
+    for scheme_obj in offered_schemes(os.environ).values():
+        scheme_renderer = QtLineRenderer(scheme_obj, LinkContext(None, ()), DiffSettings())
+        host.renderer = scheme_renderer
+        themed_dialog = QtKeymapScreen(host, focused)
+        assert scheme_renderer.theme(FloatToneColour) in themed_dialog.styleSheet()
+        themed_dialog.close()
     host.close()
