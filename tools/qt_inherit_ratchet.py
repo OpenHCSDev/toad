@@ -154,6 +154,11 @@ QT_ONLY = {
     'toad.qt.paste_profile.QtProfilePastePanel': "inline QFrame child of QtToadApp for pasting bus-profile JSON without allocating a second QWindow EGL surface on Android; Textual pushes a modal Screen",
     'toad.qt.sidebar_panel.QtPanelEntry': "Qt widget-factory dataclass (spec, build, controls, identity) parametrizing shared SidebarPanelColumn and PanelMenuModel; Textual uses SideBar.Panel",
     'toad.qt.sidebar_panel.QtSidebarShell': "QWidget QVBoxLayout stacking QtSidebarSearch above a sidebar body widget; Textual composes the same shell in SideBar._compose_shell",
+    'toad.qt.config_window.ToadConfigDocument': "pyqt_reactive.ConfigDocumentFormat JSON adapter for FieldCodec records inside ToadConfigWindow; Textual renders settings without pyqt_reactive.ConfigWindow",
+    'toad.qt.config_window.ScopedConfigTabSpec': "pyqt_reactive.ConfigWindowTabSpec labelling each tab by ObjectState.scope_label inside ToadConfigWindow; Textual has no ConfigWindow tab specs",
+    'toad.qt.config_window.ToadConfigWindow': "pyqt_reactive.ConfigWindow + PresentedWindow host for multi-scope agent settings and QtSettingsScreen; Textual uses its own SettingsScreen",
+    'toad.qt.comms_server_browser.CommsServerBrowserWidget': "pyqt_reactive.ZMQServerBrowserWidgetABC live tree widget for desktop CommsZMQServer inspection; Textual has no live ZMQ server browser widget",
+    'toad.qt.comms_server_browser.QtCommsServerWindow': "PresentedWindow QDialog hosting CommsServerBrowserWidget; Textual has no ZMQ server browser dialog",
 }
 
 KNOWN_BARE = frozenset({

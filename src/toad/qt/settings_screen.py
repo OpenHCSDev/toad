@@ -16,12 +16,11 @@ from toad.qt.config_window import (
     ToadConfigWindow,
 )
 from toad.qt.forms import QtFormView
-from toad.qt.presented_window import PresentedWindow
 from toad.qt.window import QtToadApp
 from toad.settings_editing import SettingsEditing
 
 
-class QtSettingsScreen(PresentedWindow, SettingsEditing, ToadConfigWindow):
+class QtSettingsScreen(SettingsEditing, ToadConfigWindow):
     """Modal settings editor hosted by ``pyqt_reactive.ConfigWindow``."""
 
     closed = Signal()

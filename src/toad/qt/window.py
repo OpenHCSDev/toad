@@ -2707,7 +2707,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, Hin
     async def open_comms_servers(self) -> None:
         """Qt override of `ClientApplication.open_comms_servers`. Opens the
         `ZMQServerBrowserWidgetABC`-backed live comms server browser for the active bus root."""
-        from toad.qt.comms_server_browser import QtCommsServerWindow
+        try:
+            from toad.qt.comms_server_browser import QtCommsServerWindow
+        except ImportError:
+            self.show_info(
+                "Comms ZMQ server browser is unavailable without pyzmq.",
+                "Comms ZMQ servers",
+            )
+            return
 
         observed = self.coordination_access.observation.observed()
         bus_root = Path(observed.root) if observed.root else Path.home() / ".agent-comms"
