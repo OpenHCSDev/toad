@@ -38,6 +38,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QScrollArea,
+    QScrollBar,
     QScroller,
     QSizePolicy,
     QSpinBox,
@@ -67,7 +68,12 @@ from ui_theme.scheme import (
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
 
-from toad.client.theme_tones import ScrollbarTones, SidebarToggleToneColour, WorkspaceTabTones
+from toad.client.theme_tones import (
+    ScrollbarTones,
+    SidebarToggleHoverToneColour,
+    SidebarToggleToneColour,
+    WorkspaceTabTones,
+)
 
 from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
@@ -181,6 +187,32 @@ from toad.sidebar_placement import (
 from toad.status_thread import StatusThread
 from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
+
+
+def _scrollbar_qss(renderer: QtLineRenderer, *, selector: str = "QScrollBar") -> str:
+    """Shared scrollbar stylesheet matching Textual's `$scrollbar-*` tokens across Qt."""
+    track = renderer.theme(ScrollbarTones.track_colour)
+    thumb = renderer.theme(ScrollbarTones.thumb_colour)
+    hover = renderer.theme(ScrollbarTones.hover_colour)
+    active = renderer.theme(ScrollbarTones.active_colour)
+    return (
+        f"{selector}:vertical, {selector}:horizontal {{"
+        f" background-color: {track}; border: none; margin: 0px; }}"
+        f"{selector}::handle:vertical, {selector}::handle:horizontal {{"
+        f" background-color: {thumb}; border: none; border-radius: 0px;"
+        f" min-width: 24px; min-height: 24px; }}"
+        f"{selector}::handle:vertical:hover, {selector}::handle:horizontal:hover {{"
+        f" background-color: {hover}; }}"
+        f"{selector}::handle:vertical:pressed, {selector}::handle:horizontal:pressed {{"
+        f" background-color: {active}; }}"
+        f"{selector}::add-line:vertical, {selector}::sub-line:vertical,"
+        f"{selector}::add-line:horizontal, {selector}::sub-line:horizontal {{"
+        f" width: 0px; height: 0px; background-color: {track}; border: none; }}"
+        f"{selector}::add-page:vertical, {selector}::sub-page:vertical,"
+        f"{selector}::add-page:horizontal, {selector}::sub-page:horizontal {{"
+        f" background-color: {track}; border: none; }}"
+        f"QAbstractScrollArea::corner {{ background-color: {track}; }}"
+    )
 
 
 @dataclass(frozen=True)
@@ -867,7 +899,8 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
             f" border: none; border-radius: 3px; selection-background-color: {selection_bg}; }}"
             f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}"
             f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
-            f"QScrollBar:vertical {{ width: {bar}px; }}"
+            + _scrollbar_qss(renderer)
+            + f"QScrollBar:vertical {{ width: {bar}px; }}"
             f"QScrollBar:horizontal {{ height: {bar}px; }}",
         )
         self._tone_brushes: dict[type[ThemeColour], QBrush] = {}
@@ -1865,14 +1898,24 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tab_strip.setWidget(self.tabs)
         self.tab_strip.setWidgetResizable(True)
         self.tab_strip.setFrameShape(QFrame.Shape.NoFrame)
-        self.tab_strip.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded
-            if platform_input().tab_scrollbar_height
-            else Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-        )
+        self.tab_strip.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.tab_strip.setObjectName("toad-tab-strip")
+        self.tab_scrollbar = QScrollBar(Qt.Orientation.Horizontal, self)
+        self.tab_scrollbar.setObjectName("toad-tab-scrollbar")
+        self.tab_scrollbar.hide()
+        strip_hbar = self.tab_strip.horizontalScrollBar()
+        strip_hbar.rangeChanged.connect(self._sync_tab_scrollbar_range)
+        strip_hbar.valueChanged.connect(self.tab_scrollbar.setValue)
+        self.tab_scrollbar.valueChanged.connect(strip_hbar.setValue)
+        self.tab_column = QWidget(self)
+        self.tab_column.setObjectName("toad-tab-column")
+        tab_column_layout = QVBoxLayout(self.tab_column)
+        tab_column_layout.setContentsMargins(0, 0, 0, 0)
+        tab_column_layout.setSpacing(0)
+        tab_column_layout.addWidget(self.tab_scrollbar)
+        tab_column_layout.addWidget(self.tab_strip)
         self._last_tab_mode: str | None = None
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
@@ -1884,7 +1927,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         bar.addWidget(self._nav_separators[1])
         bar.addWidget(self.forward)
         bar.addWidget(self._nav_separators[2])
-        bar.addWidget(self.tab_strip, 1)
+        bar.addWidget(self.tab_column, 1)
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
         self.navigation = chrome = QFrame(self)
@@ -2167,14 +2210,28 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # to the selected tab when selection actually changed so user scrolling never snaps back.
         QTimer.singleShot(0, partial(self.show_current_tab, scroll_to_current=selection_changed))
 
+    def _tab_scrollbar_height(self) -> int:
+        cells = platform_input().tab_scrollbar_cells
+        return cells * self.tabs.fontMetrics().lineSpacing() if cells else 0
+
+    def _sync_tab_scrollbar_range(self, minimum: int, maximum: int) -> None:
+        strip_hbar = self.tab_strip.horizontalScrollBar()
+        self.tab_scrollbar.setRange(minimum, maximum)
+        self.tab_scrollbar.setPageStep(strip_hbar.pageStep())
+        self.tab_scrollbar.setSingleStep(strip_hbar.singleStep())
+        self.tab_scrollbar.setValue(strip_hbar.value())
+        bar_h = self._tab_scrollbar_height()
+        if bar_h > 0 and maximum > minimum:
+            self.tab_scrollbar.setFixedHeight(bar_h)
+            self.tab_scrollbar.show()
+        else:
+            self.tab_scrollbar.hide()
+
     def show_current_tab(self, *, scroll_to_current: bool = True) -> None:
         self.tabs.sync_strip_width(self.tab_strip.viewport().width())
-        tab_bar_scroll_h = (
-            platform_input().tab_scrollbar_height
-            if self.tabs.sizeHint().width() > self.tab_strip.viewport().width()
-            else 0
-        )
-        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height() + tab_bar_scroll_h)
+        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
+        strip_hbar = self.tab_strip.horizontalScrollBar()
+        self._sync_tab_scrollbar_range(strip_hbar.minimum(), strip_hbar.maximum())
         scroller = QScroller.scroller(self.tab_strip.viewport())
         if scroll_to_current and scroller.state() == QScroller.State.Inactive and (index := self.tabs.currentIndex()) >= 0:
             rect = self.tabs.tabRect(index)
@@ -2188,24 +2245,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         renderer = self.renderer
         sidebar_bg = renderer.theme(SidebarToneColour)
         toggle_bg = renderer.theme(SidebarToggleToneColour)
-        sidebar_pane_style = (
-            f"QWidget#SidebarPane, QWidget#SidebarPane > QWidget,"
-            f" QWidget#SidebarPane QFrame#QtSidebarPanelFrame,"
-            f" QWidget#SidebarPane QWidget#QtSidebarPanelHeader,"
-            f" QWidget#SidebarPane QScrollArea,"
-            f" QWidget#SidebarPane QScrollArea > QWidget > QWidget {{"
-            f" background-color: {sidebar_bg}; color: {renderer.theme(WorkspaceTabTones.active_text_colour)}; }}"
-        )
-        toggle_style = (
-            f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
-            f" background-color: {toggle_bg}; border: none; padding: 0px 2px; }}"
-        )
-        for side in self.chrome.sidebars:
-            side.setStyleSheet(
-                sidebar_pane_style
-                + scheme.styles.generate_sidebar_bar_style()
-                + toggle_style
-            )
+        toggle_hover_bg = renderer.theme(SidebarToggleHoverToneColour)
         bar_bg = renderer.theme(WorkspaceTabTones.bar_tone)
         inactive_bg = renderer.theme(WorkspaceTabTones.inactive_tab_tone)
         selected_bg = renderer.theme(WorkspaceTabTones.selected_tab_tone)
@@ -2215,32 +2255,41 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         inactive_ink = renderer.theme(WorkspaceTabTones.inactive_text_colour)
         close_idle = renderer.theme(WorkspaceTabTones.close_idle_colour)
         close_hover = renderer.theme(WorkspaceTabTones.close_hover_colour)
-        scroll_track = renderer.theme(ScrollbarTones.track_colour)
-        scroll_thumb = renderer.theme(ScrollbarTones.thumb_colour)
-        scroll_active = renderer.theme(ScrollbarTones.active_colour)
+        scrollbar_qss = _scrollbar_qss(renderer)
+        self.setStyleSheet(scrollbar_qss)
+        sidebar_pane_style = (
+            f"QWidget#SidebarPane, QWidget#SidebarPane > QWidget,"
+            f" QWidget#SidebarPane QFrame#QtSidebarPanelFrame,"
+            f" QWidget#SidebarPane QWidget#QtSidebarPanelHeader,"
+            f" QWidget#SidebarPane QScrollArea,"
+            f" QWidget#SidebarPane QScrollArea > QWidget > QWidget {{"
+            f" background-color: {sidebar_bg}; color: {active_ink}; }}"
+        )
+        toggle_style = (
+            f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
+            f" background-color: {toggle_bg}; color: {inactive_ink}; border: none; padding: 0px 2px; }}"
+            f"QWidget#SidebarToggle:hover {{"
+            f" background-color: {toggle_hover_bg}; color: {active_ink}; }}"
+        )
+        for side in self.chrome.sidebars:
+            side.setStyleSheet(sidebar_pane_style + toggle_style + scrollbar_qss)
+        self.tab_scrollbar.setStyleSheet(_scrollbar_qss(renderer, selector="#toad-tab-scrollbar"))
+        self.tab_column.setStyleSheet(f"#toad-tab-column {{ background-color: {bar_bg}; }}")
         self.tab_strip.setStyleSheet(
             f"#toad-tab-strip, #toad-tab-strip > QWidget {{"
             f" border: none; padding: 0px; background-color: {bar_bg}; }}"
-            f"#toad-tab-strip QScrollBar:horizontal {{"
-            f" height: 6px; background-color: {scroll_track}; border: none; margin: 0px; }}"
-            f"#toad-tab-strip QScrollBar::handle:horizontal {{"
-            f" background-color: {scroll_thumb}; min-width: 24px; border-radius: 3px; }}"
-            f"#toad-tab-strip QScrollBar::handle:horizontal:hover,"
-            f"#toad-tab-strip QScrollBar::handle:horizontal:pressed {{"
-            f" background-color: {scroll_active}; }}"
-            f"#toad-tab-strip QScrollBar::add-line:horizontal,"
-            f"#toad-tab-strip QScrollBar::sub-line:horizontal {{ width: 0px; height: 0px; }}"
         )
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
+            f" border-bottom: 2px solid {hover_bg};"
             f" padding: 4px 1px 4px 5px; margin-right: {self.tabs.TAB_GAP}px;"
-            " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
+            " border-top-left-radius: 0px; border-top-right-radius: 0px; }"
             f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
             f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
             f" font-weight: bold; border-bottom: 2px solid {underline_hex}; }}"
             f"QToolButton#tab-close-button {{"
-            f" border: none; border-radius: 4px; padding: 0px;"
+            f" border: none; border-radius: 0px; padding: 0px;"
             f" background: transparent; color: {close_idle}; font-weight: bold; }}"
             f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
             f" background: {hover_bg}; color: {close_hover}; }}"
@@ -2324,7 +2373,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def show_session_tabs(self, shown: bool) -> None:
         self.paint_tabs()
-        self.tab_strip.setVisible(shown)
+        self.tab_column.setVisible(shown)
         self._nav_separators[2].setVisible(shown)
 
     def pane_open(self, identity: type[SidebarPlacement]) -> bool:

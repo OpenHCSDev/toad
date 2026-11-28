@@ -24,13 +24,21 @@ from PySide6.QtWidgets import QApplication, QStyleOptionViewItem, QTreeWidget, Q
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 
-from toad.key_modes import VimInsert
+from toad.client.input_modality import KeyboardInput, TouchInput
+from toad.client.theme_tones import ScrollbarTones, SidebarToggleHoverToneColour, SidebarToggleToneColour
+from toad.key_modes import Standard, VimInsert
+from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
+from toad.patch import DiffSettings
 from toad.qt.action_shortcuts import _qt_sequences
 from toad.qt.composer import Composer
 from toad.qt.composer_vim import ComposerVimMode
 from toad.qt.history import HistoryRowDelegate
+from toad.qt.lines import QtLineRenderer
 from toad.qt.name_wave import QtNameWaveDelegate
+from toad.qt.prompt_stack import QtEditingModeBadge
+from toad.qt.window import _scrollbar_qss
+from ui_theme.catalog import SCHEMES
 
 
 def _app() -> QApplication:
@@ -141,3 +149,66 @@ def test_wire_message_style_strips_leading_blank_lines_and_qt_sheet_zeros_top_ma
         assert blocks[0].text == "    indented first line\n\nsecond"
 
     assert "margin-top: 0px" in HistoryRowDelegate.PREFORMATTED_SHEET
+
+
+def test_qt_editing_mode_badge_shows_standard_after_leaving_vim_normal() -> None:
+    _app()
+    renderer = QtLineRenderer(SCHEMES[0], LinkContext(None, ()), DiffSettings())
+    synced: list[bool] = []
+    info_bar = SimpleNamespace(sync_visibility=lambda: synced.append(True))
+    badge = QtEditingModeBadge(renderer, info_bar)
+
+    vim = ComposerVimMode(VimInsert)
+    badge.present_editing_mode(vim, focused=True)
+    assert badge.text() == "INSERT"
+    assert not badge.isHidden()
+
+    vim.enter_normal()
+    badge.present_editing_mode(vim, focused=True)
+    assert badge.text() == "NORMAL"
+    assert not badge.isHidden()
+
+    # Escaping out of Vim NORMAL unfocuses the editor: badge must show STANDARD, not hide!
+    badge.present_editing_mode(vim, focused=False)
+    assert badge.text() == "STANDARD"
+    assert not badge.isHidden()
+
+    # Non-vim Standard mode keeps the badge hidden.
+    badge.present_editing_mode(Standard(), focused=False)
+    assert badge.text() == ""
+    assert badge.isHidden()
+
+
+def test_scrollbar_tones_match_textual_color_system_and_qt_qss() -> None:
+    from agent_comms.nominal.field_codec import FieldCodec
+    from textual.theme import Theme
+
+    scheme = SCHEMES[0]
+    renderer = QtLineRenderer(scheme, LinkContext(None, ()), DiffSettings())
+    colours = {m.name: v.hex for m, v in scheme.colours.items()}
+    variables = {m.name: v.hex for m, v in scheme.resolved_elements.items()}
+    textual_vars = FieldCodec.decode(
+        Theme,
+        {
+            "name": scheme.name,
+            "dark": scheme.dark,
+            "ansi": scheme.from_terminal,
+            "variables": variables,
+            **colours,
+        },
+    ).to_color_system().generate()
+
+    assert renderer.theme(ScrollbarTones.track_colour).lower() == textual_vars["scrollbar-background"].lower()
+    assert renderer.theme(ScrollbarTones.thumb_colour).lower() == textual_vars["scrollbar"].lower()
+    assert renderer.theme(ScrollbarTones.hover_colour).lower() == textual_vars["scrollbar-hover"].lower()
+    assert renderer.theme(ScrollbarTones.active_colour).lower() == textual_vars["scrollbar-active"].lower()
+    assert renderer.theme(SidebarToggleHoverToneColour) != renderer.theme(SidebarToggleToneColour)
+
+    qss = _scrollbar_qss(renderer)
+    assert renderer.theme(ScrollbarTones.track_colour) in qss
+    assert renderer.theme(ScrollbarTones.thumb_colour) in qss
+    assert renderer.theme(ScrollbarTones.hover_colour) in qss
+    assert renderer.theme(ScrollbarTones.active_colour) in qss
+    assert "::add-page:horizontal" in qss
+    assert KeyboardInput.tab_scrollbar_cells == 1
+    assert TouchInput.tab_scrollbar_cells == 0

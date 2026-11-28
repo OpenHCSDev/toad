@@ -62,7 +62,9 @@ class OverlayScrollBar(QScrollBar):
         self.handle_opacity = 1.0
         self._bg_color = QColor(renderer.theme(ScrollbarTones.track_colour))
         self._handle_color = QColor(renderer.theme(ScrollbarTones.thumb_colour))
+        self._hover_color = QColor(renderer.theme(ScrollbarTones.hover_colour))
         self._active_color = QColor(renderer.theme(ScrollbarTones.active_colour))
+        self.setMouseTracking(True)
         self._last_thumb = QRect()
         self._last_moved = 0.0
         self.still = QTimer(self)
@@ -118,13 +120,24 @@ class OverlayScrollBar(QScrollBar):
                 self.update(thumb.adjusted(0, -1, 0, 1))
 
     def paint_colours(self) -> None:
-        """Cache the track background and raised handle colours; `paintEvent` draws both
+        """Cache the track background and handle colours; `paintEvent` draws both
         directly with `WA_OpaquePaintEvent`."""
         self._bg_color = QColor(self.renderer.theme(ScrollbarTones.track_colour))
         self._handle_color = QColor(self.renderer.theme(ScrollbarTones.thumb_colour))
+        self._hover_color = QColor(self.renderer.theme(ScrollbarTones.hover_colour))
         self._active_color = QColor(self.renderer.theme(ScrollbarTones.active_colour))
         if self.isVisible():
             self.update()
+
+    def enterEvent(self, event) -> None:  # type: ignore[override]
+        super().enterEvent(event)
+        if self.isVisible():
+            self._dirty_thumb()
+
+    def leaveEvent(self, event) -> None:  # type: ignore[override]
+        super().leaveEvent(event)
+        if self.isVisible():
+            self._dirty_thumb()
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QPainter(self)
@@ -133,13 +146,16 @@ class OverlayScrollBar(QScrollBar):
             thumb = self._thumb_rect()
             if not thumb.isEmpty():
                 self._last_thumb = thumb
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
                 if self.handle_opacity < 1.0:
                     painter.setOpacity(self.handle_opacity)
-                radius = max(1.0, thumb.width() / 2.0)
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(self._active_color if self.isSliderDown() else self._handle_color)
-                painter.drawRoundedRect(thumb, radius, radius)
+                brush = (
+                    self._active_color
+                    if self.isSliderDown()
+                    else self._hover_color
+                    if self.underMouse()
+                    else self._handle_color
+                )
+                painter.fillRect(thumb, brush)
         painter.end()
 
     @classmethod
