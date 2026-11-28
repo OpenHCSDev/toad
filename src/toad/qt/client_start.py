@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import inspect
 from collections import deque
 from pathlib import Path
 from time import monotonic
@@ -99,6 +100,32 @@ class CoalescedQEventLoop(qasync.QEventLoop):
         self._ready_timer.setSingleShot(True)
         self._ready_timer.setInterval(0)
         self._ready_timer.timeout.connect(self._drain_ready)
+
+    def call_soon(self, callback, *args, context=None):  # type: ignore[override]
+        """Fast-path zero-delay scheduling bypassing `qasync.QEventLoop.call_later`'s
+        deprecated `asyncio.iscoroutinefunction` check (which fires `warnings.warn` on
+        every asyncio step on Python 3.14, ~4.3x slower per call)."""
+        if inspect.iscoroutinefunction(callback):
+            raise TypeError("coroutines cannot be used with call_soon")
+        if not callable(callback):
+            raise TypeError(f"callback must be callable: {type(callback).__name__}")
+        handle = asyncio.Handle(callback, args, self, context=context)
+        self._ready.append(handle)
+        if not self._ready_armed:
+            self._ready_armed = True
+            self._ready_timer.start()
+        return handle
+
+    def call_later(self, delay, callback, *args, context=None):  # type: ignore[override]
+        if delay <= 0:
+            return self.call_soon(callback, *args, context=context)
+        if inspect.iscoroutinefunction(callback):
+            raise TypeError("coroutines cannot be used with call_later")
+        if not callable(callback):
+            raise TypeError(f"callback must be callable: {type(callback).__name__}")
+        return super()._add_callback(
+            asyncio.Handle(callback, args, self, context=context), delay
+        )
 
     def _add_callback(self, handle, delay: float = 0):
         if delay <= 0:

@@ -3192,3 +3192,45 @@ def test_android_tab_switch_does_not_autofocus_composer_or_raise_ime(monkeypatch
         assert ime_shown == [True]
     finally:
         editor.close()
+
+
+def test_coalesced_loop_call_soon_avoids_deprecation_warning_and_caches_message_header(monkeypatch) -> None:
+    """CoalescedQEventLoop.call_soon/call_later avoid Python 3.14's deprecated
+    asyncio.iscoroutinefunction warning while still rejecting coroutines, and
+    MessageRow.header caches its immutable Divider across repeated reads and pickling."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    import pickle
+    import warnings
+    import pytest
+    from agent_comms.messaging.messages import InfoKind, Message
+    from toad.message_rows import MessageRow
+    from toad.qt.client_start import CoalescedQEventLoop
+
+    loop = CoalescedQEventLoop(app)
+    ran: list[int] = []
+    try:
+        async def _coro():
+            return None
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", DeprecationWarning)
+            h1 = loop.call_soon(ran.append, 1)
+            h2 = loop.call_later(0, ran.append, 2)
+            loop._drain_ready()
+        assert ran == [1, 2]
+        assert not [w for w in caught if "iscoroutinefunction" in str(w.message)]
+        with pytest.raises(TypeError):
+            loop.call_soon(_coro)
+        with pytest.raises(TypeError):
+            loop.call_later(0.1, _coro)
+        assert not h1.cancelled() and not h2.cancelled()
+    finally:
+        loop.close()
+
+    msg = Message("toad-qt", "#comms", "hi", InfoKind, timestamp=1700000000.0)
+    row = MessageRow(message=msg, reader="user")
+    first = row.header
+    assert row.header is first
+    unpickled = pickle.loads(pickle.dumps(row))
+    assert unpickled.header == first

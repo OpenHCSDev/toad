@@ -13,6 +13,7 @@ import re
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
+from functools import cached_property
 from typing import ClassVar
 
 from agent_comms.messaging.display_references import NoHistorySource
@@ -217,7 +218,7 @@ class MessageRow(MroProjection[LineLink]):
     def route_text(self) -> str:
         return self.header.label
 
-    @property
+    @cached_property
     def header(self) -> Divider:
         sender = (self.name(self.route.sender, self.role),)
         targets: list[Span] = []
