@@ -13,6 +13,7 @@ from functools import partial
 from typing import ClassVar
 
 from agent_comms.nominal.field_codec import FieldCodec
+from agent_comms.registry.thread_model import ThreadModel
 from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
 from formbridge.forms.form_following import FollowedFieldView, FollowedValueView, FollowingForm
 from formbridge.forms.parameter_form_service import ParameterFormService
@@ -72,6 +73,18 @@ class StructuredFieldEditing(LineFieldEditing):
 
     def read(self, text: str) -> object:
         return FieldCodec.decode(self.field.annotation, FieldCodec.parse(text.encode()))
+
+
+class ThreadModelFieldEditing(LineFieldEditing):
+    """A ThreadModel edited as its declared wire spelling (blank means undeclared)."""
+
+    def value_text(self, value: object) -> str:
+        encoded = FieldCodec.encode(value, ThreadModel)
+        return "" if encoded is None else str(encoded)
+
+    def read(self, text: str) -> object:
+        stripped = text.strip()
+        return FieldCodec.decode(ThreadModel, stripped or None)
 
 
 class SelectFieldEditing(SelectEditing, FieldEditing):
@@ -141,12 +154,17 @@ class FieldViews(FollowedFieldView, DeclaredViews):
         return [cls.part(shown) for shown in cls.shown(state, parent)]
 
     @classmethod
+    def field_for(cls, state: ObjectState, path) -> DeclaredField:
+        """Build this family's field wrapper for one path on ``state``."""
+        return cls.field_type(state, path)
+
+    @classmethod
     def shown(cls, state: ObjectState, parent: str = "") -> list[tuple]:
         """The direct children this family shows, as (parameter, field), with no view built:
         knowing which fields a form holds is cheap, and building their views is not."""
         return [(parameter, field)
                 for path, parameter in ParameterFormService().parameters_for_state(state, parent)
-                if cls.admits(field := cls.field_type(state, path))]
+                if cls.admits(field := cls.field_for(state, path))]
 
     @classmethod
     def part(cls, shown: tuple):
@@ -184,26 +202,33 @@ class ValueFields(FollowedValueView, FieldViews):
         return shown
 
 
+class ObjectFieldViews(FieldViews):
+    """Field views bound to a scoped configuration state (`ObjectConfiguration` or
+    `AgentScopeState`), delegating field construction to the state itself so each state
+    supplies its own `ObjectSettingField` subtype with its own provenance and persistence."""
+
+    @classmethod
+    def field_for(cls, state: ObjectState, path) -> DeclaredField:
+        return state.field(path.value)
+
+
 class ObjectValueFields(ValueFields):
-    """One setting of a viewed object (an `ObjectSettingField`): whether this object
-    overrides it, where its value comes from, and resetting it. Textual's object form
-    and Qt's both inherit this; each draws the source line and a Reset control."""
+    """One setting of a scoped configuration (`ObjectSettingField` or `AgentSettingField`):
+    whether this scope overrides it, where its value comes from, and resetting it. Textual's
+    object form and Qt's both inherit this; each draws the source line and a Reset control."""
 
     reset_label: ClassVar[str] = "Reset"
 
     def overridden(self) -> bool:
-        """This object holds its own value, where the setting admits one."""
-        return self.field.allows_override and self.field.state.parameters[self.field.path.value] is not None
+        """This scope holds its own value, where the setting admits one."""
+        return self.field.overridden
 
     def source_text(self) -> str:
-        if self.overridden():
-            return "Override for this object"
-        return "Inherited from global defaults" if self.field.allows_override else "Global setting · applies to every view"
+        return self.field.source_text
 
     def source_detail(self) -> str:
         """Which declaration and scope the shown value comes from."""
-        scope, owner = self.field.state.get_provenance(self.field.path.value)
-        return f"{owner.__module__}.{owner.__qualname__} · {scope or 'global'}"
+        return self.field.source_detail
 
     def reset_field(self) -> None:
         """Back to the parameter's own signature default, refusal cleared."""

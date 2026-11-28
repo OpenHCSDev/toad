@@ -2,13 +2,13 @@
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
 from textual import events
 from textual.widgets import Static
-from toad.form_family import ObjectValueFields
+from toad.form_family import ObjectFieldViews, ObjectValueFields
 from toad.forms.form_view import FieldView, ValueView, GroupView, FormView
 from toad.object_configuration import ObjectSettingField
 from toad.widgets.acting_button import ActingButton
 
 
-class ObjectFieldView(FieldView):
+class ObjectFieldView(ObjectFieldViews, FieldView):
     field_type = ObjectSettingField
 
     @classmethod

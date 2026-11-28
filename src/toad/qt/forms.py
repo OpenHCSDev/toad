@@ -18,10 +18,11 @@ from __future__ import annotations
 import os
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from enum import Enum
+from enum import Enum, StrEnum
 from functools import cached_property
 from typing import Optional
 
+from agent_comms.registry.thread_model import ThreadModel
 import shiboken6
 from formbridge.forms.declared_fields import DeclaredField, Multiline
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
@@ -49,10 +50,12 @@ from toad.form_family import (
     FieldViews,
     GroupFields,
     LineFieldEditing,
+    ObjectFieldViews,
     ObjectValueFields,
     SchemeChoosing,
     SelectFieldEditing,
     StructuredFieldEditing,
+    ThreadModelFieldEditing,
     ValueFields,
 )
 from toad.object_configuration import ObjectSettingField
@@ -156,6 +159,10 @@ class QtStructuredEditor(StructuredFieldEditing, QtLineEditor, shows=(tuple, lis
     pass
 
 
+class QtThreadModelEditor(ThreadModelFieldEditing, QtLineEditor, shows=(ThreadModel,)):
+    pass
+
+
 class QtMultilineEditor(MultilineEditing, QtValueEditor, shows=(Multiline,)):
     def build_control(self) -> QPlainTextEdit:
         text = QPlainTextEdit()
@@ -210,7 +217,7 @@ class QtChoicesEditor(ChoicesEditing, QtSelectEditor, shows=(AnnotationChoices,)
         super().paint()
 
 
-class QtEnumEditor(EnumEditing, QtSelectEditor, shows=(Enum,)):
+class QtEnumEditor(EnumEditing, QtSelectEditor, shows=(Enum, StrEnum)):
     pass
 
 
@@ -352,7 +359,7 @@ class QtFormView(FieldForm):
 
 # A viewed object's settings: the sub-family Textual's `ObjectFieldView` is.
 
-class QtObjectFieldView(QtFieldView):
+class QtObjectFieldView(ObjectFieldViews, QtFieldView):
     """A field of a viewed object's configuration; an edit goes through the view's
     configuration (`ObjectSettingField.edit`), not the global settings."""
 

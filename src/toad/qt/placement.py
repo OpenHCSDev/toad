@@ -16,12 +16,18 @@ from functools import partial
 from pathlib import Path
 
 from agent_comms.cli_support.cli_failures import CLI_FAILURES
+from agent_comms.registry.agent_settings_wire import AgentSettingsScope
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame, QLabel, QScrollArea, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QComboBox, QFrame, QLabel, QScrollArea, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import FloatHoverToneColour, MutedColour
 
+from toad.client.agent_settings_state import (
+    AgentScopeState,
+    AgentSettingsPanel,
+    scope_label,
+)
 from toad.client.context_intent import ContextTreeIntent
 from toad.client.menu_entry import MenuEntry
 from toad.client.session_scope import NoConversationView
@@ -41,7 +47,12 @@ from toad.qt.thread_comms_panel import QtThreadCommsPanel
 from toad.thread_identity import SessionIdentity
 from toad.thread_sidebar_declarations import CommsSidebarPanel, ThreadSidebarContents, ThreadSidebarPanel
 
-__all__ = ["QtObjectProperties", "QtViewActions", "ThreadSettingsPane"]
+__all__ = [
+    "QtAgentSettingsProperties",
+    "QtObjectProperties",
+    "QtViewActions",
+    "ThreadSettingsPane",
+]
 
 
 class QtObjectProperties(ObjectPropertiesPanel, QScrollArea, metaclass=PyQtWidgetMeta):
@@ -160,6 +171,131 @@ class QtViewActions(ViewActionsPanel, QScrollArea, metaclass=PyQtWidgetMeta):
         self.deleteLater()
 
 
+class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidgetMeta):
+    """Scoped Core agent settings (Global -> Project -> [Channel] -> Thread) over QtObjectFormView."""
+
+    def __init__(self, app, view, renderer, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setWindowFlags(Qt.WindowType.Widget)
+        self.init_agent_settings(app, view)
+        self._renderer = renderer
+        self._loaded = False
+        self._alive = True
+        self._tasks: set[asyncio.Task] = set()
+        self._form: QtObjectFormView | None = None
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+
+        self.scope_combo = QComboBox(self)
+        self.scope_combo.setSizeAdjustPolicy(
+            QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon
+        )
+        self.scope_combo.setMinimumContentsLength(8)
+        self.scope_combo.activated.connect(self._scope_activated)
+        self.scope_combo.hide()
+        layout.addWidget(self.scope_combo)
+
+        self.status_label = QLabel("Loading agent settings…", self)
+        self.status_label.setWordWrap(True)
+        self.status_label.setEnabled(False)
+        layout.addWidget(self.status_label)
+
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll.hide()
+        layout.addWidget(self.scroll, 1)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        if not self._loaded:
+            self._loaded = True
+            self._start_task(self.load_agent_settings())
+
+    def _start_task(self, coro) -> asyncio.Task:
+        task = asyncio.ensure_future(coro)
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
+        return task
+
+    def _scope_activated(self, index: int) -> None:
+        scope = self.scope_combo.itemData(index)
+        if scope is not None:
+            self.select_agent_scope(scope)
+
+    def settings_panel_alive(self) -> bool:
+        return self._alive
+
+    async def run_settings_thread(self, work_fn):
+        return await self._settings_app.preparation.run_thread(work_fn)
+
+    def schedule_settings_persist(self, coro) -> None:
+        self._start_task(coro)
+
+    def finish_active_form(self) -> None:
+        if self._form is not None:
+            self._form.finish()
+
+    def show_loading(self) -> None:
+        self.scope_combo.hide()
+        self.scroll.hide()
+        self.status_label.setText("Loading agent settings…")
+        self.status_label.show()
+
+    def show_unavailable(self, text: str) -> None:
+        self.scope_combo.hide()
+        self.scroll.hide()
+        self.status_label.setText(text)
+        self.status_label.show()
+
+    def show_agent_settings_chain(
+        self,
+        scopes: tuple[AgentSettingsScope, ...],
+        selected: AgentSettingsScope,
+        state: AgentScopeState,
+    ) -> None:
+        self.scope_combo.blockSignals(True)
+        self.scope_combo.clear()
+        chosen = 0
+        for index, scope in enumerate(scopes):
+            self.scope_combo.addItem(scope_label(scope), scope)
+            if scope == selected:
+                chosen = index
+        self.scope_combo.setCurrentIndex(chosen)
+        self.scope_combo.blockSignals(False)
+        self.scope_combo.setVisible(len(scopes) > 1)
+        self.status_label.hide()
+        self.scroll.show()
+        self.show_agent_scope_form(state)
+
+    def show_agent_scope_form(self, state: AgentScopeState) -> None:
+        if self._form is not None:
+            self._form.leave_state()
+        form = QtObjectFormView.whole(state)
+        form.theme(self._renderer)
+        self.scroll.setWidget(form.body)
+        form.follow_state()
+        self._form = form
+
+    def finish(self) -> None:
+        self.finish_active_form()
+
+    def release_page(self) -> None:
+        self._alive = False
+        self.finish_active_form()
+        for task in tuple(self._tasks):
+            if not task.done():
+                task.cancel()
+        self._tasks.clear()
+        if self._form is not None:
+            self._form.leave_state()
+            self._form = None
+        self.close_agent_settings_chain()
+        self.deleteLater()
+
+
 class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, metaclass=PyQtWidgetMeta):
     """The open view's sidebar content, as Textual's `ThreadSidebar`: the search over its
     panels, one picked at a time (`QtPanelMenu`). The entries come from the shared
@@ -256,6 +392,16 @@ class ThreadSettingsPane(ThreadSidebarContents[QtPanelEntry], QtSidebarShell, me
                 partial(QtViewActions, view, self.app.renderer),
                 (),
                 ViewActionsPanel.panel_identity,
+            ),
+        )
+
+    def agent_settings_entries(self, view) -> tuple[QtPanelEntry, ...]:
+        return (
+            QtPanelEntry(
+                AgentSettingsPanel.panel_spec,
+                partial(QtAgentSettingsProperties, self.app, view, self.app.renderer),
+                (),
+                AgentSettingsPanel.panel_identity,
             ),
         )
 

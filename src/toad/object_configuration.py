@@ -40,6 +40,21 @@ class ObjectSettingField(DeclaredField):
     def allows_override(self) -> bool:
         return self.state.admits(self.path.value)
 
+    @property
+    def overridden(self) -> bool:
+        return self.allows_override and self.state.parameters[self.path.value] is not None
+
+    @property
+    def source_text(self) -> str:
+        if self.overridden:
+            return "Override for this object"
+        return "Inherited from global defaults" if self.allows_override else "Global setting · applies to every view"
+
+    @property
+    def source_detail(self) -> str:
+        scope, owner = self.state.get_provenance(self.path.value)
+        return f"{owner.__module__}.{owner.__qualname__} · {scope or 'global'}"
+
     def reset(self) -> None:
         """The writer resets its actual parameter to that parameter's signature default."""
         state = self.state if self.allows_override else self.state.defaults

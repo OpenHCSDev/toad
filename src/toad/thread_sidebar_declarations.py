@@ -101,8 +101,17 @@ class ThreadSidebarContents[Entry](metaclass=AbstractHooksMeta):
         """The viewed object's right-click actions panel, as this frontend draws it."""
 
     @abstractmethod
+    def agent_settings_entries(self, view) -> Iterable[Entry]:
+        """The viewed object's scoped Core agent settings panel, as this frontend draws it."""
+
+    @abstractmethod
     def setting_entries(self, view) -> Iterable[Entry]:
         """One entry per setting ``view`` lists, as this frontend draws it."""
 
     def thread_entries(self, view) -> tuple[Entry, ...]:
-        return (*self.roster_entries(), *self.action_entries(view), *self.setting_entries(view))
+        return (
+            *self.roster_entries(),
+            *self.action_entries(view),
+            *self.agent_settings_entries(view),
+            *self.setting_entries(view),
+        )

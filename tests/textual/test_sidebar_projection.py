@@ -10,7 +10,7 @@ from toad.widgets.side_bar import SideBar
 
 
 async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspace):
-    from toad.configured_view import ObjectProperties, ViewActions
+    from toad.configured_view import AgentSettingsProperties, ObjectProperties, ViewActions
     from toad.forms.object_configuration import ObjectValueView
     from toad.preferences import SETTINGS
     from toad.widgets.side_bar import PanelMenu
@@ -31,20 +31,21 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         bar = await ui.revealed(view.thread_sidebar)
         menu = bar.query_one(PanelMenu)
         assert not bar.query(ThreadCommsSidebar)
-        assert len(menu.entries) > 1
+        assert len(menu.entries) > 2
         assert isinstance(menu.entries[0].widget, ViewActions)
-        assert all(isinstance(entry.widget, ObjectProperties) for entry in menu.entries[1:])
+        assert isinstance(menu.entries[1].widget, AgentSettingsProperties)
+        assert all(isinstance(entry.widget, ObjectProperties) for entry in menu.entries[2:])
         assert len(menu.pages) == 1
         actions_widget = menu.entries[0].widget
         await ui.until(lambda: actions_widget._options.option_count > 0, why='channel right-click actions loaded')
         state = view.configuration_state
         assert state.identity == app.session_navigation.get(channel).identity
-        ui_entry = next(entry for entry in menu.entries[1:] if entry.widget.field.path.value == 'ui')
+        ui_entry = next(entry for entry in menu.entries[2:] if entry.widget.field.path.value == 'ui')
         menu.picker.value = ui_entry
         await ui.until(lambda: bool(menu.query(ObjectValueView)), why='selected settings fields')
         assert 'ui.column_width' in {part.field.path.value for part in menu.query(ObjectValueView)}
         assert menu.region.width and menu.query_one(ObjectValueView).region.height
-        other = next(entry for entry in menu.entries[1:] if entry is not ui_entry)
+        other = next(entry for entry in menu.entries[2:] if entry is not ui_entry)
         menu.picker.value = other
         await ui.until(lambda: menu.navigation.panel_identity == other.widget.panel_identity, why='dropdown selection')
         menu.picker.value = ui_entry
@@ -75,10 +76,11 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         assert file_view.configuration_state is not state
         assert not file_bar.query(ThreadCommsSidebar)
         assert isinstance(file_menu.entries[0].widget, ViewActions)
+        assert isinstance(file_menu.entries[1].widget, AgentSettingsProperties)
         file_actions = file_menu.entries[0].widget
         await ui.until(lambda: file_actions._options.option_count > 0, why='file tab right-click actions loaded')
-        assert tuple(entry.widget.field.path for entry in file_menu.entries[1:]) == tuple(
-            entry.widget.field.path for entry in menu.entries[1:])
+        assert tuple(entry.widget.field.path for entry in file_menu.entries[2:]) == tuple(
+            entry.widget.field.path for entry in menu.entries[2:])
         # The same declarations remain discoverable; the declaring scope owns writes.
         global_field = file_view.configuration_state.field('notifications.enable_sounds')
         assert not global_field.allows_override
@@ -90,7 +92,7 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         assert file_view.configuration_state.parameters['notifications.enable_sounds'] is None
         assert app.saved_settings.path().is_file()
         assert len(file_menu.entries) > 3
-        notifications = next(entry for entry in file_menu.entries[1:]
+        notifications = next(entry for entry in file_menu.entries[2:]
                              if entry.widget.field.path.value == 'notifications')
         file_menu.picker.value = notifications
         await ui.until(lambda: notifications.widget.is_mounted, why='discovered notifications form')
@@ -102,6 +104,16 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
         await ui.select_tab(channel)
         assert view.thread_sidebar is bar and bar.query_one(PanelMenu) is menu
         assert menu.picker.value is ui_entry
+        scoped_entry = menu.entries[1]
+        menu.picker.value = scoped_entry
+        await ui.until(
+            lambda: scoped_entry.widget._form is not None and scoped_entry.widget._form.is_mounted,
+            why='scoped agent settings ObjectFormView mounted in Textual sidebar',
+        )
+        assert len(scoped_entry.widget._form.values) == 10
+        assert scoped_entry.widget._scope_select.display is True
+        menu.picker.value = ui_entry
+        await ui.until(lambda: menu.navigation.panel_identity == ui_entry.widget.panel_identity, why='back to ui settings')
         view.open_configuration()
         await ui.step()
         dialog = app.screen
@@ -162,9 +174,9 @@ async def test_view_menu_discovers_settings_and_keeps_each_objects_state(workspa
             field.name for field in gate_entry.widget.definition.editable_fields}
         from toad.widgets.comms_command_dialog import CommandPreparation
         await ui.until(lambda: not CommandPreparation.running_on(gate_entry.widget), why='gate choices loaded')
-        gate_entry.widget.form.values['read_batch'].editor.value = '7'
+        gate_entry.widget.form.values['owner_prompts'].editor.value = '7'
         await gate_entry.widget.confirm()
-        await ui.until(lambda: deal.current().read_batch == 7, why='original gate writer saves settings')
+        await ui.until(lambda: deal.current().owner_prompts == 7, why='original gate writer saves settings')
         dm = await ui.open_direct('panel-owner', actor=workspace.viewer)
         dm_view = app.workspace_sessions.require(dm)
         dm_bar = await ui.revealed(dm_view.thread_sidebar)

@@ -1,10 +1,16 @@
 """A viewed object's state and its two presentations, inherited by files and conversations."""
 from functools import cached_property
+from agent_comms.registry.agent_settings_wire import AgentSettingsScope
 from metaclass_registry.mro_dispatch import handles
-from textual import events, on, work
+from textual import containers, events, on, work
 from textual._callback import invoke
 from textual.geometry import Region
-from textual.widgets import OptionList, Static
+from textual.widgets import OptionList, Select, Static
+from toad.client.agent_settings_state import (
+    AgentScopeState,
+    AgentSettingsPanel,
+    scope_label,
+)
 from toad.core.events import ConfigurationChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.forms.object_configuration import ObjectFieldView, ObjectFormView
@@ -123,6 +129,100 @@ class ViewActions(ViewActionsPanel, FillHeight, SidebarPanelWidget):
             await invoke(action)
 
 
+class AgentSettingsProperties(AgentSettingsPanel, FillHeight, SidebarPanelWidget):
+    """Scoped Core agent settings (Global -> Project -> [Channel] -> Thread) over ObjectFormView."""
+
+    def __init__(self, view) -> None:
+        super().__init__()
+        self.init_agent_settings(view.app, view)
+        self._form: ObjectFormView | None = None
+        self._scope_select: Select[AgentSettingsScope] = Select(
+            (), allow_blank=True, compact=True
+        )
+        self._scope_select.display = False
+        self._status = Static("Loading agent settings…", markup=False)
+        self._form_host = containers.Vertical()
+        self._form_host.display = False
+
+    def compose(self):
+        yield self._scope_select
+        yield self._status
+        yield self._form_host
+
+    @on(events.Mount)
+    def start_load(self) -> None:
+        self.run_worker(self.load_agent_settings(), group="agent-settings-load", exclusive=True)
+
+    @on(events.Unmount)
+    def stop_agent_settings(self) -> None:
+        self.workers.cancel_group(self, "agent-settings-load")
+        self.workers.cancel_group(self, "agent-settings-form")
+        self.workers.cancel_group(self, "agent-settings-save")
+        self.close_agent_settings_chain()
+
+    @on(Select.Changed)
+    def scope_selected(self, event: Select.Changed) -> None:
+        if event.select is self._scope_select and event.value is not Select.NULL:
+            event.stop()
+            self.select_agent_scope(event.value)
+
+    def finish(self) -> None:
+        self.finish_active_form()
+
+    def settings_panel_alive(self) -> bool:
+        return self.is_mounted
+
+    async def run_settings_thread(self, work_fn):
+        return await self._settings_app.preparation.run_thread(work_fn)
+
+    def schedule_settings_persist(self, coro) -> None:
+        self.run_worker(coro, group="agent-settings-save", exclusive=False)
+
+    def finish_active_form(self) -> None:
+        if self._form is not None and self._form.is_mounted:
+            self._form.finish()
+
+    def show_loading(self) -> None:
+        self._scope_select.display = False
+        self._form_host.display = False
+        self._status.update("Loading agent settings…")
+        self._status.display = True
+
+    def show_unavailable(self, text: str) -> None:
+        self._scope_select.display = False
+        self._form_host.display = False
+        self._status.update(text)
+        self._status.display = True
+
+    def show_agent_settings_chain(
+        self,
+        scopes: tuple[AgentSettingsScope, ...],
+        selected: AgentSettingsScope,
+        state: AgentScopeState,
+    ) -> None:
+        with self.prevent(Select.Changed):
+            self._scope_select.set_options([(scope_label(item), item) for item in scopes])
+            self._scope_select.value = selected
+        self._scope_select.display = len(scopes) > 1
+        self._status.display = False
+        self._form_host.display = True
+        self.show_agent_scope_form(state)
+
+    def show_agent_scope_form(self, state: AgentScopeState) -> None:
+        self.run_worker(
+            self._mount_scope_form(state),
+            group="agent-settings-form",
+            exclusive=True,
+        )
+
+    async def _mount_scope_form(self, state: AgentScopeState) -> None:
+        if not self.is_mounted:
+            return
+        await self._form_host.remove_children()
+        self._form = ObjectFormView.whole(state)
+        await self._form_host.mount(self._form)
+
+
 class ObjectConfigurationDialog(FormModal[None], DismissibleScreen[None]):
     def __init__(self, view):
         super().__init__()
@@ -149,6 +249,18 @@ class ConfiguredView(ViewSettingsScope):
     def action_panels(self):
         panel = ViewActionsPanel.panel_spec
         return (SideBar.Panel(title=panel.title, widget=ViewActions(self), id=panel.id, flex=panel.flex),)
+
+    @property
+    def agent_settings_panels(self):
+        panel = AgentSettingsPanel.panel_spec
+        return (
+            SideBar.Panel(
+                title=panel.title,
+                widget=AgentSettingsProperties(self),
+                id=panel.id,
+                flex=panel.flex,
+            ),
+        )
 
     @property
     def configuration_panels(self):

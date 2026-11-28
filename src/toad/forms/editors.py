@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Iterable
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import ClassVar, Optional
 
+from agent_comms.registry.thread_model import ThreadModel
 from formbridge.forms.declared_fields import (
     DeclaredField,
     Multiline,
@@ -31,7 +32,13 @@ from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 from ui_theme.scheme import MutedColour
 
-from toad.form_family import FieldEditing, LineFieldEditing, SelectFieldEditing, StructuredFieldEditing
+from toad.form_family import (
+    FieldEditing,
+    LineFieldEditing,
+    SelectFieldEditing,
+    StructuredFieldEditing,
+    ThreadModelFieldEditing,
+)
 from toad.forms.presentation import (
     FormCheckbox,
     FormInput,
@@ -147,6 +154,11 @@ class StructuredEditor(StructuredFieldEditing, LineEditor, shows=(tuple, list, d
     accepts = "text"
 
 
+class ThreadModelEditor(ThreadModelFieldEditing, LineEditor, shows=(ThreadModel,)):
+    """A ThreadModel edited by its declared wire spelling."""
+    accepts = "text"
+
+
 class MultilineEditor(MultilineEditing, ValueEditor, UntintedTonePaint, FramedControl, TextArea, shows=(Multiline,)):
     height = Scalar.from_number(10)
     padding = Spacing(0, 1, 0, 1)
@@ -215,7 +227,7 @@ class ChoicesEditor(ChoicesEditing, SelectEditor, shows=(AnnotationChoices,)):
             super().paint()
 
 
-class EnumEditor(EnumEditing, SelectEditor, shows=(Enum,)):
+class EnumEditor(EnumEditing, SelectEditor, shows=(Enum, StrEnum)):
     pass
 
 

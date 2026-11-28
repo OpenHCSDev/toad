@@ -14,6 +14,7 @@ from collections.abc import Iterator
 from functools import cached_property
 from typing import TYPE_CHECKING
 
+from agent_comms.registry.agent_settings_wire import AgentSettingsScope
 from formbridge.forms.parameter_form_service import ParameterFormService
 from objectstate import ObjectState, ObjectStateRegistry
 
@@ -91,6 +92,10 @@ class ViewSettingsOwner:
                 for configuration in action.declaration.configuration_actions(action):
                     entries.append((context, configuration, configuration.editable_fields))
         return tuple(entries)
+
+    def agent_settings_target(self) -> tuple[AgentSettingsScope, str]:
+        """The Core agent-settings scope (Global, Project, Channel, or Thread) for this view."""
+        return self.navigation_target.agent_settings_target(self)
 
     async def view_menu_entries(self) -> tuple[MenuEntry, ...]:
         """The right-click options for this view (thread, channel, or file), read from the
