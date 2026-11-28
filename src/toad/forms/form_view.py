@@ -32,6 +32,7 @@ from ui_theme.scheme import (
 
 from toad.form_family import FieldForm, FieldViews, GroupFields, ValueFields
 from toad.forms.editors import ValueEditor
+from toad.forms.flash_surface import TextualFlashSurface
 
 
 class FieldTitle(WidgetView, Static):
@@ -165,6 +166,8 @@ class FormView(FieldForm, WidgetView, containers.VerticalScroll, can_focus=False
         self.state = state
         self.parts = parts
         self.build_index()
+        self.flash_surface = TextualFlashSurface(self)
+        self.flash_surface.bind_targets(self.values)
         self.listen(events.Mount, self._mount_follow)
         self.listen(events.Unmount, self._unmount_follow)
 

@@ -22,6 +22,8 @@ from objectstate import ObjectState
 from python_introspect import resolve_annotated
 from ui_theme.scheme import PrimaryColour, ThemeColour
 
+from toad.client.form_flash import FormFlashSurface
+
 
 # The editors.
 
@@ -262,6 +264,18 @@ class FieldForm(FollowingForm):
     """Every shown field of an ObjectState, on one form or split into its declared pages."""
 
     field_family: ClassVar[type[FieldViews]]
+    flash_surface: FormFlashSurface
+
+    def values_changed(self, paths: set[str]) -> None:
+        changed = paths & self.values.keys()
+        for path in changed:
+            self.repaint_editor(self.values[path].editor)
+        if changed:
+            self.flash_surface.queue_flash(changed)
+
+    def leave_state(self) -> None:
+        super().leave_state()
+        self.flash_surface.dispose()
 
     @classmethod
     def whole(cls, state: ObjectState):
