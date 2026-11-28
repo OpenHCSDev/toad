@@ -165,6 +165,12 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         vp_width = vp.width()
         hovered = view.underMouse() and rect.contains(vp.mapFromGlobal(QCursor.pos()))
         selected = item is not None and item.isSelected()
+        bg_brush = item.background(0) if item is not None else None
+        bg_rgba = (
+            bg_brush.color().rgba()
+            if (bg_brush is not None and bg_brush.style() != Qt.BrushStyle.NoBrush)
+            else 0
+        )
         variant = (
             running,
             span,
@@ -177,6 +183,7 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
             wraps,
             vp_width,
             dpr,
+            bg_rgba,
         )
         bucket = self._row_images.get(rid)
         if bucket is not None and bucket[0] is row:
@@ -230,6 +237,8 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
                     self._band_range.length = end - start
                     inks = self._band_inks
             try:
+                self.initStyleOption(local_option, index)
+                local_option.rect = QRect(0, 0, width, height)
                 local_option.text = ""
                 view.style().drawControl(
                     QStyle.ControlElement.CE_ItemViewItem, local_option, local_painter, view

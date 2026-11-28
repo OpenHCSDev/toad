@@ -203,8 +203,8 @@ class OfferList(QListWidget, SelectsContract, OpensSelectedContract):
 class ComposerEditor(QPlainTextEdit):
     """The message being typed. Enter and Ctrl+Enter send, Shift+Enter starts a line; while
     offers are shown, Up and Down move through them and Enter or Tab takes one, Escape
-    hides them. Escape with no offers visible dismisses the control (clears the draft and
-    blurs the editor), mirroring Textual's DismissAction on a Prompt."""
+    hides them. Escape with no offers visible exits Vim Insert into Normal, or leaves the
+    editor for the conversation window while preserving the draft."""
 
     def __init__(self, composer: Composer) -> None:
         super().__init__()
@@ -735,15 +735,16 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.editor.insertPlainText("\n")
 
     def dismiss_control(self) -> None:
-        """What `DismissAction` calls — close the composer without sending.
+        """What `DismissAction` calls — step out of completion / Insert / the composer
+        without destroying the draft.
 
         Owns the composer's Escape state machine so a single `DismissAction` binding
         does the right thing regardless of offer visibility or vim mode:
           * offers visible → hide them, keep the draft (same as Textual's SlashComplete
             dismiss);
-          * vim INSERT with no offers → enter NORMAL instead of blurring;
-          * else → clear the draft, hide offers, drop focus (Textual's `DismissAction`
-            on a `Prompt`).
+          * vim INSERT with no offers → enter NORMAL instead of leaving the box;
+          * else → keep the draft, hide offers, and move focus to the conversation's
+            history window (mirroring Textual's `PromptTextArea.leave_modal_editor`).
         """
         if self.offers.isVisible():
             self.dismiss()
@@ -752,10 +753,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             self.editor.vim.enter_normal()
             self.refresh_editing_mode()
             return
-        self.editor.clear()
-        self.dismissed_text = ""
         self.offers.show_offers("", ())
-        self.editor.clearFocus()
+        messages = getattr(self.host, "messages", None)
+        if messages is not None:
+            messages.setFocus()
+        else:
+            self.editor.clearFocus()
 
     def append_to_draft(self, suffix: str) -> None:
         self.editor.moveCursor(QTextCursor.MoveOperation.End)

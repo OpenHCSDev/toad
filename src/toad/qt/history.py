@@ -335,9 +335,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         one is prepared; none for a row that never had one."""
         return self._prepared.get(key) or self._prepared.get(self.last_shown.get(self.row_identity(key)))
 
-    PREFORMATTED_SHEET = f"pre {{ white-space: {PREFORMATTED.css_white_space}; }}"
+    PREFORMATTED_SHEET = (
+        f"pre {{ white-space: {PREFORMATTED.css_white_space}; margin-top: 0px; margin-bottom: 4px; }} "
+        "p, blockquote, ul, ol, h1, h2, h3, h4, h5, h6 { margin-top: 0px; margin-bottom: 4px; }"
+    )
     """Every `pre` in a row, whoever wrote it (a highlighted fence, Markdown's own for an
-    unknown language, a tool's output), is laid out as the shared declaration says."""
+    unknown language, a tool's output), is laid out as the shared declaration says, and
+    block elements suppress Qt's default 12-18 px top margin so text begins directly under
+    its header divider."""
 
     def new_document(self, font: QFont, width: int) -> QTextDocument:
         document = super().new_document(font, width)

@@ -28,16 +28,22 @@ from toad.keymap import KeymapRow
 from toad.widget_actions import DeclaredWidgetActions
 
 
-def _qt_sequence(key: str) -> QKeySequence:
-    """Textual-style key spellings (``ctrl+d``, ``G``, ``escape``) as `QKeySequence`.
+def _qt_sequences(key: str) -> tuple[QKeySequence, ...]:
+    """Textual-style key spellings (``ctrl+d``, ``G``, ``escape``, ``enter``) as `QKeySequence`s.
 
     Qt accepts ``Ctrl+D`` style strings directly; a lone capital letter means Shift+<letter>
-    in Textual's convention, which Qt reads as the same thing when written ``Shift+G``.
+    in Textual's convention (``Shift+G``). Qt separates main-keyboard ``Return`` from numpad
+    ``Enter`` while Textual spells both ``enter``, so any ``enter`` spelling maps to both
+    ``Return`` and ``Enter`` (including modified forms like ``ctrl+enter`` / ``shift+enter``).
     """
     spelling = key.strip()
     if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
-        return QKeySequence(f"Shift+{spelling}")
-    return QKeySequence(spelling)
+        return (QKeySequence(f"Shift+{spelling}"),)
+    parts = spelling.split("+")
+    if parts[-1].lower() == "enter":
+        prefix = "+".join((*parts[:-1], ""))
+        return (QKeySequence(f"{prefix}Return"), QKeySequence(f"{prefix}Enter"))
+    return (QKeySequence(spelling),)
 
 
 @dataclass(frozen=True)
@@ -70,7 +76,8 @@ class ActionKeys:
         ui = self.settings().ui
         declared = tuple(dict.fromkeys(
             binding.key for binding in DeclaredWidgetActions.mode_bindings(type(action), ui.key_mode.binding_mode())))
-        return [_qt_sequence(key) for key in ui.keymap.keys_for(KeymapRow.of(action, ui.key_mode), declared)]
+        return [seq for key in ui.keymap.keys_for(KeymapRow.of(action, ui.key_mode), declared)
+                for seq in _qt_sequences(key)]
 
     def bind(self, widget: QWidget, action: object, fire: Callable[[], None],
              scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,

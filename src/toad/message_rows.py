@@ -270,11 +270,15 @@ class MarkdownWireBody(WireBody):
         return MarkdownBody(self.text, bar=self.bar)
 
 
+_LEADING_BLANK_LINES = re.compile(r"^(?:[ \t]*\r?\n)+")
+
+
 class WireMessageStyle(DeclaredChoice, affix="MessageStyle"):
     """How a message's own text is laid out under its header: a conversation tab opens in
     the style `ConversationUiSettings.message_style` names, in every frontend."""
 
     def body(self, row: MessageRow, text: str) -> tuple[LineBlock, ...]:
+        text = _LEADING_BLANK_LINES.sub("", text)
         if has_structured_tags(text, allow_unclosed=False):
             blocks = tuple(
                 block
