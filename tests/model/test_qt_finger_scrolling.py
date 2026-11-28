@@ -2,7 +2,8 @@
 with zero application-wide event filter overhead (`toad.qt.finger_scrolling`)."""
 from __future__ import annotations
 
-from PySide6.QtWidgets import QApplication, QListWidget, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QListWidget, QScrollArea, QScroller, QWidget
 
 from toad.qt.finger_scrolling import FingerScrolling, MouseAndWheel, TouchAsMouse
 
@@ -69,3 +70,26 @@ def test_touch_attaches_proxy_style_without_app_event_filter():
     assert base_styles == [app._style]
     assert styled == [marker]
     assert filtered == []
+
+
+def test_touch_grab_is_idempotent_across_repolish(monkeypatch):
+    """Repeated `polish()` calls must keep the same QScroller gesture ID instead of
+    unregistering and deleting the active `QFlickGestureRecognizer`."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    application = QApplication.instance() or QApplication([])
+    gesture = TouchAsMouse()
+    granted = FingerScrolling(gesture, application)
+    area = QScrollArea()
+    try:
+        vp = area.viewport()
+        granted.polish(area)
+        first = QScroller.grabbedGesture(vp)
+        assert first.value > Qt.GestureType.CustomGesture.value
+        for _ in range(5):
+            granted.polish(area)
+            gesture.grab(vp)
+            assert QScroller.grabbedGesture(vp) == first
+    finally:
+        QScroller.ungrabGesture(area.viewport())
+        area.deleteLater()
+        granted.deleteLater()
