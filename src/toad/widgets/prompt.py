@@ -26,7 +26,7 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.widgets.text_area import EditingMode, VimMode
-from toad.neovim_editing import NeovimUpdated
+from toad.neovim_editing import NeovimEditorSurface, NeovimUpdated
 from textual.document._editing import EditingFailure
 from textual.content import Content, Span
 from textual.css.native import DeclaresTheme, NativeDeclaration, Percent, TextVariable, Variable
@@ -436,6 +436,7 @@ class PromptTextArea(
     Borderless,
     AutoHeight,
     PromptSubmission,
+    NeovimEditorSurface,
     ToadNode,
     actions=(PromptAction,),
 ):

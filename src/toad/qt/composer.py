@@ -5,6 +5,7 @@ BusSubmissions); this module draws them and reads the keys."""
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -16,7 +17,7 @@ import shiboken6
 from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.messaging.message_files import FileUpload
 from PySide6.QtCore import QBuffer, QEvent, QIODevice, QMimeData, Qt, QTimer, Slot
-from PySide6.QtGui import QColor, QFont, QGuiApplication, QImage, QKeyEvent, QPalette, QTextCursor
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QImage, QKeyEvent, QPalette, QTextCharFormat, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
@@ -30,10 +31,13 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 from pyqt_reactive.widgets.fitted_text import WrappedText
+from textual.cursor_shape import SteadyBlock
+from textual.document._document import Document, DocumentBase, Location, RangedEditResult, Selection
 
 from toad.clipboard_image import save_clipboard_png
 
@@ -53,7 +57,8 @@ from toad.client.prompt_composer import (
 )
 from toad.client import platform as toad_platform
 from toad.client.condensed_path import home_relative
-from toad.key_modes import Standard, VimInsert
+from toad.key_modes import KeyMode, Standard
+from toad.neovim_editing import NeovimEditing, NeovimEditorSurface
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import MutedColour, PrimaryColour, SecondaryColour
 from toad.prompt_actions import (
@@ -66,14 +71,13 @@ from toad.prompt_actions import (
     SubmitInputAction,
     SubmitNowAction,
 )
-from toad.widget_actions import DismissAction
+from toad.widget_actions import DeclaredWidgetActions, DismissAction
 from toad.widget_contracts import (
     DismissibleContract,
     OpensSelectedContract,
     SelectsContract,
     SubmitsContract,
 )
-from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.file_pickers import compress_image_bytes, open_file_dialog, open_path_search
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection, QtQueueSummary, RowReveal
@@ -88,9 +92,19 @@ def _bind_composer_shortcuts(composer: Composer):
     """One `QShortcut` per composer action on the editor, answering the action's keys in
     the current key mode and keymap (`ActionKeys`) and running the composer's own method
     while the editor (or a child) has focus. Textual reaches these methods through its own
-    PromptTextArea action system — the keys live in one place."""
-    return [composer.host.app.action_keys.bind(composer.editor, action_cls(), method.__get__(composer))
-            for action_cls, method in composer.action_methods]
+    PromptTextArea action system — the keys live in one place.
+
+    `SubmitAction` checks `composer.editor.submission_allowed` so Enter in Vim Normal/Visual/
+    Command mode reaches the real embedded Neovim buffer instead of submitting."""
+    return [
+        composer.host.app.action_keys.bind(
+            composer.editor,
+            action_cls(),
+            method.__get__(composer),
+            context=composer.editor if action_cls is SubmitAction else None,
+        )
+        for action_cls, method in composer.action_methods
+    ]
 
 
 class ComposerHost(ConversationCommands):
@@ -132,7 +146,7 @@ class CommandOffer(SlashCommandOffer, Offer):
 
     def accept(self, composer: Composer) -> None:
         composer.editor.setPlainText(f"{self.match.command.command} ")
-        composer.editor.moveCursor(QTextCursor.MoveOperation.End)
+        composer.editor.editing_mode.move_to_end(composer.editor)
 
 
 @dataclass(frozen=True)
@@ -204,15 +218,121 @@ class OfferList(QListWidget, SelectsContract, OpensSelectedContract):
         self.composer.editor.setFocus()
 
 
-class ComposerEditor(QPlainTextEdit):
-    """The message being typed. Enter and Ctrl+Enter send, Shift+Enter starts a line; while
-    offers are shown, Up and Down move through them and Enter or Tab takes one, Escape
-    hides them. Escape with no offers visible exits Vim Insert into Normal, or leaves the
-    editor for the conversation window while preserving the draft."""
+_QT_MODIFIER_KEYS = frozenset({
+    Qt.Key.Key_Shift,
+    Qt.Key.Key_Control,
+    Qt.Key.Key_Alt,
+    Qt.Key.Key_Meta,
+    Qt.Key.Key_AltGr,
+    Qt.Key.Key_CapsLock,
+    Qt.Key.Key_NumLock,
+    Qt.Key.Key_ScrollLock,
+})
+
+_QT_SPECIAL_KEYS: dict[int, str] = {
+    Qt.Key.Key_Escape: "escape",
+    Qt.Key.Key_Return: "enter",
+    Qt.Key.Key_Enter: "enter",
+    Qt.Key.Key_Backspace: "backspace",
+    Qt.Key.Key_Delete: "delete",
+    Qt.Key.Key_Tab: "tab",
+    Qt.Key.Key_Backtab: "shift+tab",
+    Qt.Key.Key_Left: "left",
+    Qt.Key.Key_Right: "right",
+    Qt.Key.Key_Up: "up",
+    Qt.Key.Key_Down: "down",
+    Qt.Key.Key_Home: "home",
+    Qt.Key.Key_End: "end",
+    Qt.Key.Key_PageUp: "pageup",
+    Qt.Key.Key_PageDown: "pagedown",
+    Qt.Key.Key_Insert: "insert",
+    Qt.Key.Key_Space: "space",
+    **{getattr(Qt.Key, f"Key_F{n}"): f"f{n}" for n in range(1, 13)},
+}
+
+
+def _qt_key_to_input(event: QKeyEvent) -> tuple[str, str] | None:
+    """Translate one Qt `QKeyEvent` into `(key_name, character)` for `NeovimEditing.input_code`."""
+    key = event.key()
+    if key in _QT_MODIFIER_KEYS:
+        return None
+    mods = event.modifiers()
+    ctrl = bool(mods & Qt.KeyboardModifier.ControlModifier)
+    alt = bool(mods & Qt.KeyboardModifier.AltModifier)
+    meta = bool(mods & Qt.KeyboardModifier.MetaModifier)
+    shift = bool(mods & Qt.KeyboardModifier.ShiftModifier)
+    text = event.text()
+
+    if key in _QT_SPECIAL_KEYS:
+        base = _QT_SPECIAL_KEYS[key]
+        parts: list[str] = []
+        if ctrl:
+            parts.append("ctrl")
+        if alt:
+            parts.append("alt")
+        if meta:
+            parts.append("meta")
+        if shift and not base.startswith("shift+") and base != "space":
+            parts.append("shift")
+        parts.append(base)
+        if not (ctrl or alt or meta) and base == "space":
+            return ("space", " ")
+        return ("+".join(parts), "")
+
+    if not (ctrl or alt or meta) and text and text.isprintable():
+        return (text, text)
+
+    if Qt.Key.Key_A <= key <= Qt.Key.Key_Z:
+        char = chr(ord("a") + (key - Qt.Key.Key_A))
+        parts = []
+        if ctrl:
+            parts.append("ctrl")
+        if alt:
+            parts.append("alt")
+        if meta:
+            parts.append("meta")
+        if shift:
+            parts.append("shift")
+        parts.append(char)
+        return ("+".join(parts), char.upper() if shift and not (ctrl or alt or meta) else char)
+
+    if 0x20 <= key <= 0x7E:
+        char = chr(key)
+        parts = []
+        if ctrl:
+            parts.append("ctrl")
+        if alt:
+            parts.append("alt")
+        if meta:
+            parts.append("meta")
+        parts.append(char)
+        return ("+".join(parts), char)
+
+    return None
+
+
+class ComposerEditor(QPlainTextEdit, NeovimEditorSurface):
+    """The message being typed, backed by real embedded Neovim (`NeovimEditing`) when a modal
+    key mode is active, or native `QPlainTextEdit` in `Standard` mode. Enter and Ctrl+Enter
+    send when text entry is active, Shift+Enter starts a line; while offers are shown, Up and
+    Down move through them and Enter or Tab takes one, Escape hides them. Escape with no offers
+    visible routes through Neovim (exiting Insert/Visual/Command to Normal, and firing
+    `StandardEditingAction` from idle Normal to focus the conversation window)."""
 
     def __init__(self, composer: Composer) -> None:
         super().__init__()
         self.composer = composer
+        self._engine_document: DocumentBase = Document("")
+        self._cursor_location: Location = (0, 0)
+        self._syncing_from_engine = False
+        self._editing_mode: KeyMode = Standard()
+        self._attached_mode: KeyMode | None = None
+        self._engine_regions: tuple[Selection, ...] = ()
+        self._neovim_paint_timer = QTimer(self)
+        self._neovim_paint_timer.setSingleShot(True)
+        self._neovim_paint_timer.setInterval(0)
+        self._neovim_paint_timer.timeout.connect(self._run_neovim_paint)
+        self._pending_paint_owner: NeovimEditing | None = None
         self.setTabChangesFocus(False)
         # Android soft-keyboard wiring: without these the tap registers but the IME
         # never raises, so the user sees a composer they can't type into. Desktop Qt
@@ -227,25 +347,77 @@ class ComposerEditor(QPlainTextEdit):
             else Qt.FocusPolicy.ClickFocus
         )
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
+        self.destroyed.connect(self._close_attached_mode)
         self.follow_key_mode()
+
+    @property
+    def app(self):
+        return self.composer.host.app
+
+    @property
+    def prompt(self):
+        return self.composer
+
+    @property
+    def submission_allowed(self) -> bool:
+        return self._editing_mode.accepts_text and not self.composer.offers.isVisible()
 
     def visual_line_count(self) -> int:
         """Lines Qt actually laid out, including soft wraps inside one text block."""
         return max(1, ceil(self.document().size().height()))
 
+    def _close_attached_mode(self, *_args) -> None:
+        previous = self._attached_mode
+        self._attached_mode = None
+        if previous is None:
+            return
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        if not loop.is_closed():
+            loop.create_task(previous.close())
+
+    def _ensure_mode_attached(self) -> None:
+        if not shiboken6.isValid(self) or self._attached_mode is self._editing_mode:
+            return
+        try:
+            asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        self._engine_document = Document(self.toPlainText())
+        self._cursor_location = self._qt_cursor_location()
+        self._attached_mode = self._editing_mode
+        self._editing_mode.attach(self)
+
     def follow_key_mode(self) -> None:
         """Modal input follows `ui.key_mode`, the setting Textual's prompt reads: a modal key
-        mode (vim_normal, vim_insert) puts the editor in its mode, at start and whenever the
-        setting changes."""
+        mode (`VimNormal`, `VimInsert`, `VimVisual`) embeds a real Neovim buffer session on
+        `QtToadApp.neovim`; `Standard` uses native `QPlainTextEdit` editing."""
         key_mode = self.composer.settings.ui.key_mode
-        self.vim_enabled = key_mode.modal
-        self.vim = ComposerVimMode(key_mode if key_mode.modal else VimInsert)
+        if type(self._editing_mode) is key_mode and self._attached_mode is self._editing_mode:
+            self.sync_cursor_shape()
+            return
+        self._close_attached_mode()
+        self._editing_mode = key_mode()
+        self._engine_regions = ()
+        self.setExtraSelections([])
+        self._ensure_mode_attached()
         self.sync_cursor_shape()
 
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self._ensure_mode_attached()
+
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        super().resizeEvent(event)
+        if self._attached_mode is self._editing_mode:
+            self._editing_mode.resize(self)
+
     def sync_cursor_shape(self) -> None:
-        """Block cursor in Vim Normal/Visual (`accepts_text == False`), beam in Insert/Standard."""
+        """Block cursor when the active editing mode reports `SteadyBlock`, beam otherwise."""
         metrics = self.fontMetrics()
-        block = not self.editing_mode.accepts_text
+        block = self._editing_mode.cursor_shape == SteadyBlock()
         self.setOverwriteMode(block)
         self.setCursorWidth(
             max(6, metrics.averageCharWidth())
@@ -259,9 +431,211 @@ class ComposerEditor(QPlainTextEdit):
             self.sync_cursor_shape()
 
     @property
-    def editing_mode(self):
-        """What the info bar's badge names: the modal state, else the standard mode."""
-        return self.vim if self.vim_enabled else Standard()
+    def editing_mode(self) -> KeyMode:
+        """What the info bar's badge and composer actions read: the real `KeyMode` owner."""
+        return self._editing_mode
+
+    # ---- NeovimEditorSurface implementation on QPlainTextEdit ----
+
+    @property
+    def neovim_document(self) -> DocumentBase:
+        return self._engine_document
+
+    def set_neovim_document(self, document: DocumentBase) -> None:
+        self._engine_document = document
+
+    def _qt_cursor_location(self) -> Location:
+        cursor = self.textCursor()
+        return (cursor.blockNumber(), cursor.positionInBlock())
+
+    def _qt_selection(self) -> Selection:
+        cursor = self.textCursor()
+        if not cursor.hasSelection():
+            return Selection.cursor(self._qt_cursor_location())
+        doc = self.document()
+        anchor_blk = doc.findBlock(cursor.anchor())
+        pos_blk = doc.findBlock(cursor.position())
+        return Selection(
+            (anchor_blk.blockNumber(), cursor.anchor() - anchor_blk.position()),
+            (pos_blk.blockNumber(), cursor.position() - pos_blk.position()),
+        )
+
+    @property
+    def neovim_selection(self) -> Selection:
+        return self._qt_selection()
+
+    @property
+    def neovim_cursor_location(self) -> Location:
+        return self._cursor_location
+
+    @property
+    def neovim_indent_width(self) -> int:
+        return 4
+
+    @property
+    def neovim_wrap_width(self) -> int:
+        char_w = max(1, self.fontMetrics().averageCharWidth())
+        return max(1, self.viewport().width() // char_w)
+
+    @property
+    def neovim_content_height(self) -> int:
+        return self.visual_line_count()
+
+    @property
+    def neovim_attached(self) -> bool:
+        return shiboken6.isValid(self)
+
+    def neovim_bindings(self, profile):
+        return [
+            (binding.key, binding)
+            for action_cls in PromptAction.members_with(PromptAction)
+            for binding in DeclaredWidgetActions.key_bindings(action_cls)
+            if issubclass(profile, binding.mode)
+        ]
+
+    def neovim_clear_history(self) -> None:
+        self.document().clearUndoRedoStacks()
+
+    def neovim_schedule_paint(self, owner: NeovimEditing) -> bool:
+        if not shiboken6.isValid(self):
+            return False
+        self._pending_paint_owner = owner
+        if not self._neovim_paint_timer.isActive():
+            self._neovim_paint_timer.start()
+        return True
+
+    def _run_neovim_paint(self) -> None:
+        owner = self._pending_paint_owner
+        self._pending_paint_owner = None
+        if owner is not None and shiboken6.isValid(self):
+            owner.paint(self)
+
+    def neovim_call_later(self, callback: Callable[[], object]) -> bool:
+        if not shiboken6.isValid(self):
+            return False
+        QTimer.singleShot(0, callback)
+        return True
+
+    def _move_qt_cursor(self, location: Location) -> None:
+        row, col = location
+        doc = self.document()
+        block = doc.findBlockByNumber(min(max(0, row), max(0, doc.blockCount() - 1)))
+        pos = block.position() + min(max(0, col), len(block.text()))
+        cursor = self.textCursor()
+        if cursor.position() != pos or cursor.hasSelection():
+            cursor.setPosition(pos)
+            self.setTextCursor(cursor)
+
+    def neovim_paint_selection(self, selection: Selection) -> None:
+        self._cursor_location = selection.end
+        if not self._syncing_from_engine:
+            self._move_qt_cursor(selection.end)
+
+    def neovim_record_cursor_width(self) -> None:
+        pass
+
+    def neovim_project_edit(self, result: RangedEditResult) -> None:
+        pass
+
+    def neovim_finish_changes(self) -> None:
+        text = self._engine_document.text
+        self._syncing_from_engine = True
+        try:
+            if self.toPlainText() != text:
+                super().setPlainText(text)
+            self._move_qt_cursor(self._cursor_location)
+        finally:
+            self._syncing_from_engine = False
+        self._paint_engine_regions()
+
+    def neovim_invalidate_regions(self, regions: tuple[Selection, ...]) -> None:
+        self._engine_regions = self._editing_mode.engine_regions()
+        self._paint_engine_regions()
+
+    def _paint_engine_regions(self) -> None:
+        if not self._engine_regions:
+            if self.extraSelections():
+                self.setExtraSelections([])
+            return
+        scheme = self.composer.host.app.theme.color_scheme
+        fmt = QTextCharFormat()
+        fmt.setBackground(scheme.to_qcolor(scheme.selection_bg))
+        fmt.setForeground(scheme.to_qcolor(scheme.selection_text))
+        doc = self.document()
+        max_block = max(0, doc.blockCount() - 1)
+        extras: list[QTextEdit.ExtraSelection] = []
+        for region in self._engine_regions:
+            start_row, start_col = region.start
+            end_row, end_col = region.end
+            b0 = doc.findBlockByNumber(min(max(0, start_row), max_block))
+            b1 = doc.findBlockByNumber(min(max(0, end_row), max_block))
+            p0 = b0.position() + min(max(0, start_col), len(b0.text()))
+            p1 = b1.position() + min(max(0, end_col), len(b1.text()))
+            if p0 == p1:
+                continue
+            sel = QTextEdit.ExtraSelection()
+            cursor = QTextCursor(doc)
+            cursor.setPosition(min(p0, p1))
+            cursor.setPosition(max(p0, p1), QTextCursor.MoveMode.KeepAnchor)
+            sel.cursor = cursor
+            sel.format = fmt
+            extras.append(sel)
+        self.setExtraSelections(extras)
+
+    def neovim_show_mode(self, mode: NeovimEditing) -> None:
+        self.sync_cursor_shape()
+        self.composer.refresh_editing_mode()
+
+    def neovim_refresh_bindings(self) -> None:
+        self.composer.refresh_editing_mode()
+
+    def neovim_notify(self, message: str, *, title: str, severity: str, timeout: float | None = None) -> None:
+        self.composer.host.app.notify(message, title=title, severity=severity)
+
+    def leave_modal_editor(self) -> None:
+        """Move focus out of the composer to the conversation's history window, keeping the draft."""
+        self.composer.offers.show_offers("", ())
+        messages = getattr(self.composer.host, "messages", None)
+        if messages is not None:
+            messages.setFocus()
+        else:
+            self.clearFocus()
+
+    # ---- Native `Standard` text-mutation hooks called polymorphically by `KeyMode` ----
+
+    def set_native_text(self, text: str) -> None:
+        super().setPlainText(text)
+
+    def insert_native_text(self, text: str) -> None:
+        super().insertPlainText(text)
+
+    def clear_native_text(self) -> None:
+        super().clear()
+
+    def move_cursor(self, location: Location) -> None:
+        self._move_qt_cursor(location)
+
+    def replace_native_span(self, row: int, start: int, end: int, text: str) -> None:
+        block = self.document().findBlockByNumber(row)
+        cursor = QTextCursor(block)
+        cursor.setPosition(block.position() + start)
+        cursor.setPosition(block.position() + end, QTextCursor.MoveMode.KeepAnchor)
+        cursor.insertText(text)
+        self.setTextCursor(cursor)
+
+    def setPlainText(self, text: str) -> None:  # type: ignore[override]
+        if self._syncing_from_engine:
+            super().setPlainText(text)
+            return
+        self._engine_document = Document(text)
+        self._editing_mode.set_text(self, text)
+
+    def clear(self) -> None:  # type: ignore[override]
+        if self._syncing_from_engine:
+            super().clear()
+            return
+        self._engine_document = Document("")
+        self._editing_mode.clear_text(self)
 
     def focusOutEvent(self, event) -> None:
         super().focusOutEvent(event)
@@ -276,6 +650,8 @@ class ComposerEditor(QPlainTextEdit):
     def mousePressEvent(self, event) -> None:
         super().mousePressEvent(event)
         self.setFocus(Qt.FocusReason.MouseFocusReason)
+        if self._attached_mode is self._editing_mode:
+            self._editing_mode.request_selection(self, self._qt_selection())
         # Defer the IME show() to the next event-loop tick. Firing inline inside
         # mousePressEvent reaches into Android's native IME path which recurses
         # into QAndroidPlatformOpenGLWindow::eglSurface() while the Qt event
@@ -288,6 +664,7 @@ class ComposerEditor(QPlainTextEdit):
 
     def focusInEvent(self, event) -> None:
         super().focusInEvent(event)
+        self._ensure_mode_attached()
         self.composer.focus_changed(True)
         # Only raise Android's soft keyboard on an explicit tap/click (MouseFocusReason),
         # never on implicit focus transfers when switching tabs or reactivating the window.
@@ -305,16 +682,8 @@ class ComposerEditor(QPlainTextEdit):
         return super().event(event)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        # Vim NORMAL mode intercepts navigation/edit commands before the standard
-        # composer bindings; Enter + Ctrl+Enter are owned by SubmitAction/SubmitNowAction
-        # on the composer and fire through QShortcut regardless.
         offers = self.composer.offers
         key = event.key()
-        if (self.vim_enabled and not self.vim.accepts_text
-                and not offers.isVisible() and key != Qt.Key.Key_Escape):
-            apply_normal_key(self, self.vim, event)
-            self.composer.refresh_editing_mode()
-            return
         # Offer navigation stays local — it's widget-scoped, not a declared action family.
         if offers.isVisible() and key in (Qt.Key.Key_Up, Qt.Key.Key_Down):
             offers.step(-1 if key == Qt.Key.Key_Up else 1)
@@ -322,13 +691,9 @@ class ComposerEditor(QPlainTextEdit):
         if offers.isVisible() and key == Qt.Key.Key_Tab:
             offers.accept_current()
             return
-        # Enter / Ctrl+Enter / Ctrl+Y / Shift+Enter / Escape are all bound as
-        # QShortcuts on Composer via `ActionKeys.bind_family`; they read the declared
-        # keys off `SubmitAction`/`SubmitNowAction`/`NewlineAction`/`DismissAction`
-        # so the Qt editor and Textual's PromptTextArea share a single source of
-        # truth. SubmitNowAction already declares `ctrl+enter` + `ctrl+y`; the
-        # composer routes it through `submit_now` which flushes the queue when input
-        # is held.
+        self._ensure_mode_attached()
+        if (input_key := _qt_key_to_input(event)) is not None and self._editing_mode.send_key(self, *input_key):
+            return
         super().keyPressEvent(event)
 
     def insertFromMimeData(self, source: QMimeData) -> None:  # type: ignore[override]
@@ -737,12 +1102,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self.offers.show_offers("", ())
 
     def replace_span(self, row: int, start: int, end: int, text: str) -> None:
-        block = self.editor.document().findBlockByNumber(row)
-        cursor = QTextCursor(block)
-        cursor.setPosition(block.position() + start)
-        cursor.setPosition(block.position() + end, QTextCursor.MoveMode.KeepAnchor)
-        cursor.insertText(text)
-        self.editor.setTextCursor(cursor)
+        self.editor.editing_mode.replace_span(self.editor, row, start, end, text)
 
     # Sending
 
@@ -778,7 +1138,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def _insert_newline(self) -> None:
         """What `NewlineAction` (Shift+Enter, Ctrl+J) calls — a real `\\n`, not a submit."""
-        self.editor.insertPlainText("\n")
+        self.editor.editing_mode.insert_text(self.editor, "\n")
 
     def paste_clipboard(self) -> None:
         """What `PasteClipboardAction` (Ctrl+V) calls in Standard, Vim Insert, and Vim Normal:
@@ -793,7 +1153,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
                 return
             text = clipboard.text()
             if text:
-                self.editor.insertPlainText(text)
+                self.editor.editing_mode.insert_text(self.editor, text)
 
     def paste_mime_data(self, mime: QMimeData | None) -> bool:
         """Handle image or text MIME data; return True when handled."""
@@ -808,7 +1168,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         if mime.hasText():
             text = mime.text()
             if text:
-                self.editor.insertPlainText(text)
+                self.editor.editing_mode.insert_text(self.editor, text)
                 return True
         return False
 
@@ -831,37 +1191,20 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             self.show_failure(f"Paste failed: {error}")
             return
         reference = f'@"{path}"' if any(char.isspace() for char in str(path)) else f"@{path}"
-        self.editor.insertPlainText(f" {reference} ")
+        self.editor.editing_mode.insert_text(self.editor, f" {reference} ")
 
     def dismiss_control(self) -> None:
-        """What `DismissAction` calls — step out of completion / Insert / the composer
-        without destroying the draft.
-
-        Owns the composer's Escape state machine so a single `DismissAction` binding
-        does the right thing regardless of offer visibility or vim mode:
-          * offers visible → hide them, keep the draft (same as Textual's SlashComplete
-            dismiss);
-          * vim INSERT with no offers → enter NORMAL instead of leaving the box;
-          * else → keep the draft, hide offers, and move focus to the conversation's
-            history window (mirroring Textual's `PromptTextArea.leave_modal_editor`).
-        """
+        """What `DismissAction` calls — hide completion offers, or hand Escape to the active
+        `KeyMode` (`Standard` leaves the composer; `NeovimEditing` sends `<Esc>` to Neovim so
+        Insert/Visual returns to Normal and idle Normal triggers `StandardEditingAction`)."""
         if self.offers.isVisible():
             self.dismiss()
             return
-        if self.editor.vim_enabled and self.editor.vim.accepts_text:
-            self.editor.vim.enter_normal()
-            self.refresh_editing_mode()
-            return
-        self.offers.show_offers("", ())
-        messages = getattr(self.host, "messages", None)
-        if messages is not None:
-            messages.setFocus()
-        else:
-            self.editor.clearFocus()
+        self.editor.editing_mode.dismiss_input(self.editor)
 
     def append_to_draft(self, suffix: str) -> None:
-        self.editor.moveCursor(QTextCursor.MoveOperation.End)
-        self.editor.insertPlainText(suffix)
+        self.editor.editing_mode.move_to_end(self.editor)
+        self.editor.editing_mode.insert_text(self.editor, suffix)
 
     def show_failure(self, text: str) -> None:
         self.failure.setText(text)
