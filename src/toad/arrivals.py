@@ -391,10 +391,14 @@ class AnimatesArrivals:
             self._pending_arrival = None
         return self.glide is not None
 
+    def stop_toolkit_scroll(self) -> None:
+        """Stop any running toolkit scroll animation before `HeadReveal` takes over."""
+
     def start_head_reveal(self, target: float) -> bool:
         """Smoothly glide a message's head into view at `target` (`HEAD_REVEAL`), or jump
         immediately when animations are disabled."""
         self.cancel_head_reveal()
+        self.stop_toolkit_scroll()
         destination = max(0.0, target)
         if not self.animation_clock.enabled:
             self.apply_head_reveal_scroll(destination)

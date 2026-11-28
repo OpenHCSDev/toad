@@ -546,7 +546,7 @@ class BusMessageHistoryFragment(MessageLines):
             replace(span, link=self.collapse_link) if span.link == NO_LINK else span
             for span in header.spans
         )
-        return replace(header, spans=(marker, *spans))
+        return replace(header, spans=(marker, *spans), rule_link=self.collapse_link)
 
     def header_collapse_link(self) -> FragmentCollapse | None:
         return self.collapse_link

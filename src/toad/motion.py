@@ -137,6 +137,34 @@ def animations_enabled() -> bool:
     return constants.TEXTUAL_ANIMATIONS != "none"
 
 
+class ScrollAwareClock(AnimationClock):
+    """Shared animation clock that tracks scrolling history windows so infinite decorative
+    chrome effects (name waves, tab marquees, activity sweeps) yield while scrolling without
+    stalling finite transitions (arrivals, fades, tab open/close)."""
+
+    def __init__(self, schedule, *, enabled: bool = True, frame_interval: float = 1 / 60,
+                 now=None) -> None:
+        if now is None:
+            super().__init__(schedule, enabled=enabled, frame_interval=frame_interval)
+        else:
+            super().__init__(schedule, now=now, enabled=enabled, frame_interval=frame_interval)
+        self._scrolling_owners: set[int] = set()
+
+    @property
+    def scrolling(self) -> bool:
+        return bool(self._scrolling_owners)
+
+    def set_scrolling(self, owner: object, active: bool) -> None:
+        was = self.scrolling
+        oid = id(owner)
+        if active:
+            self._scrolling_owners.add(oid)
+        else:
+            self._scrolling_owners.discard(oid)
+        if self.scrolling != was:
+            self.refresh()
+
+
 class TransitionTarget(ABC):
     """One finite transition on a frontend's clock: each frame applies the effect's amount, and
     the last one lands it where it was going. A pane sliding, a tab growing in and a closed tab

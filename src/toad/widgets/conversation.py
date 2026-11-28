@@ -1843,6 +1843,8 @@ class Conversation(
             return
         if widget is None or widget.is_maximized:
             return
+        if event.style.meta.get("@click") is not None:
+            return
         try:
             widget.query_ancestor(Prompt)
         except NoMatches:

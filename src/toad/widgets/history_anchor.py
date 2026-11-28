@@ -435,8 +435,16 @@ class HistoryWindow(FollowsTail, NativeMethodKeys, WorkspaceHosted, MroProjectio
     def content_top(self) -> int:
         return self.scrollable_content_region.y
 
+    def stop_toolkit_scroll(self) -> None:
+        """Stop any running native scroll animation before `HeadReveal` takes over so
+        `scroll_target_y` cannot remain pinned at the old bottom after revealing the head."""
+        self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
+        self.scroll_target_y = self.scroll_y
+
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
+        if not self.app.animator.is_being_animated(self, "scroll_y"):
+            self.scroll_target_y = new_value
         # Animation ticks and direct native scrolling change reader intent
         # too. The existing restoration scope excludes layout compensation.
         if new_value != old_value and not self._restoring:
