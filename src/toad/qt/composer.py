@@ -15,11 +15,12 @@ import shiboken6
 
 from agent_comms.messaging.mentions import MentionCandidate
 from agent_comms.messaging.message_files import FileUpload
-from PySide6.QtCore import QEvent, Qt, QTimer, Slot
-from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeyEvent, QPalette, QTextCursor
+from PySide6.QtCore import QBuffer, QEvent, QIODevice, QMimeData, Qt, QTimer, Slot
+from PySide6.QtGui import QColor, QFont, QGuiApplication, QImage, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from PySide6.QtWidgets import (
+    QApplication,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -33,6 +34,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from pyqt_reactive.widgets.fitted_text import WrappedText
+
+from toad.clipboard_image import save_clipboard_png
 
 from toad.client.application import ClientApplication
 from toad.client.bus_submission import BusSubmissions, TypedText
@@ -57,6 +60,7 @@ from toad.prompt_actions import (
     AttachFileAction,
     MessageAction,
     NewlineAction,
+    PasteClipboardAction,
     PromptAction,
     SubmitAction,
     SubmitInputAction,
@@ -310,6 +314,11 @@ class ComposerEditor(QPlainTextEdit):
         # is held.
         super().keyPressEvent(event)
 
+    def insertFromMimeData(self, source: QMimeData) -> None:  # type: ignore[override]
+        """Route clipboard/dragged images through the composer's attachment path."""
+        if not self.composer.paste_mime_data(source):
+            super().insertFromMimeData(source)
+
 
 class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
                metaclass=PyQtWidgetMeta):
@@ -462,7 +471,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         # (`button_box`), so wrapped lines have zero dead space above `+`/`➤` and adding or
         # removing characters never bounces composer height.
         left, top, right, bottom = cells(box.frame_padding)
-        room = self.TOUCH_ROOM // 2
+        room = max(4, round(line * 0.45))
         self.frame.layout().setContentsMargins(left, top + room, right, bottom + max(2, room // 2))
         left, top, right, bottom = cells(box.label_padding)
         # The glyph's text sits on the editor's first line, below the document's own margin.
@@ -498,13 +507,16 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
 
     def fit_buttons(self) -> None:
         """Compact square symbol buttons matching one line of the editor."""
-        height = max(28, self.fontMetrics().lineSpacing() + 6)
-        width = height + 4
+        line = self.fontMetrics().lineSpacing()
+        height = max(18, line + max(4, round(line * 0.3)))
+        width = height + max(2, round(line * 0.2))
+        radius = max(3, round(height * 0.2))
+        pad_x = max(2, round(line * 0.2))
         for button in self.box_buttons:
             font = QFont(self.font())
             font.setPointSizeF(font.pointSizeF() * 1.15 if font.pointSizeF() > 0 else 13.0)
             button.setFont(font)
-            button.setStyleSheet("QPushButton { padding: 0px 4px; border-radius: 6px; }")
+            button.setStyleSheet(f"QPushButton {{ padding: 0px {pad_x}px; border-radius: {radius}px; }}")
             button.setFixedSize(width, height)
 
     def update_prompt(self) -> None:
@@ -734,6 +746,59 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         """What `NewlineAction` (Shift+Enter, Ctrl+J) calls — a real `\\n`, not a submit."""
         self.editor.insertPlainText("\n")
 
+    def paste_clipboard(self) -> None:
+        """What `PasteClipboardAction` (Ctrl+V) calls in Standard, Vim Insert, and Vim Normal:
+        attaches a clipboard image as PNG or inserts clipboard text at the cursor."""
+        if self.editor.isReadOnly():
+            return
+        clipboard = QApplication.clipboard()
+        if not self.paste_mime_data(clipboard.mimeData()):
+            image = clipboard.image()
+            if not image.isNull():
+                self._paste_qimage(image)
+                return
+            text = clipboard.text()
+            if text:
+                self.editor.insertPlainText(text)
+
+    def paste_mime_data(self, mime: QMimeData | None) -> bool:
+        """Handle image or text MIME data; return True when handled."""
+        if mime is None or self.editor.isReadOnly():
+            return False
+        if mime.hasImage():
+            data = mime.imageData()
+            image = data if isinstance(data, QImage) else QImage(data)
+            if not image.isNull():
+                self._paste_qimage(image)
+                return True
+        if mime.hasText():
+            text = mime.text()
+            if text:
+                self.editor.insertPlainText(text)
+                return True
+        return False
+
+    def _paste_qimage(self, image: QImage) -> None:
+        buffer = QBuffer()
+        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+        if not image.save(buffer, "PNG"):
+            self.show_failure("Could not encode clipboard image as PNG.")
+            return
+        png_bytes = bytes(buffer.data())
+        if png_bytes:
+            self.attach_pasted_png(png_bytes)
+
+    def attach_pasted_png(self, data: bytes) -> None:
+        """What a pasted PNG does on a non-file composer: save locally and insert `@path`,
+        matching Textual's `Prompt.png_pasted`."""
+        try:
+            path = save_clipboard_png(data)
+        except (OSError, ValueError) as error:
+            self.show_failure(f"Paste failed: {error}")
+            return
+        reference = f'@"{path}"' if any(char.isspace() for char in str(path)) else f"@{path}"
+        self.editor.insertPlainText(f" {reference} ")
+
     def dismiss_control(self) -> None:
         """What `DismissAction` calls — step out of completion / Insert / the composer
         without destroying the draft.
@@ -862,6 +927,7 @@ Composer.action_methods = (
     (SubmitNowAction, Composer.submit_now),
     (DismissAction, Composer.dismiss_control),
     (NewlineAction, Composer._insert_newline),
+    (PasteClipboardAction, Composer.paste_clipboard),
 )
 
 
@@ -930,6 +996,10 @@ class QtMessageComposer(MessagePromptComposer, Composer):
         """Allow sending attached files with or without accompanying text."""
         if self.text.strip() or self.attached_files:
             self.send(SubmitAction())
+
+    def attach_pasted_png(self, data: bytes) -> None:
+        """Attach a pasted PNG directly through the shared `MessagePromptComposer` owner."""
+        self.attach_png_bytes(data)
 
     def compress_image(self, upload: FileUpload) -> FileUpload | None:
         compressed = compress_image_bytes(upload.name, upload.mime_type, upload.content)

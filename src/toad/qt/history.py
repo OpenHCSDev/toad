@@ -43,6 +43,7 @@ from toad.qt.virtual_scroll import (
     VirtualRowCanvas,
 )
 from toad.arrivals import AnimatesArrivals, SETTLED_ARRIVAL, ViewportArrivalState
+from toad.client.application import ClientApplication
 from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
@@ -2424,7 +2425,15 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
             self.lookahead.request_boundary(-further if distance < 0 else further)
 
     def wheelEvent(self, event) -> None:  # type: ignore[override]
-        """A wheel at an edge with nowhere left to scroll still asks for the next page."""
+        """Ctrl+Wheel zooms the whole UI; otherwise a wheel at an edge asks for the next page."""
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            delta = event.angleDelta().y()
+            if delta:
+                window = self.window()
+                if isinstance(window, ClientApplication):
+                    window.adjust_message_font_scale(5 if delta > 0 else -5)
+            event.accept()
+            return
         rows = -event.angleDelta().y() / 120 * self._font_line_spacing() * QApplication.wheelScrollLines()
         if not self.lookahead.request_boundary(rows):
             super().wheelEvent(event)

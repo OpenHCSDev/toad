@@ -18,6 +18,12 @@ from ui_theme.effects import NAME_WAVE, Band, Effect
 from toad.motion import TAB_MARQUEE, MarqueeSweep
 
 
+class PaintedRowTone:
+    """Nominal carrier for a sidebar row's cached alternating background RGBA."""
+
+    _painted_rgba: int = 0
+
+
 class BandCells:
     """How a `Band` (fractions of a line) covers a line of `width` cells: each edge rounds
     to the nearest cell. Textual's colour backend and Qt's band painters read it here, so a

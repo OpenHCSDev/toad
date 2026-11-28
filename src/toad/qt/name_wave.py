@@ -19,7 +19,7 @@ from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
 from ui_theme.effects import Band
 
-from toad.client.name_wave import BandCells, NameWave, TitleMarquee
+from toad.client.name_wave import BandCells, NameWave, PaintedRowTone, TitleMarquee
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 from toad.qt.tap_flash import QtTextButton
 
@@ -165,12 +165,7 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         vp_width = vp.width()
         hovered = view.underMouse() and rect.contains(vp.mapFromGlobal(QCursor.pos()))
         selected = item is not None and item.isSelected()
-        bg_brush = item.background(0) if item is not None else None
-        bg_rgba = (
-            bg_brush.color().rgba()
-            if (bg_brush is not None and bg_brush.style() != Qt.BrushStyle.NoBrush)
-            else 0
-        )
+        bg_rgba = item._painted_rgba if isinstance(item, PaintedRowTone) else 0
         variant = (
             running,
             span,
@@ -492,6 +487,40 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         self.growing: dict[str, TabGrowth] = {}
         self.marquee = QtTabMarquee(self)
         self._strip_width = 0
+        self._scale_percent = 100
+
+    def apply_scale(self, percent: int) -> None:
+        """Rescale tab chrome dimensions, close buttons, and cached tab renders."""
+        self._scale_percent = max(50, min(200, int(percent)))
+        self._shown_titles.clear()
+        self._tab_chrome.clear()
+        self.lines.clear()
+        self._banded.clear()
+        btn_w, btn_h, slot_w = self._close_slot_metrics()
+        gap = self.scaled_tab_gap()
+        for index in range(self.count()):
+            slot = self.tabButton(index, QTabBar.ButtonPosition.RightSide)
+            if slot is None:
+                continue
+            slot.setFixedSize(slot_w, btn_h)
+            layout = slot.layout()
+            if layout is not None:
+                layout.setContentsMargins(0, 0, gap, 0)
+            button = slot.findChild(QToolButton, "tab-close-button")
+            if button is not None:
+                button.setFixedSize(btn_w, btn_h)
+        self.relayout()
+        self._sync_marquee()
+        self.update()
+
+    def scaled_tab_gap(self) -> int:
+        return max(1, round(self.TAB_GAP * self._scale_percent / 100.0))
+
+    def _scaled_pad_left(self) -> int:
+        return max(2, round(self.TAB_PAD_LEFT * self._scale_percent / 100.0))
+
+    def _scaled_pad_right(self) -> int:
+        return max(1, round(self.TAB_PAD_RIGHT * self._scale_percent / 100.0))
 
     def set_colours(self, accent: QColor, ink: QColor, inactive_ink: QColor | None = None) -> None:
         self.ink = ink
@@ -521,17 +550,19 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
 
     def _close_slot_metrics(self) -> tuple[int, int, int]:
         """(button_width_px, button_height_px, slot_width_px) for the right-side close button.
-        Height stays thumb-friendly while width stays tight around `×` so tabs have no dead
-        trailing gap between the title and close glyph."""
+        Scales proportionally with UI zoom while staying tight around `×`."""
         fm = self.fontMetrics()
-        height = max(24, fm.height() + 2)
-        width = max(18, ceil(fm.horizontalAdvance("×")) + 10)
-        return width, height, width + self.TAB_GAP
+        min_h = max(14, round(24 * self._scale_percent / 100.0))
+        min_w = max(12, round(18 * self._scale_percent / 100.0))
+        pad_w = max(4, round(10 * self._scale_percent / 100.0))
+        height = max(min_h, fm.height() + 2)
+        width = max(min_w, ceil(fm.horizontalAdvance("×")) + pad_w)
+        return width, height, width + self.scaled_tab_gap()
 
     def _tab_chrome_width(self) -> int:
         """Horizontal non-text pixels per tab: left pad + text/close gap + close slot + right pad."""
         _btn_w, _btn_h, slot_w = self._close_slot_metrics()
-        return self.TAB_PAD_LEFT + self.TAB_TEXT_CLOSE_GAP + slot_w + self.TAB_PAD_RIGHT
+        return self._scaled_pad_left() + self.TAB_TEXT_CLOSE_GAP + slot_w + self._scaled_pad_right()
 
     def _max_tab_width(self) -> int:
         """Maximum width (px) for one tab: bounded by `MAX_TITLE_CHARS` and by 1/3 of the
@@ -590,7 +621,7 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         container.setStyleSheet("QWidget#tab-close-slot { background: transparent; }")
         layout = QHBoxLayout(container)
         btn_w, btn_h, slot_w = self._close_slot_metrics()
-        layout.setContentsMargins(0, 0, self.TAB_GAP, 0)
+        layout.setContentsMargins(0, 0, self.scaled_tab_gap(), 0)
         layout.setSpacing(0)
         button = QtTextButton(container)
         button.setObjectName("tab-close-button")
@@ -661,14 +692,14 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             return cached
         _btn_w, _btn_h, slot_w = self._close_slot_metrics()
         close_slot = self.tabButton(index, QTabBar.ButtonPosition.RightSide)
-        left = tab_rect.left() + self.TAB_PAD_LEFT
+        left = tab_rect.left() + self._scaled_pad_left()
         if (close_slot is not None and close_slot.width() > 0
                 and tab_rect.left() < close_slot.geometry().left() <= tab_rect.right()):
             right = max(left, close_slot.geometry().left() - self.TAB_TEXT_CLOSE_GAP)
         else:
             if close_slot is not None and close_slot.width() > 0:
                 slot_w = close_slot.width()
-            right = max(left, tab_rect.right() - slot_w - self.TAB_PAD_RIGHT - self.TAB_TEXT_CLOSE_GAP)
+            right = max(left, tab_rect.right() - slot_w - self._scaled_pad_right() - self.TAB_TEXT_CLOSE_GAP)
         rect = QRect(left, tab_rect.top(), max(0, right - left + 1), tab_rect.height())
         self._shown_titles[key] = (rect, text)
         return rect, text

@@ -192,12 +192,15 @@ class MessagePromptComposer(PromptComposer):
         self.attached_files = (*self.attached_files, upload)
         self.show_attached()
 
-    async def png_pasted(self, data: bytes) -> str:
+    def attach_png_bytes(self, data: bytes) -> str:
         """A pasted image rides the message as a file and leaves nothing in the text. A
         message's readers are on other machines, where a path on this one names nothing:
         a screenshot pasted into #claude reached every teammate as one line of path."""
         self.file_picked(f"clipboard-{hashlib.sha256(data).hexdigest()[:12]}.png", data, "image/png")
         return ""
+
+    async def png_pasted(self, data: bytes) -> str:
+        return self.attach_png_bytes(data)
 
     def detach_file(self, position: int) -> None:
         files = self.attached_files

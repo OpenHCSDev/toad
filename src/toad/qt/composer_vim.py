@@ -46,6 +46,11 @@ def apply_normal_key(editor, mode: ComposerVimMode, event: QKeyEvent) -> bool:
     key = event.key()
     cursor = editor.textCursor()
 
+    if key == Qt.Key.Key_V and (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
+        editor.composer.paste_clipboard()
+        mode._pending = ""
+        return True
+
     if key in _NORMAL_MOTIONS:
         cursor.movePosition(_NORMAL_MOTIONS[key])
         editor.setTextCursor(cursor)

@@ -24,6 +24,7 @@ from functools import cached_property, partial
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -40,7 +41,8 @@ from PySide6.QtWidgets import (
 from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
 from toad.client.sidebar_panels import PanelMenuModel, PanelSpec, SidebarPanelCollapse, SidebarPanelColumn
-from toad.qt.metrics import UiGap
+from toad.qt.lines import QtLineRenderer
+from toad.qt.metrics import UiGap, scaled_px
 from toad.qt.tap_flash import QtTextButton
 
 
@@ -78,6 +80,7 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
         self._title.setObjectName("QtSidebarPanelTitle")
         self._title.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         header_row = QHBoxLayout(self._header)
+        self._header_row = header_row
         # `▼ Channels  Name ▾` as Textual's header row runs it: no inset, the chevron against
         # the title, one gap before the control.
         header_row.setContentsMargins(0, UiGap.tight, 0, UiGap.tight)
@@ -146,17 +149,54 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
             Qt.ArrowType.RightArrow if collapsed else Qt.ArrowType.DownArrow
         )
 
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Apply `SidebarPanelCollapse` surface/ink roles and scale the header chevron."""
+        surface = renderer.theme(self.panel_surface_colour)
+        ink = renderer.theme(self.panel_foreground_colour)
+        self.setStyleSheet(
+            f"QFrame#QtSidebarPanelFrame, QWidget#QtSidebarPanelHeader {{"
+            f" background-color: {surface}; color: {ink}; border: none; }}"
+            f"QLabel#QtSidebarPanelTitle {{ color: {ink}; background: transparent; }}"
+        )
+        line = max(scaled_px(14, scale), self.fontMetrics().lineSpacing())
+        self._chevron.setFixedSize(line, line)
+        pad_y = UiGap.tight.scaled(scale)
+        self._header_row.setContentsMargins(0, pad_y, 0, pad_y)
+
 
 class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
     """The sidebar's search input, as Textual's `SidebarSearch`: its text is the sidebar's
-    `SidebarFilter` text, and Escape clears it."""
+    `SidebarFilter` text, Escape clears it, and its colours come from `SidebarSearchField`."""
 
     def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        self.setObjectName("SidebarSearch")
         self.setPlaceholderText(self.search_placeholder)
         self.setText(search.text)
         self.textChanged.connect(search.set_text)
+
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Apply the shared `SidebarSearchField` colour roles (matching Textual `SidebarSearch`)."""
+        bg = renderer.theme(self.search_background_colour)
+        fg = renderer.theme(self.search_foreground_colour)
+        placeholder = renderer.theme(self.search_placeholder_colour)
+        border = renderer.theme(self.search_border_colour)
+        focus_border = renderer.theme(self.search_focus_border_colour)
+        pad_y = scaled_px(4, scale)
+        pad_x = scaled_px(8, scale)
+        border_w = scaled_px(1, scale)
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(placeholder))
+        self.setPalette(palette)
+        self.setStyleSheet(
+            f"QLineEdit#SidebarSearch {{"
+            f" background-color: {bg}; color: {fg};"
+            f" border: {border_w}px solid {border}; border-radius: 0px;"
+            f" padding: {pad_y}px {pad_x}px; }}"
+            f"QLineEdit#SidebarSearch:focus {{"
+            f" border: {border_w}px solid {focus_border}; }}"
+        )
 
     def show_search(self, text: str) -> None:
         self.setText(text)
@@ -184,12 +224,19 @@ class QtSidebarShell(QWidget):
         self.body = body
         body.setParent(self)
         layout = QVBoxLayout(self)
+        self._layout = layout
         # No inset: Textual's sidebar content runs to the strip, and a narrow sidebar
         # needs every column for its names.
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(UiGap.normal)
         layout.addWidget(self.search_input)
         layout.addWidget(body, 1)
+
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Apply inherited sidebar search & panel colours and scaled spacing."""
+        self._layout.setSpacing(UiGap.normal.scaled(scale))
+        self.search_input.paint_theme(renderer, scale=scale)
+        self.body.paint_theme(renderer, scale=scale)
 
 
 class QtSidebarPanels(SidebarPanelColumn["QtPanelEntry"], QScrollArea, metaclass=PyQtWidgetMeta):
@@ -201,10 +248,12 @@ class QtSidebarPanels(SidebarPanelColumn["QtPanelEntry"], QScrollArea, metaclass
                  parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        self.setObjectName("QtSidebarPanels")
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         column = QWidget(self)
         column.setWindowFlags(Qt.WindowType.Widget)
+        column.setObjectName("QtSidebarPanelsHolder")
         self._column = QVBoxLayout(column)
         self._column.setContentsMargins(0, 0, 0, 0)
         self._column.setSpacing(0)
@@ -217,6 +266,17 @@ class QtSidebarPanels(SidebarPanelColumn["QtPanelEntry"], QScrollArea, metaclass
         self._column.addStretch(0)
         self.setWidget(column)
         self._restretch_tail()
+
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Paint the scroll host and every collapsible panel from `SidebarPanelCollapse`."""
+        surface = renderer.theme(SidebarPanelCollapse.panel_surface_colour)
+        ink = renderer.theme(SidebarPanelCollapse.panel_foreground_colour)
+        self.setStyleSheet(
+            f"QScrollArea#QtSidebarPanels, QWidget#QtSidebarPanelsHolder {{"
+            f" background-color: {surface}; color: {ink}; border: none; }}"
+        )
+        for panel in self.panels:
+            panel.paint_theme(renderer, scale=scale)
 
     def entry_panel(self, entry: QtPanelEntry) -> PanelSpec:
         return entry.spec
@@ -278,10 +338,12 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
     def __init__(self, navigation: SidebarState, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowFlags(Qt.WindowType.Widget)
+        self.setObjectName("QtPanelMenu")
         self.navigation = navigation
         self.entries = ()
         self.pages = {}
         self.picker = QComboBox(self)
+        self.picker.setObjectName("QtPanelMenuPicker")
         self.picker.currentIndexChanged.connect(self._picked)
         self.stack = QStackedWidget(self)
         layout = QVBoxLayout(self)
@@ -289,6 +351,26 @@ class QtPanelMenu(PanelMenuModel[QtPanelEntry], QWidget, metaclass=PyQtWidgetMet
         layout.setSpacing(0)
         layout.addWidget(self.picker)
         layout.addWidget(self.stack, 1)
+
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Paint the panel picker and stacked host from inherited sidebar roles."""
+        surface = renderer.theme(SidebarPanelCollapse.panel_surface_colour)
+        ink = renderer.theme(SidebarPanelCollapse.panel_foreground_colour)
+        bg = renderer.theme(SidebarSearchField.search_background_colour)
+        border = renderer.theme(SidebarSearchField.search_border_colour)
+        focus_border = renderer.theme(SidebarSearchField.search_focus_border_colour)
+        pad_y = scaled_px(4, scale)
+        pad_x = scaled_px(8, scale)
+        border_w = scaled_px(1, scale)
+        self.setStyleSheet(
+            f"QWidget#QtPanelMenu {{ background-color: {surface}; color: {ink}; }}"
+            f"QComboBox#QtPanelMenuPicker {{"
+            f" background-color: {bg}; color: {ink};"
+            f" border: {border_w}px solid {border}; border-radius: 0px;"
+            f" padding: {pad_y}px {pad_x}px; }}"
+            f"QComboBox#QtPanelMenuPicker:focus {{"
+            f" border: {border_w}px solid {focus_border}; }}"
+        )
 
     def entry_identity(self, entry: QtPanelEntry) -> object:
         return entry.identity
