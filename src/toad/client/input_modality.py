@@ -18,6 +18,21 @@ class InputModality(ABC):
     row_height: ClassVar[int]
     #: Rows reserved for the horizontal tab-strip scrollbar when overflowing (1 on desktop, 0 on touch).
     tab_scrollbar_cells: ClassVar[int]
+    #: Whether pointer hover highlights exist (True with mouse/keyboard; False on touch screens
+    #: where Qt's synthesized pointer stays at the last tap point and sticks `:hover` forever).
+    hover_highlights: ClassVar[bool]
+
+    @classmethod
+    def hover_rule(cls, rule: str) -> str:
+        """Emit a QSS `:hover` rule only when this modality actually has a hovering pointer."""
+        return rule if cls.hover_highlights else ""
+
+    @classmethod
+    def hover_or_pressed(cls, selector: str, body: str) -> str:
+        """Style `:hover, :pressed` on pointer devices and `:pressed` alone on touch screens."""
+        if cls.hover_highlights:
+            return f"{selector}:hover, {selector}:pressed {{ {body} }}"
+        return f"{selector}:pressed {{ {body} }}"
 
     @classmethod
     @abstractmethod
@@ -40,6 +55,7 @@ class KeyboardInput(InputModality):
 
     row_height = 0
     tab_scrollbar_cells = 1
+    hover_highlights = True
 
     @classmethod
     def menu_keys(cls, keys: str) -> str:
@@ -60,6 +76,7 @@ class TouchInput(InputModality):
 
     row_height = 48
     tab_scrollbar_cells = 0
+    hover_highlights = False
 
     @classmethod
     def menu_keys(cls, keys: str) -> str:

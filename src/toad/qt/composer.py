@@ -388,7 +388,7 @@ class ComposerEditor(QPlainTextEdit, NeovimEditorSurface):
         self._engine_document = Document(self.toPlainText())
         self._cursor_location = self._qt_cursor_location()
         self._attached_mode = self._editing_mode
-        self._editing_mode.attach(self)
+        self._editing_mode.attach_surface(self)
 
     def follow_key_mode(self) -> None:
         """Modal input follows `ui.key_mode`, the setting Textual's prompt reads: a modal key

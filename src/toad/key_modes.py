@@ -40,6 +40,10 @@ class KeyMode(EditingMode, DeclaredChoice, affix=""):
         """Visual selection regions reported by an attached modal engine (none in Standard)."""
         return ()
 
+    def attach_surface(self, editor) -> None:
+        """Attach a toolkit editor surface (native `Standard` needs no external engine)."""
+        return None
+
 
 class Standard(KeyMode):
     """Ordinary native text entry and navigation."""

@@ -26,6 +26,7 @@ from PySide6.QtGui import QColor, QPainter, QPalette
 from PySide6.QtWidgets import QGridLayout, QLabel, QStyle, QStyleOption, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from textual.geometry import Offset, Region, Size
+from toad.client import platform as toad_platform
 from toad.client.application import ClientApplication
 from ui_theme.clock import AnimationClock
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
@@ -200,7 +201,7 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         super().__init__(surface)
         self.setObjectName("SidebarToggle")
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover, toad_platform.host.input_modality.hover_highlights)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._symbol = self._heading = ""
@@ -218,12 +219,15 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         hover_fg = renderer.theme(self.hover_foreground_colour)
         self._fg_colour = QColor(fg)
         self._hover_fg_colour = QColor(hover_fg)
+        modality = toad_platform.host.input_modality
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover, modality.hover_highlights)
         QtLineRenderer.apply_sheet(
             self,
             f"QLabel#SidebarToggle {{"
             f" background-color: {bg}; color: {fg}; border: none; padding: 0px {pad_x}px; }}"
-            f"QLabel#SidebarToggle:hover {{"
-            f" background-color: {hover_bg}; color: {hover_fg}; }}",
+            + modality.hover_rule(
+                f"QLabel#SidebarToggle:hover {{ background-color: {hover_bg}; color: {hover_fg}; }}"
+            ),
         )
         self.update()
 
@@ -273,7 +277,9 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         option = QStyleOption()
         option.initFrom(self)
         self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, option, painter, self)
-        hovered = self.underMouse() or bool(option.state & QStyle.StateFlag.State_MouseOver)
+        hovered = toad_platform.host.input_modality.hover_highlights and (
+            self.underMouse() or bool(option.state & QStyle.StateFlag.State_MouseOver)
+        )
         pen_colour = (
             (self._hover_fg_colour if hovered else self._fg_colour)
             or option.palette.color(QPalette.ColorRole.WindowText)

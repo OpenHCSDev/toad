@@ -16,6 +16,7 @@ from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import QAbstractScrollArea, QAbstractSlider, QScrollBar
 from ui_theme.clock import AnimationClock
 
+from toad.client import platform as toad_platform
 from toad.client.theme_tones import ScrollbarTones
 from toad.motion import SCROLLBAR_FADE, TransitionTarget
 from toad.qt.lines import QtLineRenderer
@@ -152,7 +153,7 @@ class OverlayScrollBar(QScrollBar):
                     self._active_color
                     if self.isSliderDown()
                     else self._hover_color
-                    if self.underMouse()
+                    if (toad_platform.host.input_modality.hover_highlights and self.underMouse())
                     else self._handle_color
                 )
                 painter.fillRect(thumb, brush)
@@ -228,7 +229,7 @@ class OverlayScrollBar(QScrollBar):
         if remaining_ms > 20:
             self.still.start(remaining_ms)
             return
-        if self.isSliderDown() or self.underMouse():
+        if self.isSliderDown() or (toad_platform.host.input_modality.hover_highlights and self.underMouse()):
             self.still.start(self.STILL_MS)
             return
         if self.clock.enabled:
