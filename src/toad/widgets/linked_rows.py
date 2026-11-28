@@ -25,8 +25,8 @@ from textual.widgets._markdown import OpensMarkdownLinks
 from toad.app_node import FollowsTheme
 from toad.arrivals import AnimatesArrivals
 from toad.block_navigation import ConversationEntry
-from toad.core.events import LinkContextChanged
 from toad.core.input_events import SelectHistoricalIdentity
+from toad.core.link_context_changed import LinkContextChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.frame_presentation import RowRun
 from toad.client.line_blocks import LineLink

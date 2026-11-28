@@ -28,7 +28,7 @@ from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from toad import atomic, paths
 from toad import setting_effects as effects
 from formbridge.forms.declared_fields import DeclaredField, FieldPath, FormPage, Multiline
-from toad.core.events import CoreEventStream
+from toad.core.link_context_changed import CoreEventStream
 from toad.core.preference_events import PreferenceChanged
 from toad.hint_labels import HintLabels, NextLetterHintLabels
 from toad.key_modes import KeyMode, Standard

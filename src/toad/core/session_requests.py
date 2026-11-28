@@ -12,7 +12,7 @@ from formbridge.operations import OperationKind
 from agent_comms.projects.checkouts import Checkout
 
 from toad.constants import WELCOME
-from toad.core.events import CoreEvent
+from toad.core.link_context_changed import CoreEvent
 from toad.navigation_context import NavigationContext
 from toad.navigation_target import NavigationTarget
 

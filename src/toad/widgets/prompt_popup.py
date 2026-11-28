@@ -15,6 +15,7 @@ from textual.widget import Widget
 from textual.widgets import Input
 from textual.widgets.option_list import OptionListComponent
 
+from toad.cursor_movement import CursorMovement
 from toad.declared_widget import DeclaredWidget
 from toad.messages import Dismiss
 from toad.native_style import (
@@ -32,7 +33,6 @@ from toad.widget_actions import DismissibleControl
 from toad.widgets.selection import SelectionOptionList
 
 if TYPE_CHECKING:
-    from toad.prompt_cursor import CursorMovement
     from toad.widgets.prompt import Prompt
 
 

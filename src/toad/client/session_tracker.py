@@ -9,9 +9,10 @@ from agent_comms.ui_model.sidebar import SidebarModel, ThreadRowModel
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 
 from toad.client.conversation import ConversationKind
-from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
+from toad.core.events import SessionChangedEvent, SessionClosedEvent
 from toad.client.tab_identity import SessionTabIdentity, TabIdentity
 from toad.client.tab_order import TabOrder
+from toad.core.link_context_changed import CoreEventStream
 
 
 @dataclass(frozen=True)

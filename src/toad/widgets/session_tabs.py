@@ -11,6 +11,7 @@ from textual.view import (
     FILL,
     WidgetView,
 )
+from toad.core.link_context_changed import LinkContextChanged
 from toad.native_style import KeepsFocusOnClick
 from toad.widget_actions import ActivationKeys
 from toad.widgets.comms_menu import ActionMenu
@@ -386,8 +387,8 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget, ToadNode):
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
 
-    @handles(core_events.OpenTabsChanged, core_events.LinkContextChanged)
-    async def _tabs_changed(self, event: core_events.OpenTabsChanged | core_events.LinkContextChanged) -> None:
+    @handles(core_events.OpenTabsChanged, LinkContextChanged)
+    async def _tabs_changed(self, event: core_events.OpenTabsChanged | LinkContextChanged) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:
             await self._sync_tabs()

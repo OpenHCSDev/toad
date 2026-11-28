@@ -12,7 +12,8 @@ from toad.agent_binding import AgentConnection
 from toad.agent_presentation import LocalAgentPresentation
 from toad.client.db import DB
 from toad.conversation_turn import NoTurn, TurnOwner
-from toad.core.events import CoreEventStream, SessionAgentAttached
+from toad.core.events import SessionAgentAttached
+from toad.core.link_context_changed import CoreEventStream
 from toad.session_observation import SessionObservation
 from toad.submission_queue import QueueSource
 from toad.surface_binding import SurfaceBinding

@@ -26,7 +26,7 @@ from toad.client.db import DB
 from toad.client.subscribers import CoreObserverDispatch
 from toad.core import events as core_events
 from toad.core.configuration_events import ChangeConfiguration, ChangeModel
-from toad.core.events import Publication
+from toad.core.link_context_changed import Publication
 
 
 class ConversationCommsHandlers(CoreObserverDispatch):

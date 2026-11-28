@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 from rich.style import Style
 from textual.content import Content
 from textual.css.native import ThemeState, DeclaresTheme, Keyword, NativeDeclaration, Percent, TextVariable, Variable
 from textual.css.styles import Styles
 from textual.message import Message
+from toad.surface_binding import ViewSurfaceBinding
 from ui_theme.scheme import ErrorColour, PrimaryColour, SuccessColour, ThemeColour
 
 from metaclass_registry.mro_dispatch import MroDispatch, handles
@@ -21,10 +22,6 @@ from toad.widgets.terminal import ExecutionTerminal
 from textual.events import Mount
 from textual import on
 from textual.events import Unmount
-
-if TYPE_CHECKING:
-    from toad.agent_surface import AttachedSurfaceBinding
-
 
 class TerminalLook(DeclaresTheme):
     """The panel of a command that has not finished."""
@@ -75,7 +72,7 @@ class TerminalTool(
     class Projection(Message):
         """A native render request borrows its original acquired resources."""
 
-        binding: AttachedSurfaceBinding
+        binding: ViewSurfaceBinding
         controller: TerminalController
         terminal_id: str
         execution: TerminalExecution

@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, NoReturn
 from agent_comms.acp_extension import CoordinationChangedUpdate
 
 from toad.acp.queue_attachment import QueueActionRefused
+from toad.acp.session_binding import SessionBinding
 from toad.acp.status import StopReason, UnreportedStopReason
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
-    from toad.acp.agent_controller import SessionBinding
     from toad.acp.agent_session import SessionDisposition
 from acp.exceptions import RequestError
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId

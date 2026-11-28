@@ -1,8 +1,8 @@
 """Shared shell process ownership, independent of how commands start."""
 from abc import ABC, abstractmethod
 import asyncio
+from toad.core.link_context_changed import CoreEventStream
 from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding
-from toad.core.events import CoreEventStream
 from toad.shell_output import ShellOutput, ShellTerminalOutput
 from toad.terminal_execution import TerminalOperation, NewTerminalOperation
 

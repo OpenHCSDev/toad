@@ -895,7 +895,8 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
     from toad.qt.live_turn import QtLiveBlock, QtResponseBlock, QtThoughtBlock, QtUserInputBlock
     from toad.qt.thread_view import QtThreadView
     from toad.transcript_publication import BoundView
-    from toad.client.committed_presentation import CommitTranscript, block_claim
+    from toad.client.block_claim import block_claim
+    from toad.client.committed_presentation import CommitTranscript
     from toad.client.history_state import LiveTranscript
 
     from toad.arrivals import AnimatesArrivals
@@ -1008,7 +1009,8 @@ def test_conversation_comms_handlers_are_shared_across_frontends_and_filter_publ
     from agent_comms.execution.transcript_sources import UnreadTranscriptCursor
 
     from toad.conversation_comms_handlers import ConversationCommsHandlers
-    from toad.core.events import CommsUpdated, CoreEventStream
+    from toad.core.events import CommsUpdated
+    from toad.core.link_context_changed import CoreEventStream
     from toad.qt.agent_surface import subscribe_agent
     from toad.qt.conversation import QtConversation
     from toad.qt.core_events import QtCoreObserver, QtPublication

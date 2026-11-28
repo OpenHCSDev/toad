@@ -89,10 +89,6 @@ class ToadLoadingIndicator(TransparentBackground, LoadingIndicator):
 
 
 
-class ApplicationNotRunningError(RuntimeError):
-    """The application has no event loop to accept cross-thread work."""
-
-
 class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, ClientApplication, CorePrewarm, Transfers, HostsNeovim, actions=(ApplicationAction,), inherit_bindings=False):
     """The top level app."""
 
@@ -456,7 +452,7 @@ class ToadApp(DeclaredWidgetActions, WorkspaceSessionShutdown, WorkspaceHost, Cl
     def running_loop(self) -> asyncio.AbstractEventLoop:
         loop = self._loop
         if loop is None:
-            raise ApplicationNotRunningError("App is not running")
+            raise RuntimeError("App is not running")
         return loop
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

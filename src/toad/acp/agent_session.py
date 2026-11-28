@@ -37,6 +37,7 @@ from toad.core.events import (
     UnsupportedResumeAgentFail,
 )
 from toad.client.db import DB, SessionMeta
+from toad.core.link_context_changed import CoreEventStream
 
 PROTOCOL_VERSION = 1
 
@@ -136,16 +137,12 @@ class RefusedSessionDisposition(UnheldSessionDisposition, FailedSessionDispositi
     """The agent process answered the handshake with an error; it holds no session."""
 
 
-class LoginNotReady(ValueError):
-    """A terminal login finished, but the session it restarted did not become ready."""
-
-
 class AgentSession:
     """Own readiness and durable session effects; binding identity stays on the controller."""
 
     reconnect_timeout_seconds = 30
 
-    def __init__(self, agent, pk, app_events: core_events.CoreEventStream) -> None:
+    def __init__(self, agent, pk, app_events: CoreEventStream) -> None:
         self.agent = agent
         # The app's stream: its thread rows show this session's state, attached to a view or not.
         self.app_events = app_events
@@ -365,7 +362,7 @@ class AgentSession:
         """Only a session that is ready after its restart counts as a finished login."""
         await self.reconnect()
         if not self.ready:
-            raise LoginNotReady(self.disposition.refusal_notice)
+            raise ValueError(self.disposition.refusal_notice)
 
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)

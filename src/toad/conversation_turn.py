@@ -12,6 +12,7 @@ from agent_comms.execution.turn_lease import TurnState
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.registry.activity import ActivityState
 from agent_comms.ui_model.status import ThreadStatusModel
+from toad.client.block_claim import block_claim
 from toad.core_event_carrier import CoreEventMessage
 from toad.turn_presentation import TurnPresentation
 
@@ -61,7 +62,6 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
 
     def captured_snapshot(self, widgets: tuple[Widget, ...]):
         """Each original claim owns capture while this source is active."""
-        from toad.client.committed_presentation import block_claim
 
         return frozenset(widget for widget in widgets if block_claim(widget).capture(not self.busy))
 

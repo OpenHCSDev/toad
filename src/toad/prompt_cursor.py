@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass
 from types import FunctionType
 from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
@@ -14,31 +13,12 @@ from textual.widgets.text_area import Selection
 
 from toad.client.line_blocks import Span
 from toad.core.input_events import HistoryMove
+from toad.cursor_movement import CursorMovement
 from toad.slash_command import SlashCommand
 from toad.widgets.prompt_popup import CompletionPopup
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import PromptTextArea
-
-
-@dataclass(frozen=True)
-class CursorMovement:
-    previous: Selection
-    current: Selection
-
-    @property
-    def moved_cursor(self) -> bool:
-        return self.previous != self.current and self.current.is_empty
-
-    @property
-    def entered_slash(self) -> bool:
-        return (self.previous.end, self.current.end) == ((0, 0), (0, 1))
-
-    @property
-    def retreating_first_line(self) -> bool:
-        if (self.previous.end[0], self.current.end[0]) != (0, 0):
-            return False
-        return self.current.end[1] < self.previous.end[1]
 
 
 class CommandText(DeclaredFamily, affix="Text"):

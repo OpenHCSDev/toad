@@ -31,6 +31,7 @@ from agent_comms.transport.tools.sidebar import CommsExportWireTool, CommsImport
 from toad.client.connection import CapturedSource, CoordinationAccess
 from toad.client.host import CommsHost
 from toad.core import events as core_events
+from toad.core.link_context_changed import CoreEventStream
 from toad.work_preparation import PreparationRuntime
 
 class TransferProgress:
@@ -109,7 +110,7 @@ class TransferHost(CommsHost):
 
     coordination_access: CoordinationAccess
     preparation: PreparationRuntime
-    events: core_events.CoreEventStream
+    events: CoreEventStream
 
     @asynccontextmanager
     async def export_progress(self) -> AsyncIterator[CancellableExportProgress]:

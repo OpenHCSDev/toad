@@ -5,7 +5,8 @@ from support.agents import RecordedEvents
 
 from toad.acp.comms_updates import CommsUpdateConsumer
 from toad.commit_claims import CapturedClaim
-from toad.core.events import CoreEvent, Update
+from toad.core.events import Update
+from toad.core.link_context_changed import CoreEvent
 from toad.core_event_carrier import CoreEventMessage
 from toad.live_output import (
     CompleteResponseStream,

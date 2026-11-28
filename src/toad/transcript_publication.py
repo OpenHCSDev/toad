@@ -51,21 +51,23 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from textual.await_complete import AwaitComplete
 from textual.worker import Worker, WorkerCancelled
 
+from toad.client.block_claim import block_claim
 from toad.client.committed_presentation import (
-    block_claim,
     commit_plan,
     covers_live_draft,
     retirement_candidates,
 )
 from toad.client.history_coverage import NO_COVERAGE, HistoryCoverage
 from toad.commit_claims import CommitEvidence, NativeCommitEvidence
-from toad.core.events import CoordinationObserved, CoreEventStream, ThreadRowsChanged
+from toad.core.events import CoordinationObserved, ThreadRowsChanged
+from toad.core.link_context_changed import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.core.source_events import TranscriptCoverage as CoverageEvent
 from toad.history_jump import ReaderWindow
 from toad.live_output import LiveOutput
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.client.session_scope import SessionOrigin, SessionScope
+from toad.publication_work import PublicationWork
 from toad.transcript_scope import NoTranscript, TranscriptScope
 from toad.entry_placement import ChronologicalEntry, EntryPlacement
 from toad.client.message_file_links import PageFiles
@@ -361,27 +363,6 @@ class Uncaptured:
 
 
 UNCAPTURED = Uncaptured()
-
-
-class PublicationWork:
-    """No publication is running: nothing to cancel or join, and a commit has nothing to settle."""
-
-    @property
-    def is_finished(self) -> bool:
-        return True
-
-    def runs(self, worker: Worker) -> bool:
-        return False
-
-    def cancel(self) -> None:
-        pass
-
-    async def joined(self) -> None:
-        """Cancel this work and wait until it has stopped."""
-
-    async def settled(self) -> None:
-        """Wait for the commit this work publishes; with none running, the transcript moved on."""
-        raise TranscriptChanged()
 
 
 NO_PUBLICATION_WORK = PublicationWork()

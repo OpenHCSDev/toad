@@ -105,9 +105,7 @@ from toad.client.subscribers import NotificationSubscriber, SidebarSubscriber
 from toad.client.context_reads import ContextReads
 from toad.core.events import (
     CoordinationObserved,
-    CoreEventStream,
     ExternalTranscriptChanged,
-    LinkContextChanged,
     ObservedServiceChanged,
     OpenTabsChanged,
     SidebarPresented,
@@ -126,6 +124,7 @@ from toad.client.referenced_core import ReferencedCore
 from toad.client.resource_release import AsyncResourceRelease, ResourceRelease
 from toad.client.session_projection import SessionCollection, SessionProjection
 from toad.client.thread_comms_source import RelationshipReads
+from toad.core.link_context_changed import CoreEventStream, LinkContextChanged
 
 T = TypeVar("T")
 

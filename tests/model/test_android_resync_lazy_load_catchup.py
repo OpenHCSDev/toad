@@ -80,7 +80,8 @@ from toad.client.history_state import (
 )
 from toad.client.prepared_pages import PreparedPageSource, SavedHistory
 from toad.client.resource_release import ResourceRelease
-from toad.core.events import CoordinationObserved, CoreEventStream
+from toad.core.events import CoordinationObserved
+from toad.core.link_context_changed import CoreEventStream
 from toad.history_jump import FollowsTail
 from toad.transcript_publication import SourcePublicationRequests, TranscriptPublication
 

@@ -27,6 +27,7 @@ from formbridge.operations import ExclusiveKind, OperationKind
 
 from toad.client.pending import BusConnecting, awaited
 from toad.application_lifetime import ApplicationLifetime, ApplicationStart
+from toad.core.link_context_changed import CoreEventStream
 from toad.heap import HEAP
 from toad.client import bus_connect
 from toad.client.bus_selection import (
@@ -46,7 +47,6 @@ from toad.client.session_tracker import OpenTab, SessionTracker, SidebarState
 from toad.client.tab_order import TabOrder
 from toad.client.view_settings import ApplicationSettings
 from toad.constants import WELCOME
-from toad.core import events as core_events
 from toad.core import session_requests
 from toad.launch_binding import AgentBinding
 from toad.launch_opening import LaunchOpening, NoLaunchOpening
@@ -262,7 +262,7 @@ class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
         constructor runs before a terminal captures stderr, which spawn bookkeeping needs."""
         self.preparation.renderer.start()
         self.render_processes = self._make_render_processes()
-        self.events = core_events.CoreEventStream(self)
+        self.events = CoreEventStream(self)
         self.navigation_reader = NavigationReader()
         self.agent_binding = agent_binding
         self.application = self.lifetime_kind(self, agent_session_id, opening)

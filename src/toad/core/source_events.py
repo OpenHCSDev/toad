@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import agent_comms.transcript.transcript_events as transcript_events
 
-from toad.core.events import CoreEvent
+from toad.core.link_context_changed import CoreEvent
 
 
 @dataclass(frozen=True)

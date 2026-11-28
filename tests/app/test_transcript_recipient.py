@@ -11,7 +11,7 @@ from support.agents import deliver
 from support.coordination import carrying, coordination_fact
 from support.journals import assistant_entry, write_journal
 
-from toad.acp.agent_controller import SessionBinding
+from toad.acp.session_binding import SessionBinding
 
 
 async def test_unbound_tab_refuses_another_threads_snapshot(workspace):
