@@ -32,12 +32,14 @@ from PySide6.QtWidgets import (
 
 from ui_theme.scheme import FloatHoverToneColour, FloatToneColour, MutedColour, RuleColour
 
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from toad.client import platform as toad_platform
 
 from toad.client.block_menu import BlockMenu
 from toad.client.input_modality import InputModality
 from toad.client.menu_entry import MenuEntry, MenuRowDisplay
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap, delete_layout_widgets
 
@@ -47,7 +49,7 @@ def platform_input() -> type[InputModality]:
     return toad_platform.host.input_modality
 
 
-class QtMenuRow(QWidget):
+class QtMenuRow(QtHintTargetSource, QWidget, metaclass=PyQtWidgetMeta):
     """One menu row: a bold key column (when the menu's modality shows keys) and a label
     column that fills the rest. Under touch the description is a second line elided to the
     row's width; under keys it follows the label. A click fires the entry's action; the
@@ -57,6 +59,12 @@ class QtMenuRow(QWidget):
     wrapping text (QLabel word wrap, then WrappedText), was tried (2026-11-18): after the
     panel opened over two tabs, qasync's loop ran no callbacks once the window closed, and
     this button row did not. The cause inside the QFrame row is not established."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        x, y = self.hint_anchor(self, host)
+        return (QtCallbackHintTarget(self, x, y, self._fire),)
 
     def __init__(self, entry: MenuEntry, menu: MenuRowDisplay, chosen: Callable[[MenuEntry], None],
                  parent: QWidget | None = None) -> None:

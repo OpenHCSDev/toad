@@ -150,7 +150,6 @@ QT_ONLY = {
     'toad.qt.action_shortcuts.ActionKeys': "Qt has no binding map: it installs a QShortcut per action and sets its keys again when ui.key_mode or ui.keymap changes; Textual's App binds the same catalog keys through its BindingsMap and set_keymap",
     'toad.qt.window.HeldRowMenu': "connects the Qt tree's customContextMenuRequested (a right-click, or a held finger FingerPress delivers as one) to the panel; the entries come from each row's shared menu_entries",
     'toad.qt.finger_press.Press': "one Qt press: the QWidget under it, its global QPointF and whether a touch screen made it, and a tap consumer's claim",
-    'toad.qt.menu.QtMenuRow': "QWidget laying ElidedLines over a flat QPushButton for one QtMenu row (44 px touch target and Android QFrame workaround); Textual draws Menu rows in OptionList",
     'toad.qt.page.Page': "Qt QStackedWidget page protocol (shown, reload, workspace_navigation_owner, external_transcript_changed) for QtWorkspaceViews; Textual switches Screen modes directly",
     'toad.qt.paste_profile.QtProfilePastePanel': "inline QFrame child of QtToadApp for pasting bus-profile JSON without allocating a second QWindow EGL surface on Android; Textual pushes a modal Screen",
     'toad.qt.sidebar_panel.QtPanelEntry': "Qt widget-factory dataclass (spec, build, controls, identity) parametrizing shared SidebarPanelColumn and PanelMenuModel; Textual uses SideBar.Panel",

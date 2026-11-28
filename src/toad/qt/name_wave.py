@@ -11,9 +11,10 @@ from __future__ import annotations
 from math import ceil
 
 import shiboken6
-from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
+from PySide6.QtCore import QEvent, QPoint, QPointF, QRect, QSize, Qt
 from PySide6.QtGui import QColor, QCursor, QFont, QFontMetrics, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
+from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
@@ -23,6 +24,7 @@ from ui_theme.effects import Band
 from toad.client import platform as toad_platform
 from toad.client.name_wave import BandCells, NameWave, PaintedRowTone, TitleMarquee
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.tap_flash import QtTextButton
 
 
@@ -466,10 +468,39 @@ class QtTabMarquee(TitleMarquee):
         self.bar._repaint_marquee_tabs(self.painted_offsets, self._painted_px)
 
 
-class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
+class QtSessionTabBar(QtWaveBandCache, QtHintTargetSource, TearOffTabBar, metaclass=PyQtWidgetMeta):
     """The workspace's tab bar: compact tabs sized to their title up to a width cap so at least
     three tabs fit across Android's tab strip, with overflowing titles scrolling like a banner
     on the shared `AnimationClock` and busy tabs waving in the theme accent."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        targets = []
+        vis = self.visibleRegion().boundingRect()
+        for index in range(self.count()):
+            rect = self.tabRect(index)
+            if not rect.intersects(vis):
+                continue
+            x, y = self.hint_anchor(self, host, QPoint(rect.left() + 2, rect.top() + 2))
+            targets.append(QtCallbackHintTarget(self, x, y, lambda i=index: self.tabBarClicked.emit(i)))
+        return targets
+
+    def context_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        targets = []
+        vis = self.visibleRegion().boundingRect()
+        for index in range(self.count()):
+            rect = self.tabRect(index)
+            if not rect.intersects(vis):
+                continue
+            x, y = self.hint_anchor(self, host, QPoint(rect.left() + 2, rect.top() + 2))
+            center = rect.center()
+            targets.append(
+                QtCallbackHintTarget(self, x, y, lambda pt=center: self.customContextMenuRequested.emit(pt))
+            )
+        return targets
 
     padding_cells = 1
     TAB_GAP = 3

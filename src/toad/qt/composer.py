@@ -79,6 +79,7 @@ from toad.widget_contracts import (
     SubmitsContract,
 )
 from toad.qt.file_pickers import compress_image_bytes, open_file_dialog, open_path_search
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection, QtQueueSummary, RowReveal
 from toad.qt.prompt_stack import QtInfoBar
@@ -311,13 +312,19 @@ def _qt_key_to_input(event: QKeyEvent) -> tuple[str, str] | None:
     return None
 
 
-class ComposerEditor(QPlainTextEdit, NeovimEditorSurface):
+class ComposerEditor(QPlainTextEdit, NeovimEditorSurface, QtHintTargetSource):
     """The message being typed, backed by real embedded Neovim (`NeovimEditing`) when a modal
     key mode is active, or native `QPlainTextEdit` in `Standard` mode. Enter and Ctrl+Enter
     send when text entry is active, Shift+Enter starts a line; while offers are shown, Up and
     Down move through them and Enter or Tab takes one, Escape hides them. Escape with no offers
     visible routes through Neovim (exiting Insert/Visual/Command to Normal, and firing
     `StandardEditingAction` from idle Normal to focus the conversation window)."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        x, y = self.hint_anchor(self, host)
+        return (QtCallbackHintTarget(self, x, y, lambda: self.setFocus(Qt.FocusReason.ShortcutFocusReason)),)
 
     def __init__(self, composer: Composer) -> None:
         super().__init__()

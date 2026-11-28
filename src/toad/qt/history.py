@@ -83,6 +83,7 @@ from toad.qt.live_turn import QtLiveBlock
 from toad.qt.workspace_frame import QtWorkspaceHosted
 from toad.markdown_links import LinkContext
 from toad.qt.float_layer import QtFloatLayer
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 from toad.patch import PREFORMATTED, DiffSettings
 from toad.reader_actions import ReaderAction
@@ -1570,12 +1571,57 @@ class QtJumpBar(LatestJumpBar, QPushButton):
 
 class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, FollowsTail, PagedReader,
                       QtWorkspaceHosted, VirtualRowCanvas, PagingWindow, TogglesFragmentShown, PinsMessageHeader,
-                      SettingsReading):
+                      SettingsReading, QtHintTargetSource):
     """The reader window of one Qt conversation: prefix-sum virtual rows of the history's
     shown fragments, scrolled by pixel without `QListView`/`QAbstractListModel` overhead. It
     answers the shared pager's window contract: reaching the top reads older pages, the bottom
     newer ones, End and the reader at the end follow the newest row, and rows that arrive or
     are evicted above the reader leave the row they are reading where it was."""
+
+    def primary_hint_targets(self, host):
+        if self.widget_gone or not self.isVisible():
+            return ()
+        vp = self.viewport()
+        vp_rect = vp.rect()
+        targets = []
+        for fragment in self.visible_fragments():
+            row = self.model_rows.row_of(fragment.key)
+            if row < 0:
+                continue
+            rect = self.row_rect(row)
+            if rect.isEmpty() or not rect.intersects(vp_rect):
+                continue
+            top_pt = QPoint(max(4, rect.left() + 4), max(2, rect.top() + 2))
+            x, y = self.hint_anchor(vp, host, top_pt)
+            targets.append(
+                QtCallbackHintTarget(
+                    vp, x, y, lambda r=row, f=fragment: self._activate_header_hint(r, f)
+                )
+            )
+        return targets
+
+    def _activate_header_hint(self, row: int, fragment: HistoryFragment) -> None:
+        self.setFocus(Qt.FocusReason.ShortcutFocusReason)
+        if not self.widget_gone and 0 <= row < self.model_rows.rowCount():
+            self.toggle_fragment(fragment)
+
+    def context_hint_targets(self, host):
+        if self.widget_gone or not self.isVisible():
+            return ()
+        vp = self.viewport()
+        vp_rect = vp.rect()
+        targets = []
+        for fragment in self.visible_fragments():
+            row = self.model_rows.row_of(fragment.key)
+            if row < 0:
+                continue
+            rect = self.row_rect(row)
+            if rect.isEmpty() or not rect.intersects(vp_rect):
+                continue
+            pt = QPoint(max(4, rect.left() + 4), max(2, rect.top() + 2))
+            x, y = self.hint_anchor(vp, host, pt)
+            targets.append(QtCallbackHintTarget(vp, x, y, lambda p=pt: self._emit_block_menu_at(p)))
+        return targets
 
     block_menu_requested = Signal(object, QPoint, name="blockMenuRequested")
 

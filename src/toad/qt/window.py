@@ -53,9 +53,17 @@ from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
+from toad.client.hints import (
+    ContextHint,
+    HintHostSurface,
+    OpenContextHintsAction,
+    OpenHintsAction,
+    PrimaryHint,
+)
 from toad.keymap import KeyInvocationId
 from toad.neovim_editing import HostsNeovim
 from toad.qt.finger_press import FingerPress
+from toad.qt.hints import QtCallbackHintTarget, QtHintOverlay, QtHintTargetSource
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
 from toad.qt.tap_flash import QtPushButton, QtTextButton
@@ -86,9 +94,6 @@ from toad.client.application_actions import (
     MenuActionRun,
     NewSessionAction,
     NewSessionControl,
-    ResetZoomAction,
-    ZoomInAction,
-    ZoomOutAction,
 )
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
@@ -852,10 +857,45 @@ class KeptLines(TreeItemRows[tuple[type, str]]):
         self.close()
 
 
-class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
+class ConversationRows(LineMenuTree, RowTree, QtHintTargetSource, QTreeWidget, metaclass=PyQtWidgetMeta):
     """A tree of Toad's conversation rows in the theme's sidebar tones, every other row a
     step off: pyqt-reactive's preview delegate paints each row's unread badge and label with
     its summary under it in muted text; a tap activates the line."""
+
+    def _visible_row_items(self) -> list[tuple[QTreeWidgetItem, QRect]]:
+        if not self.isVisible() or not self.isEnabled():
+            return []
+        vp = self.viewport()
+        vp_rect = vp.rect()
+        visible: list[tuple[QTreeWidgetItem, QRect]] = []
+        item = self.itemAt(0, 0)
+        while item is not None:
+            rect = self.visualItemRect(item)
+            if rect.top() > vp_rect.bottom():
+                break
+            if not rect.isEmpty() and rect.intersects(vp_rect):
+                visible.append((item, rect))
+            item = self.itemBelow(item)
+        return visible
+
+    def primary_hint_targets(self, host):
+        vp = self.viewport()
+        targets = []
+        for item, rect in self._visible_row_items():
+            x, y = self.hint_anchor(vp, host, QPoint(rect.left() + 4, rect.top() + 2))
+            targets.append(QtCallbackHintTarget(vp, x, y, lambda it=item: self.activate(it, 0)))
+        return targets
+
+    def context_hint_targets(self, host):
+        vp = self.viewport()
+        targets = []
+        for _item, rect in self._visible_row_items():
+            x, y = self.hint_anchor(vp, host, QPoint(rect.left() + 4, rect.top() + 2))
+            center = rect.center()
+            targets.append(
+                QtCallbackHintTarget(vp, x, y, lambda pt=center: self.customContextMenuRequested.emit(pt))
+            )
+        return targets
 
     def __init__(self, window: QtToadApp, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -1789,7 +1829,7 @@ PRESENCE_TRANSITIONS: dict[Qt.ApplicationState, Callable[[ApplicationPresence, Q
 }
 
 
-class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, HintHostSurface, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -2009,23 +2049,40 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
             ExternalTranscriptChanged, self.external_transcript_changed)
         self.history = self.tab_order.events.subscribe(TabHistoryChanged, self.history_changed)
         self.history_changed()
+        # Native Vimium UI hint overlay: floats as a child of this window (no top-level
+        # QWindow / EGL surface), driven polymorphically by `QtHintTargetSource` controls.
+        self.hint_overlay = QtHintOverlay(self, self.renderer)
         # Android Back via native C++ QShortcut (zero per-event Python filter overhead);
         # unhandled Escape bubbles from child widgets into QtToadApp.keyPressEvent.
         self._back_shortcut = QShortcut(QKeySequence("Back"), self)
         self._back_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
         self._back_shortcut.activated.connect(self._handle_back_shortcut)
-        self._zoom_shortcuts = (
+        self._app_shortcuts = [
             self.action_keys.bind(
-                self, ZoomInAction(), lambda: self.adjust_message_font_scale(5),
+                self,
+                action,
+                lambda _a=action: self.run_operation(MenuActionRun, partial(_a.apply, self)),
                 Qt.ShortcutContext.ApplicationShortcut,
+                context=self,
+            )
+            for action_cls in ApplicationAction.members_with(ApplicationAction)
+            if action_cls.keys and action_cls.runs_on(self)
+            for action in (action_cls(),)
+        ]
+        self._hint_shortcuts = (
+            self.action_keys.bind(
+                self,
+                OpenHintsAction(),
+                self.action_show_hints,
+                Qt.ShortcutContext.WindowShortcut,
+                context=self,
             ),
             self.action_keys.bind(
-                self, ZoomOutAction(), lambda: self.adjust_message_font_scale(-5),
-                Qt.ShortcutContext.ApplicationShortcut,
-            ),
-            self.action_keys.bind(
-                self, ResetZoomAction(), self.reset_message_font_scale,
-                Qt.ShortcutContext.ApplicationShortcut,
+                self,
+                OpenContextHintsAction(),
+                self.action_show_context_hints,
+                Qt.ShortcutContext.WindowShortcut,
+                context=self,
             ),
         )
         self.winId()
@@ -2173,6 +2230,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         change, instead of installing permanent per-event `eventFilter`s on `QtToadApp`."""
         if self.float_layer.isVisible():
             self.float_layer.place()
+        if self.hint_overlay.isVisible():
+            self.hint_overlay.sync_geometry()
         self.workspace_sessions.selected.viewport_geometry_changed()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
@@ -2599,13 +2658,26 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         await self.session_navigation.close_views()
         await self.close_neovim()
 
+    def hints_available(self) -> bool:
+        """Vimium UI hints yield while an IME-enabled text editor/search field owns keys."""
+        focused = QApplication.focusWidget()
+        if focused is None:
+            return True
+        return not focused.testAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled)
+
+    def action_show_hints(self) -> bool:
+        return self.hint_overlay.open_for(PrimaryHint(), self.settings.ui.hint_labels)
+
+    def action_show_context_hints(self) -> bool:
+        return self.hint_overlay.open_for(ContextHint(), self.settings.ui.hint_labels)
+
     async def open_keymap_browser(self) -> None:
         """Qt override of `ClientApplication.open_keymap_browser`. Opens the
         shared-UX `QtKeymapScreen` modal; both frontends consume the same
         `KeymapBrowserState` so the browser logic lives once in
         `toad.client.keymap_browser`."""
         from toad.qt.keymap_screen import QtKeymapScreen
-        focused: frozenset[KeyInvocationId] = frozenset()
+        focused = self.action_keys.focused_invocations()
         dialog = QtKeymapScreen(self, focused)
         dialog.show()
 
