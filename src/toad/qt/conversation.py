@@ -67,26 +67,33 @@ from toad.transcript_publication import TranscriptPresentation
 from toad.turn_presentation import TurnPresentation
 from toad.live_output import LiveOutput
 from toad.view_actions import ViewAction
+from toad.client import platform as toad_platform
 from toad.transcript_scope import TranscriptScope, TranscriptView
 from toad.qt.workspace_frame import QtWorkspaceHosted
 
 
 class ComposerPlaceholder(QWidget):
     """A view's composer until it is built (`QtConversation.reserve_composer`): as tall as
-    that kind's composer last was, so nothing moves when it arrives. A tap or the focus on
-    it builds the composer at once and hands it the focus."""
+    that kind's composer last was, so nothing moves when it arrives. A tap on it builds the
+    composer at once and hands it focus; on Android (`auto_focus_composer = False`), implicit
+    focus transfers during tab switches never mount or raise the keyboard."""
 
     def __init__(self, view: QtConversation, height: int) -> None:
         super().__init__()
         self.view = view
         self.setFixedHeight(height)
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setFocusPolicy(
+            Qt.FocusPolicy.StrongFocus
+            if toad_platform.host.auto_focus_composer
+            else Qt.FocusPolicy.ClickFocus
+        )
 
     def mousePressEvent(self, event) -> None:  # type: ignore[override]
         self.view.mount_composer(focus=True)
 
     def focusInEvent(self, event) -> None:  # type: ignore[override]
-        self.view.mount_composer(focus=True)
+        if toad_platform.host.auto_focus_composer or event.reason() == Qt.FocusReason.MouseFocusReason:
+            self.view.mount_composer(focus=True)
 
 
 class QtConversation(
@@ -251,13 +258,14 @@ class QtConversation(
         mounted(composer)
         self.flush_composer_applies(composer)
         if focus:
-            composer.editor.setFocus()
+            composer.editor.setFocus(Qt.FocusReason.MouseFocusReason)
         QTimer.singleShot(0, partial(self.remember_composer_height, composer))
 
     def release_pooled_composer(self, composer: Composer) -> ComposerDraft:
         """Freeze this tab's draft and return `composer` to the workspace pool without
         destroying its widget tree. Parks it hidden under `self.app` so Android never sees a
         parentless top-level window."""
+        composer.editor.clearFocus()
         draft = composer.capture_composer_draft()
         spec = self._composer_slot_spec
         if spec is not None and shiboken6.isValid(self) and shiboken6.isValid(composer):

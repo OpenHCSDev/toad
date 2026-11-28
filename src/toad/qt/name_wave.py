@@ -11,7 +11,7 @@ from __future__ import annotations
 from math import ceil
 
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
+from PySide6.QtGui import QColor, QCursor, QFont, QFontMetrics, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
@@ -388,7 +388,8 @@ class QtTabMarquee(TitleMarquee):
     def __init__(self, bar: QtSessionTabBar) -> None:
         self.bar = bar
         self.animation = None
-        self._painted_offsets: dict[str, int] = {}
+        self.painted_offsets: dict[object, float] = {}
+        self._painted_px: dict[object, int] = {}
 
     @property
     def animation_visible(self) -> bool:
@@ -398,21 +399,23 @@ class QtTabMarquee(TitleMarquee):
         return self.animation is not None
 
     def start_marquee(self) -> None:
-        self._painted_offsets.clear()
+        self.painted_offsets.clear()
+        self._painted_px.clear()
         self.animation = self.bar.clock.start(self.marquee_effect, self)
 
     def stop_marquee(self) -> None:
         if self.animation is not None:
             self.animation.stop()
             self.animation = None
-        self._painted_offsets.clear()
+        self.painted_offsets.clear()
+        self._painted_px.clear()
 
     def marquee_elapsed(self) -> float:
         return 0.0 if self.animation is None else self.animation.frame().value
 
     def repaint(self) -> None:
-        """Repaint only overflowing tabs whose integer scroll offset actually moved."""
-        self.bar._repaint_marquee_tabs(self._painted_offsets)
+        """Compute marquee offsets once per tick and repaint only overflowing tabs that moved."""
+        self.bar._repaint_marquee_tabs(self.painted_offsets, self._painted_px)
 
 
 class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
@@ -638,23 +641,27 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         overflowing = any(self._tab_overflows(index) for index in range(self.count()))
         self.marquee.follow_overflow(overflowing)
 
-    def _repaint_marquee_tabs(self, painted: dict[str, int]) -> None:
+    def _repaint_marquee_tabs(self, offsets: dict[object, float], painted_px: dict[object, int]) -> None:
         any_overflow = False
+        elapsed = self.marquee.marquee_elapsed()
+        effect = self.marquee.marquee_effect
         for index in range(self.count()):
             rect, text = self._cached_title(index)
             if rect.width() <= 0 or not text:
                 continue
             mode = self.tabData(index)
             wave = self.waves.get(mode)
-            bold = (index == self.currentIndex()) or (wave is not None and wave.wave_running())
+            bold = (index == self.currentIndex()) or (wave is not None and wave.animation is not None)
             full_w = self.title_line(text, bold=bold).lineAt(0).naturalTextWidth()
             if full_w <= rect.width() + 0.5:
                 continue
             any_overflow = True
-            px = round(self.marquee.marquee_offset(full_w, rect.width()))
-            key = str(mode) if mode is not None else str(index)
-            if painted.get(key) != px:
-                painted[key] = px
+            offset = effect.offset(elapsed, full_w, rect.width())
+            px = round(offset)
+            key = index if mode is None else mode
+            offsets[key] = offset
+            if painted_px.get(key) != px:
+                painted_px[key] = px
                 self.update(self.tabRect(index))
         if not any_overflow:
             self.marquee.follow_overflow(False)
@@ -667,22 +674,17 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         _rect, shown = self._cached_title(index)
         return self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
 
-    def _tab_chrome_image(self, index: int, tab_rect: QRect, option: QStyleOptionTab, dpr: float) -> QImage:
+    def _tab_chrome_image(self, index: int, tab_rect: QRect, chrome_key: tuple, dpr: float) -> QImage:
         """Cache each tab's empty-text QSS background chrome so wave and marquee ticks blit one
-        image instead of running Fusion's QSS `drawControl(CE_TabBarTab)` every tick."""
-        key = (
-            tab_rect.width(),
-            tab_rect.height(),
-            option.state.value,
-            option.position.value,
-            option.selectedPosition.value,
-            dpr,
-        )
-        cached = self._tab_chrome.get(key)
+        image instead of running Fusion's QSS `drawControl(CE_TabBarTab)` or touching Python
+        `QStyle.StateFlag` enums on every frame."""
+        cached = self._tab_chrome.get(chrome_key)
         if cached is not None:
             return cached
         if len(self._tab_chrome) >= 32:
             self._tab_chrome.clear()
+        option = QStyleOptionTab()
+        self.initStyleOption(option, index)
         image = QImage(
             max(1, round(tab_rect.width() * dpr)),
             max(1, round(tab_rect.height() * dpr)),
@@ -690,41 +692,71 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         )
         image.setDevicePixelRatio(dpr)
         image.fill(Qt.GlobalColor.transparent)
-        opt = QStyleOptionTab(option)
-        opt.text = ""
-        opt.rect = QRect(0, 0, tab_rect.width(), tab_rect.height())
+        option.text = ""
+        option.rect = QRect(0, 0, tab_rect.width(), tab_rect.height())
         drawing = QPainter(image)
-        self.style().drawControl(QStyle.ControlElement.CE_TabBarTab, opt, drawing, self)
+        self.style().drawControl(QStyle.ControlElement.CE_TabBarTab, option, drawing, self)
         drawing.end()
-        self._tab_chrome[key] = image
+        self._tab_chrome[chrome_key] = image
         return image
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QStylePainter(self)
         dpr = self.devicePixelRatioF()
+        event_rect = event.rect()
+        count = self.count()
+        current_index = self.currentIndex()
+        hover_index = self.tabAt(self.mapFromGlobal(QCursor.pos())) if self.underMouse() else -1
+        shown_titles = self._shown_titles
+        tab_chrome = self._tab_chrome
+        lines = self.lines
+        banded = self._banded
+        waves = self.waves
+        painted_offsets = self.marquee.painted_offsets
+        gap = self.marquee.marquee_effect.gap
+        pad_cells = self.padding_cells
         any_overflow = False
-        for index in range(self.count()):
+        for index in range(count):
             tab_rect = self.tabRect(index)
-            if not tab_rect.intersects(event.rect()):
+            if not tab_rect.intersects(event_rect):
                 # A wave or marquee repaints its own tab: untouched tabs skip all layout work.
                 continue
-            option, rect, shown = self.shown_title(index)
-            chrome = self._tab_chrome_image(index, tab_rect, option, dpr)
+            text = self.tabText(index)
+            tab_w = tab_rect.width()
+            title_hit = shown_titles.get((index, text, tab_w))
+            if title_hit is None:
+                title_hit = self._cached_title(index)
+            rect, shown = title_hit
+            selected = index == current_index
+            hovered = index == hover_index
+            pos_tag = 0 if count == 1 else (1 if index == 0 else (2 if index == count - 1 else 3))
+            adj_selected = 1 if index + 1 == current_index else (2 if index - 1 == current_index else 0)
+            chrome_key = (tab_w, tab_rect.height(), selected, hovered, pos_tag, adj_selected, dpr)
+            chrome = tab_chrome.get(chrome_key)
+            if chrome is None:
+                chrome = self._tab_chrome_image(index, tab_rect, chrome_key, dpr)
             painter.drawImage(tab_rect.topLeft(), chrome)
             if rect.width() <= 0 or not shown:
                 continue
-            wave = self.waves.get(self.tabData(index))
-            waving = wave is not None and wave.wave_running()
-            selected = bool(option.state & QStyle.StateFlag.State_Selected)
-            hovered = bool(option.state & QStyle.StateFlag.State_MouseOver)
-            layout = self.title_line(shown, bold=waving or selected)
+            mode = self.tabData(index)
+            wave = waves.get(mode)
+            waving = wave is not None and wave.animation is not None
+            bold = waving or selected
+            layout = lines.get((shown, bold))
+            if layout is None:
+                layout = self.title_line(shown, bold=bold)
             if waving:
-                span = wave.band_drawn() or self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
-                start, end = span
-                drawn = self.baked_band_layout(
-                    layout,
-                    (max(0, start - self.padding_cells), max(0, end - self.padding_cells)),
-                )
+                span = wave.painted_span
+                if span is None:
+                    span = self.band_cells(wave.wave_frame(), len(shown) + 2 * pad_cells)
+                length = len(shown)
+                s = min(length, max(0, span[0] - pad_cells))
+                e = min(length, max(0, span[1] - pad_cells))
+                if s < e:
+                    hit = banded.get((id(layout), s, e))
+                    drawn = hit[1] if hit is not None and hit[0] is layout else self.baked_band_layout(layout, (s, e))
+                else:
+                    drawn = layout
             else:
                 drawn = layout
             line = drawn.lineAt(0)
@@ -735,16 +767,16 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             painter.setClipRect(rect)
             if full_w > rect.width() + 0.5:
                 any_overflow = True
-                offset = self.marquee.marquee_offset(full_w, rect.width())
+                offset = painted_offsets.get(index if mode is None else mode, 0.0)
                 x = rect.left() - offset
                 drawn.draw(painter, QPointF(x, top))
-                second_x = x + full_w + self.marquee.marquee_effect.gap
+                second_x = x + full_w + gap
                 if second_x < rect.right():
                     drawn.draw(painter, QPointF(second_x, top))
             else:
                 drawn.draw(painter, QPointF(rect.left() + max(0.0, (rect.width() - full_w) / 2), top))
             painter.restore()
-        if any_overflow and not self.marquee.marquee_running():
+        if any_overflow and self.marquee.animation is None:
             self.marquee.follow_overflow(True)
 
     def title_line(self, shown: str, *, bold: bool) -> QTextLayout:

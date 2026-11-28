@@ -99,6 +99,7 @@ from toad.client.conversation_capabilities import ConversationSource
 from toad.client.history import WireSource, WireView
 from toad.client.history_entry import HistorySessionEntry
 from toad.application_lifetime import ApplicationStart
+from toad.client import platform as toad_platform
 from toad.client.platform import host
 from toad.client.line_blocks import MutedRole
 from toad.qt.banner import Banner
@@ -1655,9 +1656,14 @@ class QtWorkspaceViews(WorkspaceViews):
     def select(self, mode: str, visited: Callable[[CommsTab], object]) -> None:
         if (menu := QtMenu.of(self.app)) is not None and menu.isVisible():
             menu.hide()
+        if not toad_platform.host.auto_focus_composer:
+            self.app.clear_focus()
+            QGuiApplication.inputMethod().hide()
         page = self.prepare(mode)
         self.pages.setCurrentWidget(page)
         page.shown(self.app, visited)
+        if not toad_platform.host.auto_focus_composer:
+            self.app.clear_focus()
 
     def external_transcript_changed(self) -> None:
         """Every open view reads its CLI items, shown or parked, as Textual's screens do: a
@@ -1701,6 +1707,8 @@ class QtWorkspaceViews(WorkspaceViews):
             self.views[mode] = new
         if was_current:
             self.pages.setCurrentWidget(new)
+            if not toad_platform.host.auto_focus_composer:
+                self.app.clear_focus()
         old.deleteLater()
 
 
