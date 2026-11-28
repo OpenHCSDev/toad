@@ -26,7 +26,7 @@ from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.prompt_stack import QtInfoBar
 from toad.qt.theme import current_scheme
 from toad.qt.virtual_scroll import VirtualRowCanvas
-from toad.qt.window import ConversationRows, SidebarItem
+from toad.qt.window import ConversationRows, SidebarItem, TreeItemRows
 from ui_theme.clock import AnimationClock
 from toad.session_observation import GoalObservation, SessionObservation
 from toad.sidebar_placement import BottomSidebarEdge, HeightSidebarEdge
@@ -350,7 +350,7 @@ def test_android_ime_window_insets_and_jump_bar_multiline_size_hint(monkeypatch)
         def fake_fit():
             nonlocal fit_calls
             fit_calls += 1
-        item.subtree = lambda: (item,)
+        item.visible_subtree = lambda: (item,)
         item.fit = fake_fit
         # Height-only resize must not refit rows.
         tree.resizeEvent(QResizeEvent(QSize(300, 220), QSize(300, 400)))
@@ -2720,6 +2720,7 @@ def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_
 
     # 3. QtHistoryWindow.floating_covers avoids self.children() and splits opaque covers.
     fake_win = MagicMock()
+    fake_win._floating_covers_cache = None
     fake_win._viewport = canvas.viewport()
     fake_win.sticky_header = opaque_top
     fake_win.jump_bar = translucent_bottom
@@ -2727,6 +2728,8 @@ def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_
     opaque_top.setGeometry(vp_geo.left(), vp_geo.top(), vp_geo.width(), 24)
     covers, opaque = QtHistoryWindow.floating_covers(fake_win)
     assert len(covers) == 1 and opaque == covers
+    # Steady second call returns the cached tuple without re-querying geometry.
+    assert QtHistoryWindow.floating_covers(fake_win) is fake_win._floating_covers_cache
 
     # 4. RowPictures popitem(last=False) eviction keeps exact byte accounting.
     pics = RowPictures(limit=200 * 4)
@@ -2875,3 +2878,43 @@ def test_sidebar_tone_batching_scroll_cover_cache_and_cached_notification_refere
     assert frag.notification_references == ("ref-1",)
     assert frag.notification_references == ("ref-1",)
     assert ref_calls == 1
+
+    # 4. TreeItemRows.order_rows reorders N out-of-place items via 1 bulk takeChildren/addChildren
+    # pair (2 signals instead of 2N), and SidebarItem.visible_subtree skips collapsed children.
+    tree2 = _FakeTree()
+    group = _ToneItem("group")
+    tree2.invisibleRootItem().addChild(group)
+    children = [_ToneItem(f"c-{i}") for i in range(10)]
+    group.addChildren(children)
+    # Collapsed group yields only itself in visible_subtree().
+    group.setExpanded(False)
+    assert list(group.visible_subtree()) == [group]
+    group.setExpanded(True)
+    assert len(list(group.visible_subtree())) == 11
+
+    inserts = 0
+    removes = 0
+
+    def count_ins(*_a):
+        nonlocal inserts
+        inserts += 1
+
+    def count_rem(*_a):
+        nonlocal removes
+        removes += 1
+
+    tree2.model().rowsInserted.connect(count_ins)
+    tree2.model().rowsRemoved.connect(count_rem)
+
+    class _GroupRows(TreeItemRows[str]):
+        def __init__(self, parent) -> None:
+            self.parent = parent
+            self.rows = {}
+
+        def create_row(self, key: str):
+            raise NotImplementedError
+
+    _GroupRows(group).order_rows(lambda item: -int(item.key.split("-")[1]))
+    assert [group.child(i).key for i in range(10)] == [f"c-{i}" for i in range(9, -1, -1)]
+    assert inserts == 1 and removes == 1, f"expected 1 bulk remove+insert, got {removes}/{inserts}"
+    tree2.close()

@@ -1344,9 +1344,11 @@ class QtStickyHeader(HeaderPin, QWidget):
         height = sum(int(document.size().height()) for document in self.documents)
         if self.width() != width or self.height() != height:
             self.resize(width, height)
+            window._floating_covers_cache = None
         origin = window.viewport().mapTo(window, QPoint(x, 0))
         if self.pos() != origin:
             self.move(origin)
+            window._floating_covers_cache = None
         if not self.isVisible():
             self.raise_()
         self.update()
@@ -1354,6 +1356,7 @@ class QtStickyHeader(HeaderPin, QWidget):
     def show_pin(self, shown: bool) -> None:
         if self.isVisible() != shown:
             self.setVisible(shown)
+            self.history_window._floating_covers_cache = None
             if shown:
                 self.raise_()
 
@@ -1514,6 +1517,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     history: QtConversationHistory
     _cached_font_line_spacing: tuple[QFont, int] | None = None
+    _floating_covers_cache: tuple[list[QRect], list[QRect]] | None = None
     arrival_slide_distance: float = 36.0
     # `scroll_revision`, `history_change` and `keep_reader` are JumpsToLatest's (shared with Textual).
 
@@ -1651,6 +1655,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         bar.setValue(max(bar.minimum(), bar.value() - self.viewport().height()))
 
     def _after_jump_bar_change(self, shown: bool) -> None:
+        self._floating_covers_cache = None
         if shown:
             self._place_jump_bar()
             QTimer.singleShot(0, self, self._reposition_jump_bar)
@@ -1669,6 +1674,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         point_in_vp = QPoint((vp.width() - hint.width()) // 2, vp.height() - hint.height() - 12)
         self.jump_bar.move(vp.mapTo(self, point_in_vp))
         self.jump_bar.raise_()
+        self._floating_covers_cache = None
 
     def _apply_viewport_width_change(self) -> None:
         """Re-measure rows once after a viewport-only width change (e.g. `setViewportMargins`
@@ -1686,8 +1692,11 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
 
     def floating_covers(self) -> tuple[list[QRect], list[QRect]]:
         """Only this window's two floating overlays (`sticky_header` and `jump_bar`),
-        avoiding `self.children()` wrapping ~20 C++ children into Python on every
-        `scrollContentsBy` tick."""
+        cached across steady scroll ticks and invalidated whenever either overlay or the
+        viewport moves, resizes, or toggles visibility."""
+        cached = self._floating_covers_cache
+        if cached is not None:
+            return cached
         area = self._viewport.geometry()
         top_left = area.topLeft()
         covers: list[QRect] = []
@@ -1700,7 +1709,9 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
                     covers.append(rect)
                     if child.testAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent):
                         opaque.append(rect)
-        return covers, opaque
+        result = (covers, opaque)
+        self._floating_covers_cache = result
+        return result
 
     def _invalidate_tap_highlight(self, highlight: TapHighlight) -> None:
         if not self.widget_gone:
@@ -2296,6 +2307,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         events (overshoot detection plus travelling-finger origin offset)."""
         kind = event.type()
         if kind == QEvent.Type.Resize:
+            self._floating_covers_cache = None
             width = self._viewport.width()
             if width > 0 and width != self._last_viewport_width:
                 if self._last_viewport_width == 0:
@@ -2311,6 +2323,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
                 overlay.place()
             return super().viewportEvent(event)
         if kind == QEvent.Type.Move:
+            self._floating_covers_cache = None
             overlay = self._overlay_scrollbar
             if overlay is not None and overlay.thickness:
                 overlay.place()
