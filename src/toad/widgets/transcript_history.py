@@ -859,10 +859,6 @@ class ConversationHistory[ViewT: "Conversation"](LineHistory, ConversationPager)
         self.view = view
         super().__init__(*args, **kwargs)
 
-    @property
-    def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        return self.view.visible_categories
-
     @classmethod
     def empty_source(cls, view, through):
         return ClosedHistory(through, view.app.preparation)

@@ -1424,6 +1424,10 @@ class ConversationPager(HistoryPager):
     view: object
     """The conversation this pager draws, whose composer's submissions it settles."""
 
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return self.view.visible_categories
+
     def window_shown(self) -> None:
         """The window moved or laid out: a sent message it now shows retires from the delivery
         preview on this frame. The view settles after reading a change, but a following window

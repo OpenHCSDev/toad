@@ -250,7 +250,9 @@ class ANSICommand(ABC):
     """A decoded terminal operation owns its effect."""
 
     __slots__ = ()
-    visible_output: ClassVar[bool] = False
+    async def apply_hidden(self, owner: TerminalState) -> None:
+        """Apply this command when visible terminal output is hidden."""
+        await self.apply(owner)
 
     @abstractmethod
     async def apply(self, state: TerminalState) -> None:
@@ -267,7 +269,8 @@ class ANSIContent(ANSICommand):
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.text
 
-    visible_output: ClassVar[bool] = True
+    async def apply_hidden(self, owner: TerminalState) -> None:
+        pass
 
     async def apply(self, state: TerminalState) -> None:
         text = self.text
@@ -374,7 +377,8 @@ class ANSICursor(ANSICommand):
         else:
             return (replace_start, replace_end)
 
-    visible_output: ClassVar[bool] = True
+    async def apply_hidden(self, owner: TerminalState) -> None:
+        pass
 
     async def apply(self, state: TerminalState) -> None:
         delta_x = self.delta_x
@@ -1513,8 +1517,7 @@ class TerminalState:
         # Write sequences and update
         if hide_output:
             for ansi_command in self._ansi_stream.feed(text):
-                if not ansi_command.visible_output:
-                    await ansi_command.apply(self)
+                await ansi_command.apply_hidden(self)
         else:
             for ansi_command in self._ansi_stream.feed(text):
                 await ansi_command.apply(self)

@@ -33,7 +33,7 @@ from toad.qt.history import QtHistoryWindow
 from toad.qt.transcript_fragments import QtToolTranscriptFragment
 from toad.qt.live_turn import QtLiveBlock
 from toad.tool_output import TextToolOutputPart, ToolOutput
-from toad.surface_binding import ViewSurfaceBinding
+from toad.surface_binding import NonPostingSurfaceBinding, ViewSurfaceBinding
 
 if TYPE_CHECKING:
     from toad.qt.conversation import QtConversation
@@ -156,7 +156,7 @@ class QtTerminalBlock(QtLiveToolRow):
         self.redraw()
 
 
-class QtSurfaceBinding(ViewSurfaceBinding):
+class QtSurfaceBinding(NonPostingSurfaceBinding, ViewSurfaceBinding):
     """The surface a Qt conversation lends its bound agent."""
 
     def __init__(self, target: QtConversation, events: CoreEventStream) -> None:
@@ -219,10 +219,6 @@ class QtSurfaceBinding(ViewSurfaceBinding):
             target.messages.show_live(block)
         execution.attach(block)
         return True
-
-    def post(self, message) -> bool:
-        """Qt delivers the agent's stream through `subscribe_agent`, not posted messages."""
-        return False
 
 
 def subscribe_agent(observer, events: CoreEventStream):

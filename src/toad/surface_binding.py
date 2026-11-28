@@ -67,6 +67,13 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
         owner.agent.events.publish(core_events.CommsUpdated(snapshot, session.session_id))
 
 
+class NonPostingSurfaceBinding(SurfaceBinding, declared_name=None):
+    """Surface bindings that deliver without posting Textual messages."""
+
+    def post(self, message) -> bool:
+        return False
+
+
 class ViewSurfaceBinding(SurfaceBinding, MroDispatch):
     """The surface a frontend's view lends its bound agent: it holds the view weakly, so a
     closed view is no target, and the view's subscription to the agent's stream."""
@@ -114,8 +121,7 @@ class ViewSurfaceBinding(SurfaceBinding, MroDispatch):
             self.subscription.close()
 
 
-class DetachedSurfaceBinding(SurfaceBinding):
-    def post(self, message):
-        return False
+class DetachedSurfaceBinding(NonPostingSurfaceBinding, SurfaceBinding):
+    pass
 
 

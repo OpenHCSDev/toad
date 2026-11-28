@@ -48,6 +48,7 @@ from toad.client.line_blocks import (
     OutgoingRole,
     Span,
     Spans,
+    TextSelectionSource,
 )
 
 
@@ -236,16 +237,12 @@ class MessageRow(MroProjection[LineLink]):
 
 
 @dataclass(frozen=True)
-class WireBody(LineBlock):
+class WireBody(TextSelectionSource, LineBlock):
     """Where a message came from stays with the message, not with a theme or paragraph."""
 
     row: MessageRow
     text: str
     bar: ClassVar[type[LineRole]] = NoBar
-
-    @property
-    def selection_text(self):
-        return self.text
 
     @abstractmethod
     def prepare(self, context) -> LineBlock: ...

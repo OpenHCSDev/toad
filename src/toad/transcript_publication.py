@@ -950,6 +950,10 @@ class PublicationDemand:
     def commits(self, live_blocks: int, limit: int) -> bool:
         return False
 
+    def permits_retry(self, owner: TranscriptPresentation) -> None:
+        """Whether this publication demand permits retrying a commit."""
+        pass
+
 
 class CleanDemand(PublicationDemand):
     """Nothing changed since the last publication."""
@@ -959,6 +963,12 @@ class PendingDemand(PublicationDemand):
     """Changed rows await publication."""
 
     pending = True
+
+    def permits_retry(self, owner: TranscriptPresentation) -> None:
+        if not owner.worker.is_finished:
+            return
+        if owner.binding.capture(owner, CommitPublication).ready_to_commit():
+            owner.binding.request(owner)
 
 
 class RefreshDemand(PendingDemand):
@@ -1142,10 +1152,7 @@ class TranscriptPresentation(TranscriptPages, EntryPlacement):
     def retry(self) -> None:
         if self.source_requests.resume():
             return
-        if not self.demand.pending or not self.worker.is_finished:
-            return
-        if self.binding.capture(self, CommitPublication).ready_to_commit():
-            self.binding.request(self)
+        self.demand.permits_retry(self)
 
     def source_work_finished(self, view: Conversation) -> None:
         if self.binding.matches(view):

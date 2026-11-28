@@ -110,8 +110,10 @@ class FilterState(DeclaredFamily, affix="Filter"):
         return False
 
     def check_edges(self) -> None:
-        if self.scan_needed() or self.demand.forced:
+        if self.scan_needed():
             self.start_scan()
+        else:
+            self.demand.triggers_scan(self)
 
     def request_force(self) -> None:
         self.demand = RequestedScanDemand()
@@ -311,7 +313,9 @@ class Filtered(ActiveFilter):
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):
-    forced = False
+    def triggers_scan(self, owner: FilterState) -> None:
+        """Whether this scan demand forces a transcript filter scan."""
+        pass
 
     def resume(self, state: FilterState, snapshot: HistorySourceSnapshot, drew: bool) -> None:
         owner = state.owner
@@ -331,7 +335,8 @@ class AutomaticScanDemand(ScanDemand):
 
 
 class RequestedScanDemand(ScanDemand):
-    forced = True
+    def triggers_scan(self, owner: FilterState) -> None:
+        owner.start_scan()
 
     def request_next(self, state):
         state.owner.call_later(state.start_scan)

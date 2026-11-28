@@ -63,6 +63,17 @@ class Press:
         """A tap's consumer took it: the press ends without the widget's own click."""
         self.claimed = True
 
+    def send_context_menu(self, owner: FingerPress) -> bool:
+        """Deliver a held-finger context menu request to the pressed widget when present."""
+        if self.target is None or _platform_edits_text(self):
+            return False
+        menu = QContextMenuEvent(QContextMenuEvent.Reason.Mouse, self.at(self.target), self.origin.toPoint())
+        QApplication.sendEvent(self.target, menu)
+        if menu.isAccepted():
+            owner.long_pressed.emit(self)
+            return True
+        return False
+
 
 class FingerPress(QObject, GestureControl):
     """The application's one classifier of presses (see the module): a `GestureControl` fed
@@ -182,16 +193,7 @@ class FingerPress(QObject, GestureControl):
         """The widget under a finger held still gets a right-click's context-menu request;
         the hold is answered when one of its widgets offers a menu (accepts the event)."""
         press = self.press
-        if press.target is None or _platform_edits_text(press):
-            # The focused text field's own long-press is the platform's (selection handles,
-            # the system's copy and paste); a held finger there is not a right-click.
-            return False
-        menu = QContextMenuEvent(QContextMenuEvent.Reason.Mouse, press.at(press.target), press.origin.toPoint())
-        QApplication.sendEvent(press.target, menu)
-        if menu.isAccepted():
-            self.long_pressed.emit(press)
-            return True
-        return False
+        return press.send_context_menu(self)
 
     def _began(self, window: QWindow, event: QMouseEvent) -> None:
         origin = event.globalPosition()

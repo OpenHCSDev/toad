@@ -75,6 +75,11 @@ class Detached:
     returning: SessionEntry | None
     returning_view: SessionScope | None
 
+    async def retire_returning_view(self) -> None:
+        """Retire the detached returning view presentation when one is present."""
+        if self.returning_view is not None:
+            await self.returning_view.retire_presentation()
+
 
 class TabElement:
     """An open tab as a pointer finds it: Textual's `SessionLabel`, Qt's `QtTabAt`. Its menu
@@ -581,8 +586,7 @@ class SessionNavigation(StartsSessions, SessionNavigator):
         left, as an application exit leaves them, and the home view shows meanwhile."""
         detached = self.detach_all()
         try:
-            if detached.returning_view is not None:
-                await detached.returning_view.retire_presentation()
+            await detached.retire_returning_view()
             await self.app.select_session(self.app.tab_order.home)
         finally:
             await self.finish_views(detached)
