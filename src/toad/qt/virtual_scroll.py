@@ -1245,7 +1245,10 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
             viewport.scroll(dx, dy)
             return
         cached = self._scroll_cover_cache
-        if cached is not None and cached[0] == vp_rect and cached[1] == covers and cached[2] == opaque:
+        if cached is not None and cached[0] == vp_rect and (
+            (cached[1] is covers and cached[2] is opaque)
+            or (cached[1] == covers and cached[2] == opaque)
+        ):
             clear, dirty = cached[3], cached[4]
         else:
             clear = self.uncovered(vp_rect, covers)

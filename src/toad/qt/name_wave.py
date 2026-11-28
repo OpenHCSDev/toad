@@ -211,6 +211,16 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         self._row_image_count += 1
         painter.drawImage(frame.topLeft(), image)
 
+    def sizeHint(self, option: QStyleOptionViewItem, index):  # type: ignore[override]
+        """Wave bolding and accent-band format ranges preserve `prepared.size`, so sizeHint
+        reads the base prepared layout without building bold or banded QTextLayouts."""
+        previous = self._active_wave
+        self._active_wave = (False, None)
+        try:
+            return super().sizeHint(option, index)
+        finally:
+            self._active_wave = previous
+
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
         if self._active_wave is not None:

@@ -199,6 +199,7 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
     key: str
     drawn: tuple[str, str, str, str] = ("", "", "", "")
     _painted_tone: QBrush | None = None
+    _fitted_layout: tuple[str, str, str] | None = None
     row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
         SidebarToneColour,
         AlternateRowToneColour,
@@ -233,6 +234,10 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
             name = metrics.elidedText(name, right, max(1, width - metrics.horizontalAdvance(prefix)))
             summary = metrics.elidedText(summary, right,
                                          max(1, width - metrics.horizontalAdvance(self.detail_text(""))))
+        fitted = (name, prefix, summary)
+        if fitted == self._fitted_layout:
+            return
+        self._fitted_layout = fitted
         self.setData(0, LAYOUT_ROLE, StyledTextLayout(
             name=Segment(name), status_prefix=prefix, detail_line=summary, multiline=True))
 
@@ -267,6 +272,13 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
         yield self
         for index in range(self.childCount()):
             yield from self.child(index).subtree()
+
+    def visible_subtree(self) -> Iterator[SidebarItem]:
+        """This line and every line currently reachable through expanded groups."""
+        yield self
+        if self.isExpanded():
+            for index in range(self.childCount()):
+                yield from self.child(index).visible_subtree()
 
     def activate(self, window: QtToadApp) -> None:
         """A group line opens and closes its group."""
@@ -709,7 +721,24 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
             self._order_rows_immediate(position)
 
     def _order_rows_immediate(self, position) -> None:
-        for index, row in enumerate(sorted(self.member_order(), key=position)):
+        ordered = sorted(self.member_order(), key=position)
+        out_of_place = sum(1 for index, row in enumerate(ordered) if self.parent.child(index) is not row)
+        if not out_of_place:
+            return
+        tree = self.parent.treeWidget()
+        # When more than one child moves and none carries a Qt itemWidget (e.g. a channel's
+        # thread rows), replace children in one bulk takeChildren/addChildren pair (2 signals)
+        # instead of N individual takeChild/insertChild pairs (2N signals that each clear the
+        # delegate cache and trigger O(N^2) sizeHint/StyledTextRenderer.prepare storms).
+        if out_of_place > 1 and (tree is None or not any(tree.itemWidget(row, 0) is not None for row in ordered)):
+            states = [(group, group.isExpanded(), group.isSelected()) for row in ordered for group in row.subtree()]
+            self.parent.takeChildren()
+            self.parent.addChildren(ordered)
+            for group, opened, selected in states:
+                group.setExpanded(opened)
+                group.setSelected(selected)
+            return
+        for index, row in enumerate(ordered):
             if self.parent.child(index) is not row:
                 states = [(group, group.isExpanded(), group.isSelected()) for group in row.subtree()]
                 self.parent.takeChild(self.parent.indexOfChild(row))
@@ -798,6 +827,7 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self._tone_batch_depth = 0
         self._dirty_tone_parents: dict[int, tuple[QTreeWidgetItem, int]] = {}
         self.itemClicked.connect(self.activate)
+        self.itemExpanded.connect(self._fit_expanded_children)
         self.model().rowsInserted.connect(self._paint_row_tones_from)
         self.model().rowsRemoved.connect(self._paint_row_tones_from)
 
@@ -933,14 +963,21 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         self._cached_char_width = (QFont(font), width)
         return width
 
+    def _fit_expanded_children(self, item: SidebarItem) -> None:
+        """Fit children revealed when a collapsed group expands (skipped during resize)."""
+        for index in range(item.childCount()):
+            for line in item.child(index).visible_subtree():
+                line.fit()
+
     def resizeEvent(self, event) -> None:  # type: ignore[override]
-        """A new width fits every line's text again."""
+        """A new width fits every currently visible line's text again; collapsed groups fit
+        lazily on expansion."""
         super().resizeEvent(event)
         if event.size().width() == event.oldSize().width():
             return
         root = self.invisibleRootItem()
         for index in range(root.childCount()):
-            for line in root.child(index).subtree():
+            for line in root.child(index).visible_subtree():
                 line.fit()
 
     def items(self):
