@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from types import SimpleNamespace
 from weakref import WeakSet
 
 from agent_comms.display_order import LastActivityThreadSort
 from agent_comms.messaging.channel_targets import ChannelTarget
+from agent_comms.messaging.display_references import ProjectReferences
 from agent_comms.registry.thread_identity import RecordedThreadIncarnation
 from agent_comms.registry.thread_model import UndeclaredModel
 from agent_comms.registry.thread_presentation import IdleThreadPresentationStatus, WorkingThreadPresentationStatus
@@ -19,6 +21,9 @@ from ui_theme.scheme import AccentColour
 
 from toad.client.conversation import ChannelConversation
 from toad.client.sidebar_state import Current
+from toad.markdown_links import LinkContext
+from toad.patch import DiffSettings
+from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import offered_schemes
 from toad.qt.widget_animation import QtAnimationClock
 from toad.qt.window import (
@@ -76,6 +81,7 @@ def test_channel_activity_sidebar_reuses_sidebar_tree_for_selected_channel(monke
     }
 
     class _Observed:
+        root = Path("/tmp/test-bus")
         sidebar = sidebar_model
 
         def show_sidebar(self, view) -> None:
@@ -93,21 +99,15 @@ def test_channel_activity_sidebar_reuses_sidebar_tree_for_selected_channel(monke
 
     scheme = next(iter(offered_schemes(os.environ).values()))
     color_scheme = ColorScheme()
-
-    class _Renderer:
-        def themed(self, _widget, apply_fn) -> None:
-            apply_fn()
-
-        def theme(self, colour_type) -> str:
-            return colour_type.rgb(scheme).hex
+    renderer = QtLineRenderer(scheme, LinkContext(Path("."), ProjectReferences()), DiffSettings())
 
     opened: list[object] = []
     window = SimpleNamespace(
-        renderer=_Renderer(),
+        renderer=renderer,
         theme=SimpleNamespace(color_scheme=color_scheme),
         settings=SimpleNamespace(sidebar=SimpleNamespace(unread_counts=ShownUnreadCount)),
         thread_actions=SimpleNamespace(pending={}),
-        animation_clock=QtAnimationClock(lambda _interval, _cb: lambda: None),
+        animation_clock=QtAnimationClock(lambda _interval: None),
         coordination_access=access,
         open_row=lambda row: opened.append(row),
     )

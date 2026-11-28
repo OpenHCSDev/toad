@@ -62,6 +62,8 @@ class HistoryNotifications(NotificationSubscriber):
 
     def check_notifications(self) -> None:
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
+        if any(target.notifications_deferred for target in fragments):
+            return
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
         # The connection still showing a read for this view is checked too: a hide stops the
@@ -181,9 +183,15 @@ class SourceNotifications:
         self.notification_view.checked_references = None
         self.notification_view.check_notifications_after_refresh()
 
+    @property
+    def notifications_deferred(self) -> bool:
+        """Defer notification re-subscription while the window is actively scrolling."""
+        return self.window.scroll_in_motion
+
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
-        self.notification_view.check_notifications()
+        if not self.notifications_deferred:
+            self.notification_view.check_notifications()
 
     def check_visible_notifications(self) -> None:
         self.notification_view.check_notifications_after_refresh()
