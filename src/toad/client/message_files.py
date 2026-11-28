@@ -85,6 +85,23 @@ class AttachedFileChip:
         self.composer.detach_file(self.position)
 
 
+class ImageCompressionControl:
+    """Shared caption and action for compressing attached images on a composer."""
+
+    composer: MessagePromptComposer
+
+    def bind_compression(self, composer: MessagePromptComposer) -> None:
+        self.composer = composer
+
+    @property
+    def compress_caption(self) -> str:
+        count = self.composer.compressible_image_count
+        return "Compress image" if count == 1 else f"Compress {count} images"
+
+    def compress_images(self) -> None:
+        self.composer.compress_attached_images()
+
+
 class MessagePromptComposer(PromptComposer):
     """A message composer: always the agent glyph, every input accepted, and the files it
     sends with the text."""
@@ -184,6 +201,48 @@ class MessagePromptComposer(PromptComposer):
         files = self.attached_files
         self.attached_files = files[:position] + files[position + 1:]
         self.show_attached()
+
+    def compress_image(self, upload: FileUpload) -> FileUpload | None:
+        """Re-encode an attached image to a smaller upload, or return None if unavailable/larger."""
+        return None
+
+    def show_compression_summary(self, text: str) -> None:
+        """Report the outcome of compressing attached images; frontends override to float a notice."""
+
+    @property
+    def compressible_image_count(self) -> int:
+        return sum(1 for upload in self.attached_files if upload.mime_type.startswith("image/"))
+
+    @property
+    def has_compressible_images(self) -> bool:
+        return self.compressible_image_count > 0
+
+    def compress_attached_images(self) -> tuple[int, int, int]:
+        """Compress every attached image that shrinks; returns (count, bytes_before, bytes_after)."""
+        updated: list[FileUpload] = []
+        compressed_count = 0
+        bytes_before = 0
+        bytes_after = 0
+        for upload in self.attached_files:
+            if upload.mime_type.startswith("image/"):
+                smaller = self.compress_image(upload)
+                if smaller is not None and smaller.size < upload.size:
+                    updated.append(smaller)
+                    compressed_count += 1
+                    bytes_before += upload.size
+                    bytes_after += smaller.size
+                    continue
+            updated.append(upload)
+        if compressed_count:
+            self.attached_files = tuple(updated)
+            self.show_attached()
+            noun = "image" if compressed_count == 1 else "images"
+            self.show_compression_summary(
+                f"Compressed {compressed_count} {noun}: {file_size(bytes_before)} -> {file_size(bytes_after)}"
+            )
+        else:
+            self.show_compression_summary("Attached images are already compact")
+        return compressed_count, bytes_before, bytes_after
 
     def take_files(self) -> tuple[FileUpload, ...]:
         """The files the message being sent carries; the composer holds none after."""

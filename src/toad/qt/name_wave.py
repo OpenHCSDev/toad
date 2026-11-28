@@ -428,12 +428,12 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
     on the shared `AnimationClock` and busy tabs waving in the theme accent."""
 
     padding_cells = 1
-    TAB_GAP = 4
+    TAB_GAP = 3
     """Inter-tab right margin (px); read by both the tab stylesheet and `_make_close_button`
     so the close button sits cleanly inside the painted tab without dead padding."""
-    TAB_PAD_LEFT = 6
-    TAB_PAD_RIGHT = 2
-    TAB_TEXT_CLOSE_GAP = 2
+    TAB_PAD_LEFT = 5
+    TAB_PAD_RIGHT = 1
+    TAB_TEXT_CLOSE_GAP = 1
     MAX_TITLE_CHARS = 16
     MIN_VISIBLE_TABS = 3
 
@@ -476,14 +476,18 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             return parent.width()
         return 0
 
-    def _close_slot_metrics(self) -> tuple[int, int]:
-        """(button_px, slot_width_px) for the right-side close button container."""
-        size = max(24, self.fontMetrics().height() + 2)
-        return size, size + self.TAB_GAP
+    def _close_slot_metrics(self) -> tuple[int, int, int]:
+        """(button_width_px, button_height_px, slot_width_px) for the right-side close button.
+        Height stays thumb-friendly while width stays tight around `×` so tabs have no dead
+        trailing gap between the title and close glyph."""
+        fm = self.fontMetrics()
+        height = max(24, fm.height() + 2)
+        width = max(18, ceil(fm.horizontalAdvance("×")) + 10)
+        return width, height, width + self.TAB_GAP
 
     def _tab_chrome_width(self) -> int:
         """Horizontal non-text pixels per tab: left pad + text/close gap + close slot + right pad."""
-        _size, slot_w = self._close_slot_metrics()
+        _btn_w, _btn_h, slot_w = self._close_slot_metrics()
         return self.TAB_PAD_LEFT + self.TAB_TEXT_CLOSE_GAP + slot_w + self.TAB_PAD_RIGHT
 
     def _max_tab_width(self) -> int:
@@ -542,7 +546,7 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         container.setObjectName("tab-close-slot")
         container.setStyleSheet("QWidget#tab-close-slot { background: transparent; }")
         layout = QHBoxLayout(container)
-        size, slot_w = self._close_slot_metrics()
+        btn_w, btn_h, slot_w = self._close_slot_metrics()
         layout.setContentsMargins(0, 0, self.TAB_GAP, 0)
         layout.setSpacing(0)
         button = QtTextButton(container)
@@ -551,10 +555,10 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         button.setToolTip("Close tab")
         button.setAutoRaise(True)
         button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        button.setFixedSize(size, size)
+        button.setFixedSize(btn_w, btn_h)
         button.clicked.connect(lambda _checked=False, target=mode: self._request_close(target))
         layout.addWidget(button)
-        container.setFixedSize(slot_w, size)
+        container.setFixedSize(slot_w, btn_h)
         return container
 
     def _request_close(self, mode: str) -> None:
@@ -574,12 +578,10 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
 
     def _compact_tab_size(self, index: int, base: QSize) -> QSize:
         text = self.tabText(index)
-        bold_font = QFont(self.font())
-        bold_font.setBold(True)
-        text_w = ceil(QFontMetrics(bold_font).horizontalAdvance(text))
-        btn_size, _slot_w = self._close_slot_metrics()
+        text_w = ceil(self.title_line(text, bold=True).lineAt(0).naturalTextWidth())
+        _btn_w, btn_h, _slot_w = self._close_slot_metrics()
         width = min(self._max_tab_width(), self._tab_chrome_width() + max(8, text_w))
-        height = max(btn_size + 6, base.height())
+        height = max(btn_h + 6, base.height())
         return QSize(width, height)
 
     def tabSizeHint(self, index: int) -> QSize:  # type: ignore[override]
@@ -614,12 +616,16 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         cached = self._shown_titles.get(key)
         if cached is not None:
             return cached
-        _size, slot_w = self._close_slot_metrics()
+        _btn_w, _btn_h, slot_w = self._close_slot_metrics()
         close_slot = self.tabButton(index, QTabBar.ButtonPosition.RightSide)
-        if close_slot is not None and close_slot.width() > 0:
-            slot_w = close_slot.width()
         left = tab_rect.left() + self.TAB_PAD_LEFT
-        right = max(left, tab_rect.right() - slot_w - self.TAB_PAD_RIGHT - self.TAB_TEXT_CLOSE_GAP)
+        if (close_slot is not None and close_slot.width() > 0
+                and tab_rect.left() < close_slot.geometry().left() <= tab_rect.right()):
+            right = max(left, close_slot.geometry().left() - self.TAB_TEXT_CLOSE_GAP)
+        else:
+            if close_slot is not None and close_slot.width() > 0:
+                slot_w = close_slot.width()
+            right = max(left, tab_rect.right() - slot_w - self.TAB_PAD_RIGHT - self.TAB_TEXT_CLOSE_GAP)
         rect = QRect(left, tab_rect.top(), max(0, right - left + 1), tab_rect.height())
         self._shown_titles[key] = (rect, text)
         return rect, text
@@ -778,7 +784,7 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
                 if second_x < rect.right():
                     drawn.draw(painter, QPointF(second_x, top))
             else:
-                drawn.draw(painter, QPointF(rect.left() + max(0.0, (rect.width() - full_w) / 2), top))
+                drawn.draw(painter, QPointF(rect.left(), top))
             painter.restore()
         if any_overflow and self.marquee.animation is None:
             self.marquee.follow_overflow(True)

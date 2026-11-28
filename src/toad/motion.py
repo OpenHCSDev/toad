@@ -128,7 +128,7 @@ class MarqueeSweep(Effect[Amount]):
 
 
 # Overflowing tab titles banner-scroll on the shared clock after a 1 s readable pause.
-TAB_MARQUEE = MarqueeSweep(speed=28.0, pause=1.0, gap=24.0, frames_per_second=30.0)
+TAB_MARQUEE = MarqueeSweep(speed=28.0, pause=1.0, gap=14.0, frames_per_second=30.0)
 
 
 def animations_enabled() -> bool:

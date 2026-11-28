@@ -14,6 +14,7 @@ from typing import ClassVar
 import shiboken6
 
 from agent_comms.messaging.mentions import MentionCandidate
+from agent_comms.messaging.message_files import FileUpload
 from PySide6.QtCore import QEvent, Qt, QTimer, Slot
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QKeyEvent, QPalette, QTextCursor
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
@@ -26,6 +27,9 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QPlainTextEdit,
     QPushButton,
+    QScrollArea,
+    QScroller,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -37,7 +41,7 @@ from toad.client.commands import ConversationCommands
 from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
 from toad.client.line_blocks import FailureRole, LineRole, MutedRole
 from toad.client.mention_completion import MentionCompletion, MentionEditor
-from toad.client.message_files import AttachedFileChip, MessagePromptComposer
+from toad.client.message_files import AttachedFileChip, ImageCompressionControl, MessagePromptComposer
 from toad.client.prompt_composer import (
     ComposerOffer,
     MentionCandidateOffer,
@@ -67,7 +71,7 @@ from toad.widget_contracts import (
     SubmitsContract,
 )
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
-from toad.qt.file_pickers import open_file_dialog, open_path_search
+from toad.qt.file_pickers import compress_image_bytes, open_file_dialog, open_path_search
 from toad.qt.lines import QtLineRenderer
 from toad.qt.queue_ui import QtDeliveryControls, QtQueueHint, QtQueueInspection, QtQueueSummary, RowReveal
 from toad.qt.prompt_stack import QtInfoBar
@@ -863,7 +867,7 @@ class QtAttachedFileChip(AttachedFileChip, QtPushButton):
     """An attached file as a button over the editor; tapping it takes the file off."""
 
     def __init__(self, composer: QtMessageComposer, position: int) -> None:
-        super().__init__(composer.attached_row)
+        super().__init__(composer.attached_chips_host)
         self.show_file(composer, position)
         self.setText(f"{self.caption}  ✕")
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -871,9 +875,22 @@ class QtAttachedFileChip(AttachedFileChip, QtPushButton):
         self.clicked.connect(self.take_off)
 
 
+class QtCompressImagesButton(ImageCompressionControl, QtPushButton):
+    """One-tap button over the composer to shrink attached images before sending."""
+
+    def __init__(self, composer: QtMessageComposer) -> None:
+        super().__init__(composer.attached_row)
+        self.bind_compression(composer)
+        self.setText(self.compress_caption)
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.setToolTip("Downscale and JPEG-compress attached images")
+        self.clicked.connect(self.compress_images)
+
+
 class QtMessageComposer(MessagePromptComposer, Composer):
     """A bus message's composer on Qt: the shared message composer, an Attach button beside
-    Send, the attached files as chips over the editor, and Qt's two pickers."""
+    Send, the attached files as scrollable chips with an image-compression control over the
+    editor, and Qt's two pickers."""
 
     action_methods = (*Composer.action_methods, (AttachFileAction, MessagePromptComposer.attach_file))
 
@@ -886,12 +903,45 @@ class QtMessageComposer(MessagePromptComposer, Composer):
         self.attach_button.clicked.connect(self.attach_file)
         self.add_box_button(self.attach_button)
         self.attached_row = QWidget(self)
-        chips = QHBoxLayout(self.attached_row)
-        chips.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
-        chips.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        row_layout = QHBoxLayout(self.attached_row)
+        row_layout.setContentsMargins(UiGap.frame, 0, UiGap.frame, 0)
+        row_layout.setSpacing(UiGap.tight)
+        self.attached_scroll = QScrollArea(self.attached_row)
+        self.attached_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.attached_scroll.setWidgetResizable(True)
+        self.attached_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.attached_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.attached_scroll.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.attached_chips_host = QWidget(self.attached_scroll)
+        self.attached_chips = QHBoxLayout(self.attached_chips_host)
+        self.attached_chips.setContentsMargins(0, 0, 0, 0)
+        self.attached_chips.setSpacing(UiGap.tight)
+        self.attached_chips.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.attached_scroll.setWidget(self.attached_chips_host)
+        QScroller.grabGesture(
+            self.attached_scroll.viewport(),
+            QScroller.ScrollerGestureType.LeftMouseButtonGesture,
+        )
+        self.compress_button: QtCompressImagesButton | None = None
+        row_layout.addWidget(self.attached_scroll, 1)
         layout = self.layout()
         layout.insertWidget(layout.indexOf(self.frame_row), self.attached_row)
         self.attached_row.hide()
+
+    def submit(self) -> None:
+        """Allow sending attached files with or without accompanying text."""
+        if self.text.strip() or self.attached_files:
+            self.send(SubmitAction())
+
+    def compress_image(self, upload: FileUpload) -> FileUpload | None:
+        compressed = compress_image_bytes(upload.name, upload.mime_type, upload.content)
+        if compressed is None:
+            return None
+        new_name, new_mime, new_bytes = compressed
+        return FileUpload.of(new_name, new_mime, new_bytes)
+
+    def show_compression_summary(self, text: str) -> None:
+        self.host.app.show_info(text)
 
     def pick_in_window(self) -> None:
         open_file_dialog(self, self)
@@ -903,10 +953,24 @@ class QtMessageComposer(MessagePromptComposer, Composer):
         self.attach_button.setVisible(self.takes_files)
 
     def show_attached(self) -> None:
-        chips = self.attached_row.layout()
-        delete_layout_widgets(chips)
+        delete_layout_widgets(self.attached_chips)
+        row_layout = self.attached_row.layout()
+        if self.compress_button is not None:
+            row_layout.removeWidget(self.compress_button)
+            self.compress_button.hide()
+            self.compress_button.deleteLater()
+            self.compress_button = None
+        chip_height = 0
         for position in range(len(self.attached_files)):
-            chips.addWidget(QtAttachedFileChip(self, position))
+            chip = QtAttachedFileChip(self, position)
+            chip_height = max(chip_height, chip.sizeHint().height())
+            self.attached_chips.addWidget(chip)
+        if self.has_compressible_images:
+            self.compress_button = QtCompressImagesButton(self)
+            chip_height = max(chip_height, self.compress_button.sizeHint().height())
+            row_layout.addWidget(self.compress_button, 0)
+        if chip_height > 0:
+            self.attached_scroll.setFixedHeight(chip_height + 2)
         self.attached_row.setVisible(bool(self.attached_files))
 
     def capture_composer_draft(self) -> ComposerDraft:
