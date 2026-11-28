@@ -100,6 +100,7 @@ class ApplicationPresence:
 
     def suspend(self, app: ClientApplication) -> ApplicationPresence:
         app.application.backgrounded()
+        app.set_animations_paused(True)
         return SUSPENDED_PRESENCE
 
 
@@ -116,6 +117,7 @@ class InactivePresence(ApplicationPresence):
 
 class SuspendedPresence(ApplicationPresence):
     def activate(self, app: ClientApplication) -> ApplicationPresence:
+        app.set_animations_paused(False)
         # `resume()` publishes `CoordinationObserved` once the fresh observation attaches,
         # which triggers `stores_changed` -> `selected.reload()` on the new observer instead
         # of racing a synchronous reload against the retiring one (`ObserverRetired`).
@@ -143,6 +145,9 @@ class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
         (`toad.heap`). Only Textual's app told it until 2026-11-22; Qt's heap was never frozen
         after its startup."""
         HEAP.history_displayed()
+
+    def set_animations_paused(self, paused: bool) -> None:
+        """Pause or resume the frontend's animation timer while the app is suspended."""
 
     def open_settings(self) -> SavedSettings:
         """The settings file every frontend reads at launch and writes on a change; each

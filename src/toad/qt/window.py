@@ -1756,6 +1756,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # would land some ticks between two frames and show one frame twice.
         self._animation_timer.setTimerType(Qt.TimerType.PreciseTimer)
         self._animation_timer.timeout.connect(self._tick_animation)
+        self._animation_interval: float | None = None
+        self._animations_paused = False
         self._layout_pending = False
         self._presence: ApplicationPresence = ACTIVE_PRESENCE
         self.animation_clock = AnimationClock(self._schedule_animation, enabled=animations_enabled())
@@ -1882,6 +1884,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         # The bar row is Toad's header band: a frame in the theme's header tone. Notices
         # float over the pages in `float_layer`; they are no part of this band.
         self.navigation = chrome = QFrame(self)
+        chrome.setObjectName("toad-navigation")
         chrome_layout = QVBoxLayout(chrome)
         chrome_layout.setContentsMargins(0, 0, 0, 0)
         chrome_layout.setSpacing(0)
@@ -2111,12 +2114,19 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def _schedule_animation(self, interval: float | None) -> None:
         """The clock's one timer: tick every ``interval`` seconds, or stop."""
+        self._animation_interval = interval
         if not shiboken6.isValid(self._animation_timer):
             return
-        if interval is None:
+        if interval is None or self._animations_paused:
             self._animation_timer.stop()
         else:
             self._animation_timer.start(max(1, round(interval * 1000)))
+
+    def set_animations_paused(self, paused: bool) -> None:
+        if self._animations_paused == paused:
+            return
+        self._animations_paused = paused
+        self._schedule_animation(self._animation_interval)
 
     def _tick_animation(self) -> None:
         self.animation_clock.tick()
@@ -2203,9 +2213,10 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         )
         self.tabs.set_colours(QColor(underline_hex), QColor(active_ink), QColor(inactive_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
+        nav_edge = self.settings.ui.navigation_bar.qt_separator_edge
         self.navigation.setStyleSheet(
             scheme.styles.generate_frame_style()
-            + f"QFrame {{ background-color: {bar_bg}; padding: 2px 2px; }}"
+            + f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: 2px 2px; border: none; {nav_edge}: 1px solid {sep_hex}; }}"
             + f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
         )
         self.float_layer.follow_scheme(scheme)
@@ -2239,6 +2250,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             layout.removeWidget(widget)
             layout.insertWidget(index, widget, 1 if widget is self.chrome else 0)
         self.apply_text_scale(self.settings.ui.message_font_scale)
+        self.paint_chrome_colours()
         self._sync_keyboard_chrome()
 
     def follow_theme(self) -> None:
