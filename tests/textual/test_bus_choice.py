@@ -2,6 +2,7 @@
 
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -22,10 +23,10 @@ from agent_comms.transport.tailnet_buses import (
     TailnetBuses,
     TailnetPeer,
 )
+from agent_comms.transport.served_tools.served_tailnet import HostTailnetProfiles
 from agent_comms.transport.tailnet_profiles import (
     OfferedPeerProfile,
     PeerRefusedProfile,
-    TailnetProfiles,
 )
 from textual.css.scalar import Unit
 from yarl import URL
@@ -207,7 +208,7 @@ async def test_picking_a_peer_asks_it_for_a_profile_and_opens_its_bus(workspace,
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     held = tmp_path / "ts-gaming.json"
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
-    monkeypatch.setattr(TailnetProfiles, "ask",
+    monkeypatch.setattr(HostTailnetProfiles, "ask",
                         classmethod(lambda cls, peer, previous: OfferedPeerProfile(peer, profile)))
 
     opened: list[BusChoice] = []
@@ -229,7 +230,7 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
 
     found = PeerHoldsBus(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (found.peer,)))
-    monkeypatch.setattr(TailnetProfiles, "ask", classmethod(
+    monkeypatch.setattr(HostTailnetProfiles, "ask", classmethod(
         lambda cls, peer, previous: PeerRefusedProfile(peer, "No tailnet-only endpoint serves 127.0.0.1:18766")))
 
     async with workspace.app(size=(140, 48)) as ui:
@@ -240,8 +241,8 @@ async def test_a_peer_that_refuses_says_so_in_its_own_words(workspace, monkeypat
                             lambda self, message, **options: said.append(message))
         DiscoveredPeer(found).chosen(app)
         await ui.until(lambda: said, why="the peer's refusal on screen")
-        assert "would not hand out a profile" in said[0]
-        assert "No tailnet-only endpoint" in said[0], "the peer's own sentence, not a summary"
+        assert "ts-gaming isn't sharing its bus over Tailscale yet" in said[0]
+        assert "tailscale serve" in said[0]
         assert app.coordination_access.connection is connection
 
 
@@ -274,15 +275,20 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
         await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
         assert [type(row).__name__ for row in picker.rows] == ["LocalBus", "HeldBus", "HeldBus"]
         tailnet.held.unlink()
-        await ui.until(lambda: any(isinstance(row, DiscoveredPeer) for row in picker.rows),
-                       why="the tailnet peer to arrive")
+        await ui.until(lambda: any(row.label() == "ts-gaming · 43 threads" for row in picker.rows),
+                       why="the tailnet peer label to decorate the held row")
         kinds = [type(row).__name__ for row in picker.rows]
-        assert kinds == ["LocalBus", "HeldBus", "DiscoveredPeer"], (
-            f"the held row for the found machine is replaced, not stacked beside it: {kinds}")
-        # The one held row left is the machine the tailnet did not report.
-        held = next(row for row in picker.rows if isinstance(row, HeldBus))
-        assert "pixel-8a" in held.label()
-        assert picker.rows[-1].label() == "ts-gaming · 43 threads"
+        assert kinds == ["LocalBus", "HeldBus", "HeldBus"], (
+            f"a valid held row for the found machine is kept and decorated, not replaced with a fresh offer: {kinds}")
+        labels = [row.label() for row in picker.rows]
+        assert any("pixel-8a" in label for label in labels)
+        assert "ts-gaming · 43 threads" in labels
+        matched = next(row for row in picker.rows if row.label() == "ts-gaming · 43 threads")
+        opened: list[object] = []
+        asked: list[object] = []
+        matched.chosen(SimpleNamespace(open_bus=opened.append, ask_peer_for_profile=asked.append))
+        assert opened == [matched]
+        assert asked == []
 
 
 def test_a_dialog_fits_a_narrow_window():
@@ -349,7 +355,7 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
     typed = TailnetPeer("typed-host", "100.64.9.9", True)
     monkeypatch.setattr(HeldUiProfiles, "directory", classmethod(lambda cls: tmp_path))
     monkeypatch.setattr(TailnetBuses, "peers", classmethod(lambda cls: (typed,)))
-    monkeypatch.setattr(TailnetProfiles, "ask", classmethod(offer))
+    monkeypatch.setattr(HostTailnetProfiles, "ask", classmethod(offer))
 
     async with workspace.app(size=(140, 48)) as ui:
         app, pilot = ui.textual

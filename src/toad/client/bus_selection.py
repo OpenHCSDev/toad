@@ -126,6 +126,10 @@ class PickerRow(ABC):
         it. Most rows are not any machine the tailnet reports; the ones that are say so."""
         return False
 
+    def with_discovered(self, found: PeerHoldsBus) -> PickerRow:
+        """This row decorated with the live tailnet peer metadata when ``same_bus(found)``."""
+        return self
+
     def held_actions(self, listing: BusListing) -> tuple[MenuEntry, ...]:
         """What a listing offers on this row besides choosing it, where a finger is held on
         it or a mouse right-clicks it. Nothing, by default: this machine's own bus and a
@@ -138,18 +142,30 @@ class PickerRow(ABC):
 
     @staticmethod
     def with_found(rows: tuple[PickerRow, ...], found: tuple[PeerBus, ...]) -> tuple[PickerRow, ...]:
-        """``rows`` with the peers the tailnet reports holding a bus, each replacing the row
-        that was already it.
+        """``rows`` merged with the peers the tailnet reports holding a bus.
 
-        A machine this one holds a profile for is also a machine the tailnet reports, so it
-        was two rows: one named by its certificate and grant id, one by its hostname and
-        thread count (Tristan: "histiry of last connected accunukates in the remote bus
-        dialog"). The found row wins, because it says which machine and how much is on it,
-        and picking it asks for a profile that replaces the one being dropped.
+        A machine this one already holds an unexpired profile for keeps its `HeldBus`
+        row, decorated with the discovered peer's hostname and thread count, so picking
+        it reuses the existing valid profile instead of minting a fresh offer and revoking
+        the active grant held by sibling clients on this machine (e.g. TUI + Qt GUI open
+        together). Only tailnet peers without a held profile appear as `DiscoveredPeer`.
         """
         peers = tuple(DiscoveredPeer(row) for entry in found for row in entry.openable())
-        covered = tuple(row for row in rows if not any(row.same_bus(peer.found) for peer in peers))
-        return (*covered, *peers)
+        matched: set[int] = set()
+        upgraded: list[PickerRow] = []
+        for row in rows:
+            hit = next(
+                ((index, peer.found) for index, peer in enumerate(peers) if row.same_bus(peer.found)),
+                None,
+            )
+            if hit is None:
+                upgraded.append(row)
+            else:
+                index, peer_found = hit
+                matched.add(index)
+                upgraded.append(row.with_discovered(peer_found))
+        unmatched = tuple(peer for index, peer in enumerate(peers) if index not in matched)
+        return (*upgraded, *unmatched)
 
 
 class BusChoice(PickerRow):
@@ -211,14 +227,19 @@ class HeldBus(BusChoice):
     """A remote bus this machine holds an unexpired profile for."""
 
     profile: OpenableProfile
+    discovered: PeerHoldsBus | None = None
 
     def label(self) -> str:
-        return self.profile.label()
+        return self.discovered.label() if self.discovered is not None else self.profile.label()
 
     def same_bus(self, found: PeerHoldsBus) -> bool:
         """The route this profile was held with names the address it was reached on, which
         is the address the tailnet reports for that machine."""
         return self.profile.profile.route.reaches(found.peer.address)
+
+    def with_discovered(self, found: PeerHoldsBus) -> HeldBus:
+        """Keep the valid held profile while displaying the live peer's hostname and thread count."""
+        return HeldBus(self.profile, found)
 
     def _arguments_step(self, argv: Sequence[str], without_profile) -> tuple[str, ...]:
         return (*without_profile,

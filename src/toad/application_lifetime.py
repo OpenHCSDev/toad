@@ -186,7 +186,15 @@ class ApplicationLifetime:
 
         async def prepare(identity):
             existing = navigation.get(identity.mode_name)
-            return (existing, False) if existing is not None else (await identity.entry(navigation), True)
+            if existing is not None:
+                return (existing, False)
+            try:
+                return (await identity.entry(navigation), True)
+            except (TabTargetGone, TabNotDrawnHere) as expected:
+                # Return expected restore skips as values instead of letting the gather
+                # task finish with an exception (which triggers LostFailures while slow
+                # sibling tasks are still running).
+                return expected
 
         outcomes = await asyncio.gather(
             *(prepare(identity) for identity in identities),
