@@ -271,6 +271,12 @@ class CoreConnection(ABC):
         worker thread, while remote connections read their in-memory observation directly."""
         return await runtime.run_thread(self.holds, access, source)
 
+    def route_replaced(self, access: CoordinationAccess, source: str | Path) -> bool:
+        """Whether the current observation is live on a *different* bus root than ``source``.
+        A temporary disconnect (``FailedObservation``) or startup (``Unobserved``) has not
+        replaced the route and must not hide already-open conversation views."""
+        return access.observation.observed().replaces(source)
+
     @abstractmethod
     def observing(self, access: CoordinationAccess, source: str | Path) -> Observing:
         """The observation serving ``source``, or the refusal that it is not this Core's."""
@@ -484,6 +490,10 @@ class Observation(ABC):
         return self is self.access.observation
 
     def observes(self, root: str | Path) -> bool:
+        return False
+
+    def replaces(self, root: str | Path) -> bool:
+        """Whether this observation is live on a different bus than ``root``."""
         return False
 
     def serving(self, source: str | Path):
@@ -882,6 +892,9 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
     def observes(self, root: str | Path) -> bool:
         """Core's served root as Core spells it; a local member resolves on this machine."""
         return Path(root) == self.root
+
+    def replaces(self, root: str | Path) -> bool:
+        return not self.observes(root)
 
     def historical_threads(self, senders: HistoricalSenders) -> tuple[HistoricalThread, ...]:
         """The preserved identities attached history sources keep, for every sender or one."""

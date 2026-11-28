@@ -622,6 +622,11 @@ class ReplaceablePageSource(PreparedPageSource):
         new ``ReplaceablePageSource`` subclass has to answer; the caller
         ``HistoryReads.source_is_current`` depends on every source satisfying it."""
 
+    def route_replaced(self) -> bool:
+        """Whether the active connection has moved to a different bus than this source's.
+        False during temporary disconnects so open views keep their messages visible."""
+        return False
+
     def reads_from(self, root: str | Path) -> bool:
         """Whether this reader reads a conversation from ``root``; a closed one reads none."""
         return False

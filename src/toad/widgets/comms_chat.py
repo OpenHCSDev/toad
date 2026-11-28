@@ -142,6 +142,8 @@ class CommsChatView(WireConversationView):
     @handles(core_events.CoordinationObserved)
     async def _coordination_observed(self, event: core_events.CoordinationObserved) -> None:
         """One canonical observation invalidates commands and the mounted source."""
+        if not self.needs_wire_refresh(event.revision):
+            return
         self.on_composer("refresh_commands", lambda prompt: prompt.slash_complete.refresh_commands())
         await self._refresh()
 
