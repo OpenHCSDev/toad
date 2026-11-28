@@ -151,8 +151,8 @@ class ThreadViewNavigation:
 
     @property
     def navigation_target(self):
-        from toad.navigation_target import ThreadTarget
-        return ThreadTarget(self.thread_identity.thread_name())
+        from toad.navigation_target import NoTarget, ThreadTarget
+        return self.thread_identity.navigation_target(ThreadTarget, NoTarget)
 
     @property
     def navigation_context(self) -> NavigationContext:

@@ -108,6 +108,10 @@ class SessionIdentity(ABC):
         """A named session addresses backend commands as its thread."""
         return target(self.thread_name())
 
+    def navigation_target[T](self, named: Callable[[str], T], absent: Callable[[], T]) -> T:
+        """A named session addresses its thread destination; an unbound session has none."""
+        return named(self.thread_name())
+
 
 @dataclass(frozen=True)
 class NoThreadIdentity(SessionIdentity):
@@ -120,6 +124,9 @@ class NoThreadIdentity(SessionIdentity):
     def command_target[T](self, target: Callable[[str], T]) -> T:
         """An unbound session has no backend thread; local commands remain."""
         raise UnregisteredThreadError("An unbound session has no backend thread")
+
+    def navigation_target[T](self, named: Callable[[str], T], absent: Callable[[], T]) -> T:
+        return absent()
 
 
 @dataclass(frozen=True)
