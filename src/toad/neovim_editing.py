@@ -1633,6 +1633,9 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     def engine_regions(self) -> tuple[Selection, ...]:
         return self.snapshot.state.regions
 
+    def attach_surface(self, editor: NeovimEditorSurface) -> None:
+        self.attach(editor)
+
     @staticmethod
     def input_code(key: str, character: str = "") -> str:
         """Textual's foreign key vocabulary enters Neovim at this boundary."""

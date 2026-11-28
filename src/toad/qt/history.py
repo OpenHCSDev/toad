@@ -185,6 +185,9 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._backing_format_cache: tuple[int, int, QImage.Format] | None = None
         self._frame_paint: tuple[QWidget | None, QFont, float, QImage.Format, str, QColor, QColor, str, float, int] | None = None
         self._frame_source_mode = False
+        self._frame_dirty: tuple[QRegion | None, QRect | None, QRegion | None] = (None, None, None)
+        self._tile_paint_context = QAbstractTextDocumentLayout.PaintContext()
+        self._fast_docs: dict[tuple[int, int], tuple[HistoryFragment, int, str, float, QTextDocument]] = {}
 
     @staticmethod
     def _backing_image_format(widget: QWidget | None, painter: QPainter) -> QImage.Format:
@@ -252,6 +255,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         with the names they had; rows prepared before are stale."""
         self.renderer = self.app_renderer.with_links(self.renderer.links)
         self.links_revision += 1
+        self._fast_docs.clear()
         self.forget_row_sizes()
 
     def row_key(self, fragment: HistoryFragment):
@@ -489,6 +493,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
 
     def _row_prepared(self, key, prepared: RenderedRow) -> None:
         super()._row_prepared(key, prepared)
+        if self._fast_docs:
+            self._fast_docs.clear()
         if key in self._prepared:
             self.last_shown[self.row_identity(key)] = key
             _shown, *look = key
@@ -546,6 +552,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         suspending the app, a new width)."""
         super().release_documents()
         self.pictures.clear()
+        self._fast_docs.clear()
         self._backing_format_cache = None
 
     def _paint_tile_document(
@@ -558,7 +565,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         drawing.translate(-left, -top)
         clip = QRectF(left, top, width, height)
         drawing.setClipRect(clip)
-        context = QAbstractTextDocumentLayout.PaintContext()
+        context = self._tile_paint_context
         context.palette = palette
         context.clip = clip
         document.documentLayout().draw(drawing, context)
@@ -636,15 +643,29 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             font_family, font_size, layout_w,
         )
 
-    def begin_paint(self, painter: QPainter, viewport_rect: QRect, *, animating: bool = False) -> None:
+    def begin_paint(
+        self,
+        painter: QPainter,
+        viewport_rect: QRect,
+        *,
+        animating: bool = False,
+        dirty: QRegion | None = None,
+    ) -> None:
         self._frame_paint = self._resolve_frame_paint(painter, viewport_rect.width())
         self._frame_source_mode = not animating
+        if dirty is not None:
+            dirty_rect = dirty.boundingRect()
+            multi = dirty if dirty.rectCount() > 1 else None
+            self._frame_dirty = (dirty, dirty_rect, multi)
+        else:
+            self._frame_dirty = (None, None, None)
         if self._frame_source_mode:
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
 
     def end_paint(self) -> None:
         self._frame_paint = None
         self._frame_source_mode = False
+        self._frame_dirty = (None, None, None)
 
     def paint_row(
         self, painter: QPainter, row: int, fragment: HistoryFragment, rect: QRect, clip_region: QRegion | None
@@ -699,24 +720,44 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         ) = frame
         palette: QPalette | None = None
         width = layout_w or self.layout_width(rect.width())
-        cache_key = (((fragment.key, fragment.shown, fragment.revision), self.links_revision, font_family, font_size, width), width)
-        document = self._documents.get(cache_key)
-        if document is not None:
-            self._documents.move_to_end(cache_key)
+        fast_key = (id(fragment), width)
+        fast = self._fast_docs.get(fast_key)
+        if (
+            fast is not None
+            and fast[0] is fragment
+            and fast[1] == self.links_revision
+            and fast[2] == font_family
+            and fast[3] == font_size
+        ):
+            document = fast[4]
         else:
-            document = self.final_document_for(fragment, font, width)
+            cache_key = (((fragment.key, fragment.shown, fragment.revision), self.links_revision, font_family, font_size, width), width)
+            document = self._documents.get(cache_key)
+            if document is not None:
+                self._documents.move_to_end(cache_key)
+            else:
+                document = self.final_document_for(fragment, font, width)
+            if document is not None:
+                if len(self._fast_docs) >= self.MAX_DOCUMENTS:
+                    self._fast_docs.clear()
+                self._fast_docs[fast_key] = (fragment, self.links_revision, font_family, font_size, document)
         if document is None and not arrival.active:
             return False
-        effective_clip = clip_region
-        if painter.hasClipping():
-            painter_clip = painter.clipRegion()
-            effective_clip = painter_clip if effective_clip is None else effective_clip.intersected(painter_clip)
-        if effective_clip is not None:
-            shown = effective_clip.boundingRect().intersected(rect)
-            tile_clip = effective_clip if effective_clip.rectCount() > 1 else None
+        frame_dirty, frame_dirty_rect, frame_multi = self._frame_dirty
+        if clip_region is frame_dirty and frame_dirty_rect is not None and not painter.hasClipping():
+            shown = frame_dirty_rect.intersected(rect)
+            tile_clip = frame_multi
         else:
-            shown = rect
-            tile_clip = None
+            effective_clip = clip_region
+            if painter.hasClipping():
+                painter_clip = painter.clipRegion()
+                effective_clip = painter_clip if effective_clip is None else effective_clip.intersected(painter_clip)
+            if effective_clip is not None:
+                shown = effective_clip.boundingRect().intersected(rect)
+                tile_clip = effective_clip if effective_clip.rectCount() > 1 else None
+            else:
+                shown = rect
+                tile_clip = None
         if shown.isEmpty():
             return True
         rect_left = rect.left()

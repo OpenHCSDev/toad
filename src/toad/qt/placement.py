@@ -23,6 +23,7 @@ from PySide6.QtWidgets import QComboBox, QFrame, QLabel, QScrollArea, QVBoxLayou
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import FloatHoverToneColour, MutedColour
 
+from toad.client import platform as toad_platform
 from toad.client.agent_settings_state import (
     AgentScopeState,
     AgentSettingsPanel,
@@ -127,11 +128,12 @@ class QtViewActions(ViewActionsPanel, QScrollArea, metaclass=PyQtWidgetMeta):
     def paint_colours(self) -> None:
         hover = self._renderer.theme(FloatHoverToneColour)
         muted = self._renderer.theme(MutedColour)
+        modality = toad_platform.host.input_modality
         self.setStyleSheet(
             "#toad-view-actions-rows { background: transparent; border: none; }"
             "QPushButton { background: transparent; border: none; border-radius: 0; padding: 0; text-align: left; }"
-            f"QPushButton:hover, QPushButton:pressed {{ background: {hover}; }}"
-            f"#toad-menu-description, #toad-view-actions-empty {{ color: {muted}; }}"
+            + modality.hover_or_pressed("QPushButton", f"background: {hover};")
+            + f"#toad-menu-description, #toad-view-actions-empty {{ color: {muted}; }}"
         )
 
     def showEvent(self, event) -> None:  # type: ignore[override]

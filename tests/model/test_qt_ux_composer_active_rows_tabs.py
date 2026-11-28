@@ -487,3 +487,62 @@ def test_qt_composer_embeds_real_neovim_normal_insert_visual_command_and_escape_
     finally:
         loop.close()
         asyncio.set_event_loop(None)
+
+
+def test_touch_modality_suppresses_sticky_hover_and_standard_attaches_cleanly(monkeypatch) -> None:
+    """Android (`TouchInput`) drops `:hover` QSS and `WA_Hover` so taps never stick highlighted;
+    `Standard().attach_surface(ComposerEditor)` succeeds without Textual's `editor.history`."""
+    from toad.client import platform as toad_platform
+    from toad.client.platform import AndroidPlatform, LinuxPlatform
+    from toad.qt.menu import QtMenu, platform_input
+
+    _app()
+    scheme = SCHEMES[0]
+    renderer = QtLineRenderer(scheme, LinkContext(None, ()), DiffSettings())
+
+    assert LinuxPlatform.input_modality is KeyboardInput
+    assert AndroidPlatform.input_modality is TouchInput
+    assert KeyboardInput.hover_highlights is True
+    assert TouchInput.hover_highlights is False
+    assert TouchInput.hover_rule("QLabel:hover { color: red; }") == ""
+    assert ":hover" not in TouchInput.hover_or_pressed("QPushButton", "background: red;")
+    assert ":pressed" in TouchInput.hover_or_pressed("QPushButton", "background: red;")
+
+    # Under AndroidPlatform, QtSideBarToggle, _scrollbar_qss, and QtMenu omit `:hover` rules.
+    monkeypatch.setattr(toad_platform, "host", AndroidPlatform)
+    assert platform_input() is TouchInput
+    assert ":hover" not in _scrollbar_qss(renderer)
+
+    host = QWidget()
+    layout = SidebarLayout(
+        SimpleNamespace(current_terminals=lambda: (), store_terminals=lambda _t: None),
+        TerminalOrigin(),
+    )
+    side = QtSideBar(
+        layout,
+        ChannelsSidebarPlacement,
+        QWidget(host),
+        heading=lambda: "All",
+        laid_out=lambda: None,
+        client=SimpleNamespace(),
+        parent=host,
+    )
+    side.toggle.paint_theme(renderer)
+    assert ":hover" not in side.toggle.styleSheet()
+    assert side.toggle.testAttribute(Qt.WidgetAttribute.WA_Hover) is False
+
+    menu = QtMenu(host)
+    menu.paint(renderer)
+    assert ":hover" not in menu.styleSheet()
+    assert ":pressed" in menu.styleSheet()
+
+    # Standard key mode attaches cleanly inside a running asyncio loop (regression for #2374).
+    async def _attach_standard() -> None:
+        fake_composer = SimpleNamespace(
+            settings=SimpleNamespace(ui=SimpleNamespace(key_mode=Standard)),
+        )
+        editor = ComposerEditor(fake_composer)
+        assert editor._attached_mode is editor._editing_mode
+        assert editor.overwriteMode() is False
+
+    asyncio.run(_attach_standard())

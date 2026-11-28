@@ -20,6 +20,7 @@ from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
 from ui_theme.effects import Band
 
+from toad.client import platform as toad_platform
 from toad.client.name_wave import BandCells, NameWave, PaintedRowTone, TitleMarquee
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 from toad.qt.tap_flash import QtTextButton
@@ -164,7 +165,11 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         rid = id(row)
         wraps = row.wrap_mode.wrapped if row.wrap_mode is not None else view.wordWrap()
         vp_width = vp.width()
-        hovered = view.underMouse() and rect.contains(vp.mapFromGlobal(QCursor.pos()))
+        hovered = (
+            toad_platform.host.input_modality.hover_highlights
+            and view.underMouse()
+            and rect.contains(vp.mapFromGlobal(QCursor.pos()))
+        )
         selected = item is not None and item.isSelected()
         bg_rgba = item._painted_rgba if isinstance(item, PaintedRowTone) else 0
         variant = (
@@ -792,7 +797,11 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         event_rect = event.rect()
         count = self.count()
         current_index = self.currentIndex()
-        hover_index = self.tabAt(self.mapFromGlobal(QCursor.pos())) if self.underMouse() else -1
+        hover_index = (
+            self.tabAt(self.mapFromGlobal(QCursor.pos()))
+            if toad_platform.host.input_modality.hover_highlights and self.underMouse()
+            else -1
+        )
         shown_titles = self._shown_titles
         tab_chrome = self._tab_chrome
         lines = self.lines

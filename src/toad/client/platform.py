@@ -6,6 +6,7 @@ import platform
 from typing import ClassVar, Literal, Mapping
 
 from agent_comms.nominal.declared_family import DeclaredFamily
+from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
 
 type OS = Literal["linux", "macos", "windows", "android", "*"]
 
@@ -81,6 +82,7 @@ class Platform(DeclaredFamily, affix="Platform"):
     key: ClassVar[OS]
     application_name: ClassVar[str] = "Toad"
     auto_focus_composer: ClassVar[bool] = True
+    input_modality: ClassVar[type[InputModality]] = KeyboardInput
 
     @classmethod
     def select[V](cls, matrix: Mapping[OS, V]) -> V | None:
@@ -116,6 +118,7 @@ class AndroidPlatform(Platform):
     system = "Android"
     key = "android"
     auto_focus_composer = False
+    input_modality = TouchInput
 
     @classmethod
     def open_window(cls, window) -> None:

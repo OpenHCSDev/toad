@@ -482,7 +482,14 @@ class RowDocumentStore(ABC):
     @abstractmethod
     def paint_row(self, painter: QPainter, row: int, fragment, rect: QRect, clip_region: QRegion | None) -> None: ...
 
-    def begin_paint(self, painter: QPainter, viewport_rect: QRect, *, animating: bool = False) -> None:
+    def begin_paint(
+        self,
+        painter: QPainter,
+        viewport_rect: QRect,
+        *,
+        animating: bool = False,
+        dirty: QRegion | None = None,
+    ) -> None:
         """Optional per-frame hook invoked once before `paint_row` runs over visible rows."""
 
     def end_paint(self) -> None:
@@ -549,6 +556,7 @@ class RowDocumentStore(ABC):
 
     def new_document(self, font: QFont, width: int) -> QTextDocument:
         document = QTextDocument()
+        document.setUndoRedoEnabled(False)
         document.setDocumentMargin(0)
         document.setDefaultFont(font)
         document.setTextWidth(self.text_width(width))
@@ -569,12 +577,14 @@ class RowDocumentStore(ABC):
         entry = widths.get(width)
         if entry is None:
             entry = widths[width] = RowMetrics()
-        # `document.size().width()` already reports the intrinsic laid-out width of unwrapped
-        # `<pre>` / `white-space:pre` / `<table>` blocks in one pass, avoiding the full second
-        # layout pass of `QTextDocument::idealWidth()`.
-        extent = math.ceil(document.size().width())
+        # `document.size()` reports both intrinsic width and laid-out height in one pass;
+        # recording both here prevents `measured_height()` from invoking `size()` a second time.
+        doc_size = document.size()
+        extent = math.ceil(doc_size.width())
         if extent > width:
             entry.extent = extent
+        if entry.size is None:
+            entry.size = QSize(width, math.ceil(doc_size.height()) + self.ROW_PADDING)
         if len(self._documents) > self.MAX_DOCUMENTS:
             self._documents.popitem(last=False)
         return document
@@ -594,8 +604,10 @@ class RowDocumentStore(ABC):
         if not formatting.final:
             return formatting.estimated_height(font, self.text_width(width)) + self.ROW_PADDING
         document = self.laid_out(key, font, width, formatting)
-        size = QSize(width, math.ceil(document.size().height()) + self.ROW_PADDING)
-        self._record_measured_size(key, width, size)
+        size = self.measured_size_for(key, width)
+        if size is None:
+            size = QSize(width, math.ceil(document.size().height()) + self.ROW_PADDING)
+            self._record_measured_size(key, width, size)
         return size.height()
 
     def estimated_size(self, fragment, font: QFont, width: int) -> QSize:
@@ -976,6 +988,8 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         heights = self._heights
         count = len(heights)
         offsets = self._offsets
+        if self._dirty_offset_from > count and len(offsets) == count + 1:
+            return
         if len(offsets) != count + 1:
             if len(offsets) < count + 1:
                 offsets.extend([0] * (count + 1 - len(offsets)))
@@ -1364,7 +1378,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
             first = max(0, bisect_right(self._offsets, max(0, top_y - slide_pad)) - 1)
             last = min(count - 1, bisect_right(self._offsets, min(total_h - 1, bot_y)) - 1)
             last_bottom = -1
-            self.rows.begin_paint(painter, vp_rect, animating=animating)
+            self.rows.begin_paint(painter, vp_rect, animating=animating, dirty=dirty)
             try:
                 for row in range(first, last + 1):
                     h = self._heights[row]

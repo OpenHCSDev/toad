@@ -216,6 +216,7 @@ def _scrollbar_qss(
             f"{selector}:vertical {{ width: {thick}px; }}"
             f"{selector}:horizontal {{ height: {thick}px; }}"
         )
+    modality = toad_platform.host.input_modality
     return (
         f"{selector}:vertical, {selector}:horizontal {{"
         f" background-color: {track}; border: none; margin: 0px; }}"
@@ -223,9 +224,11 @@ def _scrollbar_qss(
         + f"{selector}::handle:vertical, {selector}::handle:horizontal {{"
         f" background-color: {thumb}; border: none; border-radius: 0px;"
         f" min-width: {min_thumb}px; min-height: {min_thumb}px; }}"
-        f"{selector}::handle:vertical:hover, {selector}::handle:horizontal:hover {{"
-        f" background-color: {hover}; }}"
-        f"{selector}::handle:vertical:pressed, {selector}::handle:horizontal:pressed {{"
+        + modality.hover_rule(
+            f"{selector}::handle:vertical:hover, {selector}::handle:horizontal:hover {{"
+            f" background-color: {hover}; }}"
+        )
+        + f"{selector}::handle:vertical:pressed, {selector}::handle:horizontal:pressed {{"
         f" background-color: {active}; }}"
         f"{selector}::add-line:vertical, {selector}::sub-line:vertical,"
         f"{selector}::add-line:horizontal, {selector}::sub-line:horizontal {{"
@@ -915,12 +918,13 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         hover_bg = scheme.to_hex(scheme.hover_bg)
         selection_bg = scheme.to_hex(scheme.selection_bg)
         selection_ink = scheme.to_hex(scheme.selection_text)
+        modality = toad_platform.host.input_modality
         QtLineRenderer.apply_sheet(
             self,
             f"QTreeWidget {{ background-color: {sidebar_bg}; color: {ink_hex};"
             f" border: none; border-radius: 3px; selection-background-color: {selection_bg}; }}"
-            f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}"
-            f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
+            + modality.hover_rule(f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}")
+            + f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
             + _scrollbar_qss(renderer, fixed_thickness=False)
             + f"QScrollBar:vertical {{ width: {bar}px; }}"
             f"QScrollBar:horizontal {{ height: {bar}px; }}",
@@ -1895,8 +1899,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         self.chrome.sidebars = (self.channels_side, self.thread_side)
         # ≡ is in Android's Noto Sans Math; ☰ is in no font Android ships, so it drew a box.
         self.menu = self.bar_button("≡", "Menu", self.show_menu)
-        self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1))
-        self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1))
+        self.back = self.bar_button("←", "Back", partial(self.tab_order.navigate, -1), min_width=30)
+        self.forward = self.bar_button("→", "Forward", partial(self.tab_order.navigate, 1), min_width=30)
         # pyqt-reactive's tab bar in the theme's tab style; a dragged tab moves in the
         # shared tab order, which the bar then draws again.
         self.tabs = QtSessionTabBar(
@@ -2058,12 +2062,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         separator.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         return separator
 
-    def bar_button(self, text: str, tip: str, action) -> QtTextButton:
+    def bar_button(self, text: str, tip: str, action, *, min_width: int = 36) -> QtTextButton:
         button = QtTextButton(self)
         button.setText(text)
         button.setToolTip(tip)
         button.setAutoRaise(True)
-        button.setMinimumSize(36, 32)
+        button._base_nav_width = min_width
+        button.setFixedWidth(min_width)
+        button.setMinimumHeight(32)
         font = button.font()
         font.setPointSizeF(font.pointSizeF() * 1.2)
         button.setFont(font)
@@ -2331,6 +2337,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         tab_pad_r = scaled_px(1, scale)
         border_w = scaled_px(2, scale)
         tab_gap = self.tabs.scaled_tab_gap()
+        modality = toad_platform.host.input_modality
         QtLineRenderer.apply_sheet(
             self.tabs,
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
@@ -2338,14 +2345,17 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
             f" border-bottom: {border_w}px solid {hover_bg};"
             f" padding: {tab_pad_y}px {tab_pad_r}px {tab_pad_y}px {tab_pad_l}px; margin-right: {tab_gap}px;"
             " border-top-left-radius: 0px; border-top-right-radius: 0px; }"
-            f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
-            f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
+            + modality.hover_rule(
+                f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
+            )
+            + f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
             f" font-weight: bold; border-bottom: {border_w}px solid {underline_hex}; }}"
             f"QToolButton#tab-close-button {{"
             f" border: none; border-radius: 0px; padding: 0px;"
             f" background: transparent; color: {close_idle}; font-weight: bold; }}"
-            f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
-            f" background: {hover_bg}; color: {close_hover}; }}",
+            + modality.hover_or_pressed(
+                "QToolButton#tab-close-button", f"background: {hover_bg}; color: {close_hover};"
+            ),
         )
         self.tabs.set_colours(QColor(underline_hex), QColor(active_ink), QColor(inactive_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
@@ -2359,10 +2369,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
             f" border: none; {nav_edge}: 1px solid {sep_hex}; }}"
             f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: {sep_margin}px 0px; background: {sep_hex}; }}"
             f"QFrame#toad-navigation QToolButton {{"
-            f" background: transparent; color: {active_ink}; border: none; border-radius: 0px; }}"
-            f"QFrame#toad-navigation QToolButton:hover {{"
-            f" background-color: {nav_hover_bg}; color: {nav_hover_fg}; }}"
-            f"QFrame#toad-navigation QToolButton:disabled {{"
+            f" background: transparent; color: {active_ink}; border: none; border-radius: 0px; padding: 0px; }}"
+            + modality.hover_rule(
+                f"QFrame#toad-navigation QToolButton:hover {{"
+                f" background-color: {nav_hover_bg}; color: {nav_hover_fg}; }}"
+            )
+            + f"QFrame#toad-navigation QToolButton:disabled {{"
             f" color: {nav_disabled_fg}; }}",
         )
         self.float_layer.follow_scheme(scheme)
@@ -2387,13 +2399,13 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtW
         font = QFont(QApplication.font())
         font.setPointSizeF(round(base * clamped / 100.0, 2))
         QApplication.setFont(font)
-        btn_min_w = scaled_px(36, clamped)
         btn_min_h = scaled_px(32, clamped)
         for button in (self.menu, self.back, self.forward):
             btn_font = QFont(font)
             btn_font.setPointSizeF(round(font.pointSizeF() * 1.2, 2))
             button.setFont(btn_font)
-            button.setMinimumSize(btn_min_w, btn_min_h)
+            button.setFixedWidth(scaled_px(button._base_nav_width, clamped))
+            button.setMinimumHeight(btn_min_h)
         self.tabs.apply_scale(clamped)
         self.show_current_tab(scroll_to_current=False)
         self.rearrange_sidebars()

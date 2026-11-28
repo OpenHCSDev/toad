@@ -33,17 +33,18 @@ from PySide6.QtWidgets import (
 from ui_theme.scheme import FloatHoverToneColour, FloatToneColour, MutedColour, RuleColour
 
 from pyqt_reactive.widgets.fitted_text import ElidedLine
+from toad.client import platform as toad_platform
 
 from toad.client.block_menu import BlockMenu
-from toad.client.input_modality import InputModality, KeyboardInput, TouchInput
+from toad.client.input_modality import InputModality
 from toad.client.menu_entry import MenuEntry, MenuRowDisplay
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap, delete_layout_widgets
 
 
 def platform_input() -> type[InputModality]:
-    """Qt on Android is driven by touch; elsewhere by keys."""
-    return TouchInput if QGuiApplication.platformName() == "android" else KeyboardInput
+    """Read the host platform's declared input modality (touch on Android, keys elsewhere)."""
+    return toad_platform.host.input_modality
 
 
 class QtMenuRow(QWidget):
@@ -153,14 +154,15 @@ class QtMenu(BlockMenu, QFrame):
         over) and one rule-coloured border; rows flat on it, the float hover tone under a
         finger or the pointer; descriptions muted."""
         hover = renderer.theme(FloatHoverToneColour)
+        modality = toad_platform.host.input_modality
         self.setStyleSheet(
             f"#toad-menu {{ background: {renderer.theme(FloatToneColour)};"
             f" border: 1px solid {renderer.theme(RuleColour)}; border-radius: 6px; }}"
             "#toad-menu QScrollArea, #toad-menu-rows { background: transparent; border: none; }"
             "#toad-menu QPushButton { background: transparent; border: none; border-radius: 0; padding: 0;"
             " text-align: left; }"
-            f"#toad-menu QPushButton:hover, #toad-menu QPushButton:pressed {{ background: {hover}; }}"
-            f"#toad-menu-description {{ color: {renderer.theme(MutedColour)}; }}")
+            + modality.hover_or_pressed("#toad-menu QPushButton", f"background: {hover};")
+            + f"#toad-menu-description {{ color: {renderer.theme(MutedColour)}; }}")
 
     def show_entries(self, entries: Iterable[MenuEntry], anchor: QRect | None = None) -> None:
         """Replace the rows with ``entries`` and show the menu at ``anchor`` (a rectangle in
