@@ -1349,8 +1349,10 @@ class WindowsPhoneScenario(Scenario):
                 if outside:
                     faults.append(f"{label}: {name} draws {len(outside)} widgets outside {bounds.getRect()}: {outside[:4]}")
                 if isinstance(window, QtSettingsScreen):
-                    share = window.tabs.height() / max(1, window.height())
-                    editable = [field for field in window.tabs.currentWidget().findChildren(QWidget)
+                    body = window._tab_body
+                    share = body.height() / max(1, window.height())
+                    current = body.currentWidget()
+                    editable = [field for field in (current.findChildren(QWidget) if current is not None else ())
                                 if field.isVisible() and field.isEnabled()
                                 and isinstance(field, (QAbstractButton, QLineEdit))]
                     print(f"  settings: pages {share:.0%} of its height, {len(editable)} editable fields shown", flush=True)
@@ -1724,10 +1726,10 @@ class ShippedScenario(ParticipantSteps):
             await self.step(f"2-menu-{command.declared_name}", lambda command=command: command.apply(app))
             if isinstance(command, SettingsAction):
                 for dialog in app.findChildren(QtSettingsScreen):
-                    for index in range(dialog.tabs.count()):
-                        dialog.tabs.setCurrentIndex(index)
+                    for index in range(dialog._tab_body.count()):
+                        dialog._tab_body.setCurrentIndex(index)
                         await asyncio.sleep(0.3)
-                        self.report(f"2-settings-page-{index}", page=dialog.tabs.tabText(index))
+                        self.report(f"2-settings-page-{index}", page=dialog._tabs[index].spec.label)
             self.close_dialogs()
         await self.step("3-channel", lambda: self.open_named("#comms"))
         await self.step("3-channel-attach", self.open_attach)

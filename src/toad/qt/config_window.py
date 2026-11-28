@@ -24,6 +24,7 @@ from pyqt_reactive.windows.config_window import (
 )
 
 from toad.client.agent_settings_state import AgentSettingsChain
+from toad.qt.presented_window import PresentedWindow
 
 
 class ToadConfigDocument(ConfigDocumentFormat):
@@ -46,7 +47,7 @@ class ScopedConfigTabSpec(ConfigWindowTabSpec):
         return self.state.scope_label
 
 
-class ToadConfigWindow(ConfigWindow):
+class ToadConfigWindow(PresentedWindow, ConfigWindow):
     """``pyqt_reactive.ConfigWindow`` specialized for Toad and Core agent settings."""
 
     document_format: ClassVar[ConfigDocumentFormat] = ToadConfigDocument()

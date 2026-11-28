@@ -237,7 +237,7 @@ with tempfile.TemporaryDirectory() as recipes:
           "from toad.client.application_actions import ApplicationAction; "
           "blank = [action.__name__ for action in ApplicationAction.declarations() if not action.summary()]; "
           "blank and sys.exit(f'error: application actions with an empty summary at -O{sys.flags.optimize}: {blank}'); "
-          "from agent_comms.installer.harness_install import HarnessSession; "
+          "from agent_comms.execution.harness_session import HarnessSession; "
           "'claude_bridge' in HarnessSession.__registry__ or sys.exit('error: HarnessSession discovery missed claude_bridge'); "
           "from agent_comms.cli_verbs.thread import ThreadCliCommand; "
           "from agent_comms.coordination.tables.assignments import WakeAssignment; "
@@ -274,8 +274,10 @@ KNOWN_LAZY: dict[str, str] = {
         "packaging.markers. Qt: local CLM native harness launch, never called by the Android client (exposed once Core #5143 removed packaging from the closure)",
     'objectstate.object_state_registry -> dill':
         'dill. Qt: no caller of ObjectStateRegistry.save_history_to_file',
-    'pyqt_reactive.protocols.widget_adapters -> pyqt_reactive.forms.widget_strategies':
-        "pyqt_reactive.forms.widget_strategies -> magicgui.widgets. Qt: DoubleSpinBoxAdapter is built only by pyqt_reactive's own widget strategies; toad's forms use toad.qt.forms editors",
+    'psygnal._async -> anyio':
+        "anyio. Qt: psygnal async backend is unused under qasync; toad.qt.config_window loads magicgui via pyqt_reactive.windows.config_window",
+    'psygnal._async -> trio':
+        "trio. Qt: psygnal async backend is unused under qasync; toad.qt.config_window loads magicgui via pyqt_reactive.windows.config_window",
     'textual.await_remove -> textual.app':
         "textual.app. Qt: Textual widget lifecycle helper, never called by Qt (exposed once #2255 dropped textual.app from Qt cold start)",
     'textual.dom -> textual.screen':

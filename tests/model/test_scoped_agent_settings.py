@@ -306,7 +306,7 @@ def test_qt_settings_screen_hosts_config_window_and_dm_tabs_declare_thread_subcl
 def test_navigation_target_agent_settings_scopes_and_labels() -> None:
     view = SimpleNamespace(
         navigation_context=SimpleNamespace(
-            project_path=Checkout(Path("/home/ts/code/projects/agent-comms"))
+            project_path=Checkout(Path("/work/projects/agent-comms"))
         )
     )
     assert NoTarget().agent_settings_target(view) == (GlobalSettingsScope(), "")

@@ -81,7 +81,7 @@ class CommsServerBrowserWidget(ZMQServerBrowserWidgetABC):
                 item = QTreeWidgetItem(
                     [
                         f"Port {port} - CommsZMQServer",
-                        "❌ Disconnected",
+                        "❌\ufe0e Disconnected",
                         f"Bus root: {self._config.bus_root}",
                     ]
                 )
@@ -89,7 +89,7 @@ class CommsServerBrowserWidget(ZMQServerBrowserWidgetABC):
             return
 
         for server_info in parsed_servers:
-            status_text = "✅ Connected" if server_info.ready else "🚀 Starting"
+            status_text = "✅\ufe0e Connected" if server_info.ready else "🚀 Starting"
             info_parts: list[str] = []
             identity = server_info.response.process_identity
             if identity is not None:
