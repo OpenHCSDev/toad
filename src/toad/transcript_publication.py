@@ -78,7 +78,11 @@ from toad.client.prepared_pages import (
     PreparedTranscriptPage,
     UnreadTranscriptPage,
 )
-from toad.client.history_state import LiveTranscript, PreparedReplacementViewportRequest
+from toad.client.history_state import (
+    TRANSIENT_SOURCE_ERRORS,
+    LiveTranscript,
+    PreparedReplacementViewportRequest,
+)
 from toad.client.reader_position import LatestPosition, TailPosition
 from toad.worker_group import WorkerGroup
 
@@ -202,22 +206,26 @@ class TranscriptPublication(BoundFrame, ABC):
         try:
             if await self.capture_application():
                 return await self.publish_applied()
-        except CoordinationReadUnavailable, StaleRevision, ReadAgain:
-            # No usable source snapshot was acquired. Keep the original operation,
-            # mounted history and work slot unchanged until a new observation
-            # or the existing preparation completion resumes source work. A read dropped
-            # because its observation closed (`ObserverRetired`, a `ReadAgain`) is one of
-            # these: it escaped here until 2026-11-21, ending the publication's task with
-            # an exception nobody took (Qt), or a failed worker (Textual).
-            if self.current():
-                self.owner.source_requests.defer(self)
-                return False
         except ReloadRequired:
-            # The published witness names a source that is gone, so resending it never
-            # answers: the resumed operation reads from fresh bounds.
+            # Must precede `ReadAgain`: `ReloadRequired` subclasses `ReadAgain`, so catching
+            # `ReadAgain` first left this arm unreachable and kept resending a stale witness.
+            # The published witness names a source that is gone, so the resumed operation
+            # reads from fresh bounds.
             if self.current():
                 self.owner.current_read = NotPublished()
                 self.owner.source_requests.defer(self)
+                return False
+        except (*TRANSIENT_SOURCE_ERRORS, StaleRevision, ReadAgain) as error:
+            # No usable source snapshot was acquired. Keep the original operation,
+            # mounted history and work slot unchanged until a new observation
+            # or the existing preparation completion resumes source work. A read dropped
+            # because its observation closed (`ObserverRetired`, a `ReadAgain`) or the
+            # connector/observer restarted (`ObservationEnded`, `RouteChangedError`, etc.)
+            # defers here instead of failing the publication task and wedging the view.
+            if self.current():
+                self.owner.source_requests.defer(self)
+                if isinstance(error, TRANSIENT_SOURCE_ERRORS):
+                    self.binding.view.app.coordination_access.check_route()
                 return False
         return True
 

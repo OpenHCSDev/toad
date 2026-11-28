@@ -11,15 +11,19 @@ from types import SimpleNamespace
 
 import pytest
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.coordination.errors import ReloadRequired, TranscriptChanged
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.transcript_sources import LatestPage, Through, UnreadTranscriptCursor
 from agent_comms.presentation import NoRevision
 from agent_comms.transcript.transcript_drafts import NoDraft
 from agent_comms.transcript.transcripts import TranscriptPage
 from agent_comms.transport.request import ConnectionDropped
+from agent_comms.ui_model.observation import NotPublished, ObserverUnattached, Published
+from agent_comms.ui_model.observation_wire import ObserverDied
 
 from toad.client.application import ACTIVE_PRESENCE
 from toad.client.committed_presentation import (
+    CommitTranscript,
     FollowTailCommit,
     PreparedAppendCommit,
     PreparedPageCommit,
@@ -42,12 +46,17 @@ from toad.client.history_pager import (
     PresentationBudget,
     Runway,
 )
-from toad.client.history_state import LiveTranscript, RetiredSourceTranscript, WorkingTranscript
-from toad.client.prepared_pages import SavedHistory
+from toad.client.history_state import (
+    LiveTranscript,
+    RetiredSourceTranscript,
+    UnreadTranscript,
+    WorkingTranscript,
+)
+from toad.client.prepared_pages import PreparedPageSource, SavedHistory
 from toad.client.resource_release import ResourceRelease
 from toad.core.events import CoordinationObserved, CoreEventStream
 from toad.history_jump import FollowsTail
-from toad.transcript_publication import SourcePublicationRequests
+from toad.transcript_publication import SourcePublicationRequests, TranscriptPublication
 
 
 # --- Bug 1: Android background resume & transient-error recovery ---
@@ -169,6 +178,8 @@ def test_application_presence_distinguishes_suspend_from_focus_loss():
         TimeoutError("socket timed out"),
         RouteChangedError("observation dropped"),
         http.client.RemoteDisconnected("closed"),
+        ObserverDied("connector restarted"),
+        ObserverUnattached("reattaching"),
     ],
 )
 async def test_working_transcript_defers_transient_transport_errors_instead_of_retiring_tab(error):
@@ -513,3 +524,132 @@ async def test_history_pager_extend_skips_stale_intermediate_page_render_when_fo
     assert await pager.extend("new") is True
     assert "load_intermediate_page" not in actions
     assert actions == ["get_adjacent", "update_edges", "publish_held_latest"]
+
+
+# --- Bug 4: DM/thread view stale-witness, CoordinationObserved wakeup, and UnreadTranscript commit ---
+
+
+def test_prepared_page_source_observe_availability_wakes_on_coordination_observed():
+    class Publisher:
+        pass
+
+    events = CoreEventStream(Publisher())
+    resumed: list[object] = []
+
+    class FakeView:
+        def __init__(self) -> None:
+            self.thread_scope = SimpleNamespace(observe=lambda _v, _a, _cb: ResourceRelease())
+            self._cb = None
+
+        def _deliver(self, event, _sub) -> None:
+            self._cb(event)
+
+        def observe_core_callback(self, stream, event_type, callback):
+            self._cb = callback
+            return stream.subscribe(event_type, self._deliver)
+
+        def retire_core(self, subscription) -> None:
+            subscription.close()
+
+    source = PreparedPageSource()
+    access = SimpleNamespace(events=events)
+    release = source.observe_availability(FakeView(), access, resumed.append)
+    try:
+        events.publish(CoordinationObserved(NoRevision()))
+        assert len(resumed) == 1
+    finally:
+        release.close()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("error", "resets_read", "checks_route"),
+    [
+        (ReloadRequired("witness gone"), True, False),
+        (TranscriptChanged(), True, False),
+        (ObserverDied("connector dropped"), False, True),
+        (RouteChangedError("route switched"), False, True),
+        (ConnectionDropped("socket reset"), False, True),
+    ],
+)
+async def test_transcript_publication_resets_witness_on_reload_and_defers_transient_errors(
+    error, resets_read, checks_route,
+):
+    deferred: list[object] = []
+    route_checks: list[str] = []
+
+    class FakePublication(TranscriptPublication):
+        def current(self) -> bool:
+            return True
+
+        async def capture_application(self) -> bool:
+            return True
+
+        async def publish_applied(self) -> bool:
+            raise error
+
+    owner = SimpleNamespace(
+        current_read=Published(SimpleNamespace()),
+        source_requests=SimpleNamespace(defer=deferred.append),
+    )
+    binding = SimpleNamespace(
+        view=SimpleNamespace(
+            on_native_pump=lambda: False,
+            live_blocks=(),
+            turns=SimpleNamespace(owner=SimpleNamespace(captured_snapshot=lambda _blocks: None)),
+            agent_binding=SimpleNamespace(committed_native_output=None),
+            app=SimpleNamespace(
+                coordination_access=SimpleNamespace(
+                    check_route=lambda: route_checks.append("check"),
+                )
+            ),
+        ),
+        window=SimpleNamespace(reader_position=None),
+        thread_scope=None,
+    )
+    pub = FakePublication(binding, owner, 0)
+
+    assert await pub.publish() is False
+    assert deferred == [pub]
+    assert isinstance(owner.current_read, NotPublished) is resets_read
+    assert bool(route_checks) is checks_route
+
+
+@pytest.mark.asyncio
+async def test_working_and_commit_transcript_publish_keeps_operation_active_until_finish():
+    published_calls: list[str] = []
+    painted_calls: list[object] = []
+
+    class FakeOwner:
+        def __init__(self) -> None:
+            self.window = SimpleNamespace(scroll_revision=0)
+            self.page_source = SimpleNamespace(through="cursor-1")
+            self.view = SimpleNamespace(
+                transcript=SimpleNamespace(
+                    binding=SimpleNamespace(
+                        painted=lambda _tr, cur: painted_calls.append(cur),
+                    )
+                )
+            )
+            self._source_state = UnreadTranscript()
+
+        def paging_window(self):
+            return ("through", None, ())
+
+        def publish_committed(self) -> None:
+            published_calls.append("publish_committed")
+            self._source_state = self._source_state.publish()
+
+    owner = FakeOwner()
+    op = CommitTranscript(owner._source_state, owner, live_blocks=(), claims=())
+    owner._source_state = op
+
+    op.rows_published(owner)
+
+    # The running operation stayed mounted in `_source_state` so `finish_source_work` still matches it,
+    # while its wrapped state transitioned from UnreadTranscript to LiveTranscript ("Saved history available").
+    assert owner._source_state is op
+    assert isinstance(op.source, LiveTranscript)
+    assert op.coverage.summary == "Saved history available"
+    assert published_calls == ["publish_committed"]
+    assert painted_calls == ["cursor-1"]
