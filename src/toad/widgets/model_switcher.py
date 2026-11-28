@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Self
 
 from textual import containers, events, on, work
 from textual.app import ComposeResult
@@ -34,7 +33,7 @@ from toad.widgets.model_selection import (
     ModelSelection,
     SelectionBounds,
 )
-from toad.widgets.prompt_popup import InfoPopup
+from toad.widgets.prompt_popup import AlwaysOpenPromptPopup, InfoPopup
 
 
 class SessionModelEditor(
@@ -149,6 +148,7 @@ class FinishSessionSettings(DismissButton, SessionSettingsButton):
 
 
 class ModelSwitcher(
+    AlwaysOpenPromptPopup,
     SelectionBounds,
     HiddenOverflow,
     ScreenOverlay,
@@ -184,7 +184,3 @@ class ModelSwitcher(
             editor.editor.focus()
             for model in self.query(SessionModelEditor):
                 model.focus_content(False)
-
-    @classmethod
-    def for_prompt(cls, prompt: object) -> Self | None:
-        return cls()

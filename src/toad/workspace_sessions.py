@@ -193,7 +193,7 @@ class ObservedWireRoot(ABC):
         ...
 
     @classmethod
-    def from_optional(cls, value: Path | None) -> 'ObservedWireRoot':
+    def from_optional(cls, value: Path | None) -> ObservedWireRoot:
         return AbsentObservedWireRoot() if value is None else HeldObservedWireRoot(value)
 
 

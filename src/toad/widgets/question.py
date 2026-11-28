@@ -30,7 +30,12 @@ from toad.native_style import (
     TransparentBackground,
 )
 from toad.tone_paint import UntintedTonePaint
-from toad.question_actions import ChoiceQuestion, QuestionAction, QuestionContext, SelectKindAction
+from toad.question_actions import (
+    ChoiceQuestion,
+    QuestionAction,
+    SelectKindAction,
+    SelfQuestionContext,
+)
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import StepsVerticalCursor, VisibleActions
 
@@ -229,7 +234,15 @@ class QuestionOptions(containers.VerticalGroup):
     """The question's answers, in order."""
 
 
-class Question(VisibleActions, StepsVerticalCursor, QuestionContext, ChoiceQuestion, containers.VerticalGroup, actions=(QuestionAction,), can_focus=True):
+class Question(
+    VisibleActions,
+    StepsVerticalCursor,
+    SelfQuestionContext,
+    ChoiceQuestion,
+    containers.VerticalGroup,
+    actions=(QuestionAction,),
+    can_focus=True,
+):
     """A text question with a menu of responses."""
 
     BINDING_GROUP_TITLE = "Question"
@@ -338,10 +351,6 @@ class Question(VisibleActions, StepsVerticalCursor, QuestionContext, ChoiceQuest
     def refresh_option_keys(self, _screen: Screen) -> None:
         for option, keys in zip(self.query(Option), self.option_keys()):
             option.keys = keys
-
-    @property
-    def question(self) -> Question:
-        return self
 
     @property
     def accepts_selection(self) -> bool:

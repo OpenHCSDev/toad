@@ -151,6 +151,7 @@ QT_ONLY = {
     'toad.qt.window.HeldRowMenu': "connects the Qt tree's customContextMenuRequested (a right-click, or a held finger FingerPress delivers as one) to the panel; the entries come from each row's shared menu_entries",
     'toad.qt.finger_press.Press': "one Qt press: the QWidget under it, its global QPointF and whether a touch screen made it, and a tap consumer's claim",
     'toad.qt.page.Page': "Qt QStackedWidget page protocol (shown, reload, workspace_navigation_owner, external_transcript_changed) for QtWorkspaceViews; Textual switches Screen modes directly",
+    'toad.qt.page.NonTranscriptPage': "Qt QStackedWidget Page specialization whose shown() hook marks no transcript active (Welcome and QtOpeningSessionView)",
     'toad.qt.paste_profile.QtProfilePastePanel': "inline QFrame child of QtToadApp for pasting bus-profile JSON without allocating a second QWindow EGL surface on Android; Textual pushes a modal Screen",
     'toad.qt.sidebar_panel.QtPanelEntry': "Qt widget-factory dataclass (spec, build, controls, identity) parametrizing shared SidebarPanelColumn and PanelMenuModel; Textual uses SideBar.Panel",
     'toad.qt.sidebar_panel.QtSidebarShell': "QWidget QVBoxLayout stacking QtSidebarSearch above a sidebar body widget; Textual composes the same shell in SideBar._compose_shell",

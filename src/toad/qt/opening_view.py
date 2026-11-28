@@ -22,10 +22,10 @@ from toad.client.session_scope import SessionScope
 from toad.qt.float_layer import QtPendingIndicator
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
-from toad.qt.page import Page
+from toad.qt.page import NonTranscriptPage
 
 
-class QtOpeningSessionView(Page, SessionScope, QWidget):
+class QtOpeningSessionView(NonTranscriptPage, SessionScope, QWidget):
     """The Qt placeholder a `ThreadOpening` mounts while async navigation runs.
 
     `session_navigation.new(identity, lambda: view, ...)` accepts any `SessionScope`
@@ -79,9 +79,3 @@ class QtOpeningSessionView(Page, SessionScope, QWidget):
     def belongs_to_wire(self, root) -> bool:
         """Opening view is wire-agnostic until it's replaced by the bound view."""
         return False
-
-    def shown(self, window, visited) -> None:
-        """`QtWorkspaceViews.select` calls `page.shown(app, visited)` when a page
-        becomes the current widget. Opening view has no visit identity to record;
-        `QtWorkspaceViews.swap_page` shows the bound replacement if this placeholder
-        was current."""

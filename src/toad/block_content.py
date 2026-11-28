@@ -12,7 +12,20 @@ from toad.menus import KeyedMenuCommand, MenuCommand, MenuConversation
 from toad.widget_actions import ExclusiveKeys
 
 
-class BlockContent:
+class BlockInteraction:
+    """Block surfaces providing context menus, clipboard, and prompt text."""
+
+    def get_block_menu(self) -> Iterable[MenuCommand]:
+        return ()
+
+    def get_clipboard_text(self) -> str:
+        return ""
+
+    def get_prompt_text(self) -> str:
+        return self.get_clipboard_text()
+
+
+class BlockContent(BlockInteraction):
     """Non-interactive blocks inherit empty content and expansion behavior."""
 
 
@@ -21,16 +34,6 @@ class BlockContent:
         from toad.block_navigation import AtomicBlockCursor
 
         return AtomicBlockCursor(self)
-
-    def get_block_menu(self) -> Iterable[MenuCommand]:
-        return ()
-
-    def get_clipboard_text(self) -> str:
-        """What copying the block gives; empty when it has nothing to copy."""
-        return ""
-
-    def get_prompt_text(self) -> str:
-        return self.get_clipboard_text()
 
     def can_expand(self) -> bool:
         return False

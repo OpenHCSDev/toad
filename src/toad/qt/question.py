@@ -29,12 +29,12 @@ from PySide6.QtWidgets import (
 
 from toad.answer import Answer, Ask
 from toad.client.input_attention import InputAttention
-from toad.question_actions import ChoiceQuestion, QuestionContext, SelectKindAction
+from toad.question_actions import ChoiceQuestion, SelectKindAction, SelfQuestionContext
 from toad.widget_contracts import DismissibleContract
 from toad.qt.metrics import UiGap, delete_layout_widgets
 from toad.qt.tap_flash import QtPushButton
 
-class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
+class QtQuestion(SelfQuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
     """Qt's inline question. A hidden panel at the bottom of the conversation view that fills
     with the title and option buttons when the conversation asks, and tucks itself away once
     the user picks or the question is retracted.
@@ -66,11 +66,6 @@ class QtQuestion(QuestionContext, ChoiceQuestion, QFrame, DismissibleContract):
         self._buttons: list[QPushButton] = []
         self._shortcuts: list[QShortcut] = []
         self.hide()
-
-    @property
-    def question(self) -> QtQuestion:  # type: ignore[override]
-        """The `QuestionContext` contract. The Qt widget is its own question owner."""
-        return self
 
     @property
     def options(self) -> tuple[Answer, ...]:

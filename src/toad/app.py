@@ -98,7 +98,7 @@ class BusPickResult(ABC):
         pass
 
     @classmethod
-    def from_optional(cls, value: PickerRow | None) -> 'BusPickResult':
+    def from_optional(cls, value: PickerRow | None) -> BusPickResult:
         return AbsentBusPickResult() if value is None else HeldBusPickResult(value)
 
 

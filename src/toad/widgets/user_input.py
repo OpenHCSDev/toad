@@ -9,12 +9,17 @@ from toad.client.line_blocks import MessageBody, Divider, UserRole
 from toad.message_rows import MessageClock, LiveMessageClock
 from toad.widgets.message_divider import MessageDivider
 from agent_comms.ui_model.message_category import MessageCategory
-from toad.commit_claims import SnapshotPresentation
+from toad.commit_claims import UserInputPresentation
 from toad.commit_claims import CAPTURED_CLAIM, CommitClaim
 
 
 
-class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class UserInput(
+    ConversationBlock,
+    UserInputPresentation,
+    CategorizedBlock,
+    containers.VerticalGroup,
+):
     @property
     def message_category(self) -> type[MessageCategory]:
         return UserCategory
@@ -26,10 +31,6 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
         self.show_divider = show_divider
         self.clock = clock
         self.claim = claim
-
-    @property
-    def commit_claim(self):
-        return self.claim
 
     def compose(self) -> ComposeResult:
         if self.show_divider:

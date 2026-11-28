@@ -30,6 +30,7 @@ from toad.commit_claims import (
     CommitClaim,
     LiveResponsePresentation,
     SnapshotPresentation,
+    UserInputPresentation,
 )
 from toad.turn_presentation import LiveBlock
 
@@ -91,7 +92,7 @@ class QtThoughtBlock(SnapshotPresentation, QtLiveBlock):
     event_kind = ThinkingTranscript
 
 
-class QtUserInputBlock(SnapshotPresentation, QtLiveBlock):
+class QtUserInputBlock(UserInputPresentation, QtLiveBlock):
     """The user's input row, shown when the turn starts; saved history covering its claim replaces it."""
 
     event_kind = UserTranscript
@@ -100,7 +101,3 @@ class QtUserInputBlock(SnapshotPresentation, QtLiveBlock):
         super().__init__(window, text)
         self.claim = claim
         self.finished = True
-
-    @property
-    def commit_claim(self) -> CommitClaim:
-        return self.claim

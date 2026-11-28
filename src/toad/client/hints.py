@@ -193,27 +193,28 @@ class HintHostSurface:
         raise NotImplementedError
 
 
-class OpenHintsAction(WidgetAction):
+class HintTargetAction(WidgetAction, declared_name=None):
+    """Hint actions available only when the workspace exposes hint targets."""
+
+    def available(self, context: HintHostSurface) -> bool:
+        return context.hints_available()
+
+
+class OpenHintsAction(HintTargetAction):
     """Show left-click hints."""
 
     title = PrimaryHint.description
     keys = {VimMode: ("f",)}
 
-    def available(self, context: HintHostSurface) -> bool:
-        return context.hints_available()
-
     def apply(self, context: HintHostSurface) -> object:
         return context.action_show_hints()
 
 
-class OpenContextHintsAction(WidgetAction):
+class OpenContextHintsAction(HintTargetAction):
     """Show right-click hints."""
 
     title = ContextHint.description
     keys = {VimMode: ("ctrl+f",)}
-
-    def available(self, context: HintHostSurface) -> bool:
-        return context.hints_available()
 
     def apply(self, context: HintHostSurface) -> object:
         return context.action_show_context_hints()
