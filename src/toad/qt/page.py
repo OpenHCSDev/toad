@@ -33,6 +33,10 @@ class Page:
     def reload(self) -> None:
         """A page fed by its own subscription has nothing to read again."""
 
+    def stores_observed(self, revision) -> None:
+        """Core announced a store revision; reload unless this page knows it is unchanged."""
+        self.reload()
+
     def workspace_navigation_owner(self, views) -> NavigationOwner:
         """What the workspace navigates through while this page is selected
         (`QtWorkspaceViews.navigation_owner`): nothing, for a page that does not navigate."""

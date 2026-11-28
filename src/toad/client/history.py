@@ -18,7 +18,8 @@ from agent_comms.messaging.message_page import MessagePage, MessagePageRequest
 from agent_comms.messaging.message_reference import MessageReference
 
 from agent_comms.messaging.messages import Message
-from agent_comms.messaging.revision_views import RosterView
+from agent_comms.messaging.revision_views import RegistrationsView
+from agent_comms.presentation import WireRevision
 from agent_comms.messaging.notification_reads import LiveNotificationRead
 from agent_comms.messaging.page_traversal import (
     LiveCursor,
@@ -226,7 +227,8 @@ class ReadMarkedHistory(ReadMarking, ResumesSource):
     async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:
         if not await self.source_is_current(snapshot):
             if snapshot.current(self):
-                self.withdraw_view()
+                if self.page_source.route_replaced():
+                    self.withdraw_view()
             elif self.is_attached:
                 self.mark_visible_after_paint()
             return
@@ -337,12 +339,34 @@ class WireView(ConversationActivity, ComposerPoolHost):
     _config_revision: ReadState = NoRevision()
     """The announcement the thread's config (compose, label, status, mentions) was last read at."""
 
+    @staticmethod
+    def _conversation_stores_changed(seen: ConversationObservation, announced: ReadState) -> bool:
+        """Whether ``announced`` moved any store that can change this wire conversation's
+        messages, sequence, or display selection (bus, history, registry, catalog).
+        Pure activity, read-marker, notification, goal, or expiry ticks need zero RPCs."""
+        if isinstance(seen, ConversationRevision) and isinstance(announced, WireRevision):
+            before = seen.stores
+            return (
+                not before.selection_reusable_from(announced)
+                or before.bus_seq != announced.bus_seq
+                or before.bus_changes != announced.bus_changes
+            )
+        return not seen.matches_stores(announced)
+
+    def needs_wire_refresh(self, announced: ReadState) -> bool:
+        """Whether ``announced`` moved any store affecting this wire conversation's
+        messages, display selection, or thread config (bus, history, registry, catalog)."""
+        history = self.message_history
+        return (
+            history.undrawn
+            or self._conversation_stores_changed(history.page_source.revision, announced)
+            or announced.changed_since(RegistrationsView(), self._config_revision)
+        )
+
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work.
-        The thread's config is read on the first refresh and when the roster moved (the
-        roster owner's own signal: a channel gets no `thread_presented`), not on every bus
-        message. (Each frontend's view wrote this sequence; Qt's read the announcement after
-        the read it describes, so a roster change during the read was counted as seen.)"""
+        The thread's config is read on the first refresh and when registrations/catalog moved
+        (RegistrationsView), not on every activity heartbeat or bus message."""
         history = self.message_history
         announced = self.app.coordination_access.revision
         try:
@@ -352,7 +376,7 @@ class WireView(ConversationActivity, ComposerPoolHost):
         self._refreshed_from = announced
         self.submissions.settle()
         self.source_drawn()
-        if announced.changed_since(RosterView(), self._config_revision):
+        if announced.changed_since(RegistrationsView(), self._config_revision):
             self._config_revision = announced
             self.read_thread_config()
 
@@ -433,7 +457,7 @@ class WireView(ConversationActivity, ComposerPoolHost):
             # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
-        if source.revision.matches_stores(access.revision):
+        if not self._conversation_stores_changed(source.revision, access.revision):
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
@@ -445,7 +469,7 @@ class WireView(ConversationActivity, ComposerPoolHost):
         revision = await source.read_revision()
         if (source is history.page_source and snapshot.current(history)
                 and source.uses_observation(access.observation.observed())
-                and not source.revision.matches_stores(revision)):
+                and self._conversation_stores_changed(source.revision, revision)):
             await self._refresh()
 
     dispatch_sync: Callable[[object], None]
@@ -751,6 +775,12 @@ class WirePageBuffer(SavedHistory):
             return False
         access = self.loader.access
         return await access.connection.holds_async(self.runtime, access, self.loader.root)
+
+    def route_replaced(self) -> bool:
+        if self.closed:
+            return False
+        access = self.loader.access
+        return access.connection.route_replaced(access, self.loader.root)
 
     def status_thread(self, access):
         return self.loader.conversation.status_thread(self.loader.root, access)

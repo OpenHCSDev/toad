@@ -1554,6 +1554,10 @@ class ConversationView(WireView, QtConversation, ConversationViewNavigation, Ses
     def reload(self) -> None:
         self.message_history.page_source.schedule_refresh(self)
 
+    def stores_observed(self, revision) -> None:
+        if self.needs_wire_refresh(revision):
+            self.reload()
+
     def source_read(self) -> None:
         self.content_ready.set()
 
@@ -2095,7 +2099,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def stores_changed(self, event: CoordinationObserved, subscription: object) -> None:
         self.bus_label.present(self)
-        self.workspace_sessions.selected.reload()
+        self.workspace_sessions.selected.stores_observed(event.revision)
 
     def external_transcript_changed(self, event: ExternalTranscriptChanged, subscription: object) -> None:
         self.workspace_sessions.external_transcript_changed()
