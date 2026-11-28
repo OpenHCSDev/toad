@@ -1365,19 +1365,12 @@ class MessagePrompt(MessagePromptComposer, Prompt):
     def capture_composer_draft(self) -> ComposerDraft:
         return replace(
             super().capture_composer_draft(),
-            attached_files=tuple(self.attached_files),
-            takes_files=self.takes_files,
             placeholder=self.simple_placeholder or "",
         )
 
     def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
         self.simple_placeholder = draft.placeholder or host.composer_placeholder or None
         super().rebind_conversation(host, draft)
-        self.attached_files = tuple(draft.attached_files)
-        self.takes_files = draft.takes_files
-        self.show_files_offered()
-        self.show_attached()
-        self.update_prompt()
 
 
 class MailboxPrompt(MessagePrompt):

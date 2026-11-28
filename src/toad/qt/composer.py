@@ -973,20 +973,6 @@ class QtMessageComposer(MessagePromptComposer, Composer):
             self.attached_scroll.setFixedHeight(chip_height + 2)
         self.attached_row.setVisible(bool(self.attached_files))
 
-    def capture_composer_draft(self) -> ComposerDraft:
-        return replace(
-            super().capture_composer_draft(),
-            attached_files=tuple(self.attached_files),
-            takes_files=self.takes_files,
-        )
-
-    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
-        super().rebind_conversation(host, draft)
-        self.attached_files = tuple(draft.attached_files)
-        self.takes_files = draft.takes_files
-        self.show_files_offered()
-        self.show_attached()
-
 
 class ChannelComposer(QtMessageComposer):
     """A channel's composer, which offers its members after an @."""

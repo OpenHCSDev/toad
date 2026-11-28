@@ -17,6 +17,7 @@ import asyncio
 import hashlib
 import mimetypes
 from abc import abstractmethod
+from dataclasses import replace
 from pathlib import Path
 
 from agent_comms.messaging.message_files import (
@@ -26,6 +27,7 @@ from agent_comms.messaging.message_files import (
 from agent_comms.nominal.declared_choice import DeclaredChoice, TitledChoice
 from formbridge.operations import ExclusiveKind, OperationKind
 
+from toad.client.composer_pool import ComposerDraft, ComposerPoolHost
 from toad.client.input_decision import InputAccepted, InputDecision
 from toad.client.message_file_links import file_size
 from toad.client.prompt_composer import PromptComposer
@@ -254,6 +256,22 @@ class MessagePromptComposer(PromptComposer):
         """A send that did not land returns its files with its text."""
         super().restore(draft)
         self.attached_files = (*self.attached_files, *draft.files)
+        self.show_attached()
+
+    def capture_composer_draft(self) -> ComposerDraft:
+        """Preserve attached files and bus file capability across pooled tab rebinds."""
+        return replace(
+            super().capture_composer_draft(),
+            attached_files=tuple(self.attached_files),
+            takes_files=self.takes_files,
+        )
+
+    def rebind_conversation(self, host: ComposerPoolHost, draft: ComposerDraft) -> None:
+        """Restore attached files and bus file capability when this pooled composer rebinds."""
+        super().rebind_conversation(host, draft)
+        self.attached_files = tuple(draft.attached_files)
+        self.takes_files = draft.takes_files
+        self.show_files_offered()
         self.show_attached()
 
     @staticmethod
