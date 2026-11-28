@@ -11,7 +11,7 @@ clashes with one.
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -40,6 +40,36 @@ class ThreadLineText:
         return DetailedLine.status_prefix(self.badge) + self.pin
 
 
+class ThreadActionStatus(ABC):
+    """Optional in-flight action status text on a sidebar thread row."""
+
+    @abstractmethod
+    def thread_busy(self, row: ThreadRowModel) -> bool:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: str | None) -> ThreadActionStatus:
+        return AbsentThreadActionStatus() if value is None else HeldThreadActionStatus(value)
+
+
+@dataclass(frozen=True)
+class AbsentThreadActionStatus(ThreadActionStatus):
+    """Absent `ThreadActionStatus` carrying no value."""
+
+    def thread_busy(self, row: ThreadRowModel) -> bool:
+        return row.status.is_working()
+
+
+@dataclass(frozen=True)
+class HeldThreadActionStatus(ThreadActionStatus):
+    """Held `ThreadActionStatus` carrying its present value."""
+
+    value: str
+
+    def thread_busy(self, row: ThreadRowModel) -> bool:
+        return True
+
+
 class ThreadRowFace:
     """A thread's line in a sidebar list."""
 
@@ -49,9 +79,9 @@ class ThreadRowFace:
     )
 
     @staticmethod
-    def thread_busy(row: ThreadRowModel, action_status: str | None) -> bool:
+    def thread_busy(row: ThreadRowModel, action_status: ThreadActionStatus) -> bool:
         """Whether the line waves (`NameWave`): its thread works, or an action on it runs."""
-        return action_status is not None or row.status.is_working()
+        return action_status.thread_busy(row)
 
     def present_thread(self, row: ThreadRowModel, *, pinned: bool, action_status: str | None,
                        counts: type[UnreadCount]) -> None:

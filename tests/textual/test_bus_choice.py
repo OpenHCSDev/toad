@@ -31,7 +31,7 @@ from agent_comms.transport.tailnet_profiles import (
 from textual.css.scalar import Unit
 from yarl import URL
 
-from toad.app import ToadApp
+from toad.app import AbsentBusPickResult, HeldBusPickResult, ToadApp
 from toad.application_outcome import Ended, Succeeded
 from toad.client.application import BusDiscovery, BusSwitch
 from toad.client.bus_selection import BusChoice, DiscoveredPeer, HeldBus, LocalBus
@@ -90,7 +90,7 @@ async def test_picking_a_bus_switches_the_running_app_onto_it(workspace, monkeyp
         access, local = app.coordination_access, app.coordination_access.connection
         saved = app.tab_order.names
         assert saved, "the fixture's session is a tab saved under this machine's bus"
-        app.picked_bus(HeldBus(openable(held)))
+        app.picked_bus(HeldBusPickResult(HeldBus(openable(held))))
         await app.wait_operations(BusSwitch)
         assert isinstance(access.observation, FailedObservation), (
             "the unreachable bus is observed, and refused, in place")
@@ -101,7 +101,7 @@ async def test_picking_a_bus_switches_the_running_app_onto_it(workspace, monkeyp
             "the views of the bus left behind are closed")
         assert isinstance(app.return_value, Ended), "the app is still running"
 
-        app.picked_bus(LocalBus())
+        app.picked_bus(HeldBusPickResult(LocalBus()))
         await app.wait_operations(BusSwitch)
         assert isinstance(access.observation, LocalObserving), "this machine's bus, observed again"
         assert access.connection.location == local.location
@@ -116,7 +116,7 @@ async def test_a_dismissed_picker_changes_nothing(workspace):
     the only test that let one close on its own, and it died in application start."""
     async with workspace.app(size=(140, 48)) as ui:
         connection = ui.app.coordination_access.connection
-        ui.app.picked_bus(None)
+        ui.app.picked_bus(AbsentBusPickResult())
         await ui.step()
         # Esc out of the picker leaves this session on its own bus.
         assert ui.app.coordination_access.connection is connection
@@ -148,7 +148,7 @@ async def test_the_picker_waits_for_a_pick_instead_of_taking_its_first_row(works
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
         connection = app.coordination_access.connection
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         for _ in range(4):
             await ui.step()
@@ -177,7 +177,7 @@ async def test_the_picker_adds_the_tailnet_peers_it_finds(workspace, monkeypatch
         tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
         tailnet.hold(TailnetPeer("desktop", "100.124.133.120", True), 247)
         tailnet.held.touch()
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
@@ -269,7 +269,7 @@ async def test_a_machine_this_one_holds_a_profile_for_is_one_row(workspace, monk
         await app.wait_operations(BusDiscovery)
         tailnet.hold(TailnetPeer("ts-gaming", "100.119.57.99", True), 43)
         tailnet.held.touch()
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")
@@ -315,7 +315,7 @@ async def test_discovery_asks_the_observed_core_and_never_holds_the_message_pump
     tailnet.held.touch()
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         for _ in range(4):
@@ -359,7 +359,7 @@ async def test_a_typed_address_is_asked_exactly_as_a_discovered_peer_is(workspac
 
     async with workspace.app(size=(140, 48)) as ui:
         app, pilot = ui.textual
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusAddress)), why="the picker to compose")
@@ -387,7 +387,7 @@ async def test_a_saved_bus_can_be_forgotten_and_its_profile_goes_with_it(workspa
 
     async with workspace.app(size=(140, 48)) as ui:
         app, _ = ui.textual
-        app.push_screen(BusChoices(), app.picked_bus)
+        app.open_bus_switcher()
         await ui.until(lambda: isinstance(app.screen, BusChoices), why="the picker")
         picker = app.screen
         await ui.until(lambda: bool(picker.query(BusRows)), why="the picker to compose")

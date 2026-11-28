@@ -16,7 +16,9 @@ Open/Copy case that shares no catalog.
 
 from __future__ import annotations
 
+from abc import ABC
 from collections.abc import Callable
+from dataclasses import dataclass
 
 from agent_comms.registry.relationships import RelationshipEntry
 
@@ -34,11 +36,33 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     return ThreadTarget(person.thread.name)
 
 
+class RowOpenAction(ABC):
+    """Optional open callback for an openable sidebar conversation row."""
+
+    def menu_entries_for_row(self, items: list[MenuEntry]) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class AbsentRowOpenAction(RowOpenAction):
+    """Absent `RowOpenAction` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldRowOpenAction(RowOpenAction):
+    """Held `RowOpenAction` carrying its present value."""
+
+    value: Callable[[], object]
+
+    def menu_entries_for_row(self, items: list[MenuEntry]) -> None:
+        items.append(MenuEntry(label='Open', run=self.value))
+
+
 def menu_entries_for_row(
     target_name: str,
     *,
     copy: Callable[[str], object],
-    open_callback: Callable[[], object] | None,
+    open_callback: RowOpenAction,
 ) -> tuple[MenuEntry, ...]:
     """Open/Copy entries for a sidebar conversation row.
 
@@ -48,7 +72,6 @@ def menu_entries_for_row(
     so the helper itself doesn't import either frontend.
     """
     items: list[MenuEntry] = []
-    if open_callback is not None:
-        items.append(MenuEntry(label="Open", run=open_callback))
+    open_callback.menu_entries_for_row(items)
     items.append(MenuEntry(label="Copy name", run=lambda: copy(target_name)))
     return tuple(items)

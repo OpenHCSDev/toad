@@ -128,7 +128,13 @@ from toad.client.sidebar_lines import (
 )
 from toad.keyed_rows import KeyedRows
 from toad.setting_choices import UnreadCount
-from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
+from toad.sidebar_rows import (
+    ChannelLineText,
+    ChannelRowFace,
+    ThreadActionStatus,
+    ThreadLineText,
+    ThreadRowFace,
+)
 from toad.client.referenced_core import ReferencedCore
 from toad.client.session_scope import NoSessionOrigin, SessionOrigin, SessionScope
 from toad.client.subscribers import SidebarSubscriber
@@ -551,7 +557,7 @@ class ThreadLine(ThreadRowFace, ConversationRow):
         return line
 
     def present_thread(self, row, *, pinned: bool, action_status: str | None, counts) -> None:
-        self.busy = self.thread_busy(row, action_status)
+        self.busy = self.thread_busy(row, ThreadActionStatus.from_optional(action_status))
         super().present_thread(row, pinned=pinned, action_status=action_status, counts=counts)
         if self.treeWidget() is not None:
             self.follow_activity(self.busy)

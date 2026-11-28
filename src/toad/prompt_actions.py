@@ -96,6 +96,10 @@ class SubmitAction(SubmitInputAction):
     title = "Send"
     key_display = "⏎"
 
+    @classmethod
+    def composer_shortcut_context(cls, composer):
+        return composer.editor
+
 
 class SubmitNowAction(SubmitInputAction):
     """Send the prompt now, ahead of the queue."""

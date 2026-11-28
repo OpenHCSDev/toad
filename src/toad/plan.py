@@ -2,12 +2,42 @@
 
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import ClassVar
 
 from agent_comms.nominal.declared_family import DeclaredFamily
 from acp.schema import PlanEntry
+
+
+class PriorPlanStatus(ABC):
+    """Previous PlanStatus of a plan entry before an update, or absence when first seen."""
+
+    @abstractmethod
+    def newly_complete(self, owner: type[CompletedPlanStatus]) -> bool:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: type[PlanStatus] | None) -> PriorPlanStatus:
+        return AbsentPriorPlanStatus() if value is None else HeldPriorPlanStatus(value)
+
+
+@dataclass(frozen=True)
+class AbsentPriorPlanStatus(PriorPlanStatus):
+    """Absent `PriorPlanStatus` carrying no value."""
+
+    def newly_complete(self, owner: type[CompletedPlanStatus]) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
+class HeldPriorPlanStatus(PriorPlanStatus):
+    """Held `PriorPlanStatus` carrying its present value."""
+
+    value: type[PlanStatus]
+
+    def newly_complete(self, owner: type[CompletedPlanStatus]) -> bool:
+        return self.value is not owner
 
 
 class PlanStatus(DeclaredFamily, affix="PlanStatus"):
@@ -21,7 +51,7 @@ class PlanStatus(DeclaredFamily, affix="PlanStatus"):
     def marker(cls) -> str: ...
 
     @classmethod
-    def newly_complete(cls, prior: type[PlanStatus] | None) -> bool:
+    def newly_complete(cls, prior: PriorPlanStatus) -> bool:
         """Whether reaching this status from ``prior`` is a fresh completion."""
         return False
 
@@ -54,8 +84,8 @@ class CompletedPlanStatus(PlanStatus):
         return " ✔ "
 
     @classmethod
-    def newly_complete(cls, prior: type[PlanStatus] | None) -> bool:
-        return prior is not None and prior is not cls
+    def newly_complete(cls, prior: PriorPlanStatus) -> bool:
+        return prior.newly_complete(cls)
 
     @classmethod
     def style_qt_label(cls, label) -> None:
@@ -108,7 +138,7 @@ class PlanDisplayState:
     def newly_complete(self, entry: PlanItem) -> bool:
         """Whether this entry's status is complete AND was not complete at the previous
         update — the condition both frontends use to animate the completion."""
-        return entry.status.newly_complete(self.previous_statuses.get(entry.content))
+        return entry.status.newly_complete(PriorPlanStatus.from_optional(self.previous_statuses.get(entry.content)))
 
 
 class PlanView:

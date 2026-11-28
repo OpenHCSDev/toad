@@ -102,7 +102,7 @@ def _bind_composer_shortcuts(composer: Composer):
             composer.editor,
             action_cls(),
             method.__get__(composer),
-            context=composer.editor if action_cls is SubmitAction else None,
+            context=action_cls.composer_shortcut_context(composer),
         )
         for action_cls, method in composer.action_methods
     ]

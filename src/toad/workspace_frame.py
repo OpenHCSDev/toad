@@ -14,9 +14,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from toad.history_jump import JumpsToLatest
+
 if TYPE_CHECKING:
     from toad.frame_presentation import FramePresentation
-    from toad.history_jump import JumpsToLatest
 
 
 @runtime_checkable

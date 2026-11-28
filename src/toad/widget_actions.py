@@ -68,6 +68,11 @@ class Action(DeclaredAction[Context], affix="Action"):
     def refine_binding(cls, binding: ActionBinding) -> ActionBinding:
         return replace(binding, group=cls.group, declared_key=cls.declared_key)
 
+    @classmethod
+    def composer_shortcut_context(cls, composer):
+        """Return the Qt shortcut context widget for this action when bound on a composer editor."""
+        return None
+
 
 class ExclusiveKeys:
     """One declared family of mutually exclusive actions may share its default keys."""

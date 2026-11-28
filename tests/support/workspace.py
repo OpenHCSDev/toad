@@ -48,7 +48,7 @@ class Workspace:
     def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None,
                root: Path | None = None):
         """Declare a thread on the wire; a running thread is owned by this process."""
-        from agent_comms.execution.child_process import (
+        from agent_comms.execution.process_identity import (
             NoProcess,
             ProcessIdentity,
         )

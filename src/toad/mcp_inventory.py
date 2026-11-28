@@ -10,6 +10,8 @@ import asyncio
 import json
 import os
 import shutil
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.execution.launch_runtime import LaunchRuntime
@@ -110,12 +112,36 @@ async def read_inventory(project_root: Path) -> mcp_declarations.Inventory | Non
             await process.wait()
 
 
-def render_inventory(inventory: mcp_declarations.Inventory | None) -> str:
+class McpInventoryState(ABC):
+    """Available MCP package inventory or its unavailable state."""
+
+    @abstractmethod
+    def render_inventory(self) -> str:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: mcp_declarations.Inventory | None) -> McpInventoryState:
+        return AbsentMcpInventoryState() if value is None else HeldMcpInventoryState(value)
+
+
+@dataclass(frozen=True)
+class AbsentMcpInventoryState(McpInventoryState):
+    """Absent `McpInventoryState` carrying no value."""
+
+    def render_inventory(self) -> str:
+        return 'MCP package inventory unavailable or unsupported.\nThe current Comms native package must provide its MCP CLI.\nNo MCP action is available here.'
+
+
+@dataclass(frozen=True)
+class HeldMcpInventoryState(McpInventoryState):
+    """Held `McpInventoryState` carrying its present value."""
+
+    value: mcp_declarations.Inventory
+
+    def render_inventory(self) -> str:
+        return self.value.render()
+
+
+def render_inventory(inventory: McpInventoryState) -> str:
     """Display only typed, redacted package fields; no authority inference."""
-    if inventory is None:
-        return (
-            "MCP package inventory unavailable or unsupported.\n"
-            "The current Comms native package must provide its MCP CLI.\n"
-            "No MCP action is available here."
-        )
-    return inventory.render()
+    return inventory.render_inventory()

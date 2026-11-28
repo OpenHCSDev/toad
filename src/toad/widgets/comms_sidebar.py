@@ -14,7 +14,13 @@ View, not authority: renders Core's sidebar presentation model
 from __future__ import annotations
 
 from agent_comms.ui_model.sidebar import ChannelRowModel, ThreadRowModel
-from toad.sidebar_rows import ChannelLineText, ChannelRowFace, ThreadLineText, ThreadRowFace
+from toad.sidebar_rows import (
+    ChannelLineText,
+    ChannelRowFace,
+    ThreadActionStatus,
+    ThreadLineText,
+    ThreadRowFace,
+)
 from toad.client.coordination_panel import CoordinationStateReport, CoordinationStatusView
 from toad.widget_actions import ActivationKeys
 from textual.content import Content
@@ -220,7 +226,7 @@ class ThreadStatusRow(
 
     @property
     def busy(self) -> bool:
-        return self.thread_row is not None and self.thread_busy(self.thread_row, self.action_status)
+        return self.thread_row is not None and self.thread_busy(self.thread_row, ThreadActionStatus.from_optional(self.action_status))
 
     line_text: ThreadLineText | None = None
 

@@ -47,6 +47,7 @@ from toad.client.connection import (
     ClosedObservation,
     CoordinationAccess,
     FailedObservation,
+    HeldPreviousObservedRoot,
     ObservationRetry,
     RemoteObserving,
     UnselectedRoute,
@@ -182,6 +183,7 @@ def test_application_presence_distinguishes_suspend_from_focus_loss():
     actions: list[str] = []
     app = SimpleNamespace(
         application=SimpleNamespace(backgrounded=lambda: actions.append("backgrounded")),
+        set_animations_paused=lambda paused: actions.append(f"animations_paused:{paused}"),
         coordination_access=SimpleNamespace(
             resume=lambda: actions.append("resume"),
             focus_returned=lambda: actions.append("focus_returned"),
@@ -203,7 +205,7 @@ def test_application_presence_distinguishes_suspend_from_focus_loss():
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationSuspended](presence, app)
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationInactive](presence, app)
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationActive](presence, app)
-    assert actions == ["backgrounded", "resume"]
+    assert actions == ["backgrounded", "animations_paused:True", "animations_paused:False", "resume"]
 
 
 @pytest.mark.asyncio
@@ -774,8 +776,8 @@ def test_same_root_reconnect_retains_notification_cache_and_sidebar_rows():
 
     sidebar_view.bind_observation(obs_a1)
     assert replaced == ["replaced"]
-    assert obs_a2.retains_root_cache(root_a) is True
-    assert obs_b.retains_root_cache(root_a) is False
+    assert obs_a2.retains_root_cache(HeldPreviousObservedRoot(root_a)) is True
+    assert obs_b.retains_root_cache(HeldPreviousObservedRoot(root_a)) is False
 
     # Same-root reconnect keeps rows in place without wiping the tree.
     sidebar_view.bind_observation(obs_a2)

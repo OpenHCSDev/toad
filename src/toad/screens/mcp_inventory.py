@@ -20,6 +20,7 @@ from textual.widgets.option_list import Option
 from toad.mcp_commands import MCPDecision, MCPSelection
 from toad.mcp_declarations import Declaration, Inventory
 from toad.mcp_inventory import (
+    McpInventoryState,
     read_inventory,
     render_inventory,
 )
@@ -112,7 +113,7 @@ class MCPInventoryScreen(CenteredScreen, DismissibleScreen[None]):
         if self.is_attached:
             self._inventory = inventory
             self.query_one(InventoryStatus).update(
-                render_inventory(inventory)
+                render_inventory(McpInventoryState.from_optional(inventory))
             )
             if inventory is not None:
                 options = [
