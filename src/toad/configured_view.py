@@ -9,7 +9,6 @@ from textual.widgets import OptionList, Select, Static
 from toad.client.agent_settings_state import (
     AgentScopeState,
     AgentSettingsPanel,
-    scope_label,
 )
 from toad.core.events import ConfigurationChanged
 from toad.core_event_carrier import CoreEventReceiver
@@ -201,7 +200,7 @@ class AgentSettingsProperties(AgentSettingsPanel, FillHeight, SidebarPanelWidget
         state: AgentScopeState,
     ) -> None:
         with self.prevent(Select.Changed):
-            self._scope_select.set_options([(scope_label(item), item) for item in scopes])
+            self._scope_select.set_options([(item.label, item) for item in scopes])
             self._scope_select.value = selected
         self._scope_select.display = len(scopes) > 1
         self._status.display = False

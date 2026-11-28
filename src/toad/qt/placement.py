@@ -19,7 +19,15 @@ from agent_comms.cli_support.cli_failures import CLI_FAILURES
 from agent_comms.registry.agent_settings_wire import AgentSettingsScope
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QComboBox, QFrame, QLabel, QScrollArea, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QComboBox,
+    QFrame,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from ui_theme.scheme import FloatHoverToneColour, MutedColour
 
@@ -27,8 +35,8 @@ from toad.client import platform as toad_platform
 from toad.client.agent_settings_state import (
     AgentScopeState,
     AgentSettingsPanel,
-    scope_label,
 )
+from toad.qt.config_window import ToadConfigWindow
 from toad.client.context_intent import ContextTreeIntent
 from toad.client.menu_entry import MenuEntry
 from toad.client.session_scope import NoConversationView
@@ -185,6 +193,7 @@ class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidge
         self._alive = True
         self._tasks: set[asyncio.Task] = set()
         self._form: QtObjectFormView | None = None
+        self._config_window: ToadConfigWindow | None = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -198,6 +207,11 @@ class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidge
         self.scope_combo.activated.connect(self._scope_activated)
         self.scope_combo.hide()
         layout.addWidget(self.scope_combo)
+
+        self.open_config_window_button = QPushButton("Open Config Window…", self)
+        self.open_config_window_button.clicked.connect(self.open_config_window)
+        self.open_config_window_button.hide()
+        layout.addWidget(self.open_config_window_button)
 
         self.status_label = QLabel("Loading agent settings…", self)
         self.status_label.setWordWrap(True)
@@ -242,12 +256,14 @@ class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidge
 
     def show_loading(self) -> None:
         self.scope_combo.hide()
+        self.open_config_window_button.hide()
         self.scroll.hide()
         self.status_label.setText("Loading agent settings…")
         self.status_label.show()
 
     def show_unavailable(self, text: str) -> None:
         self.scope_combo.hide()
+        self.open_config_window_button.hide()
         self.scroll.hide()
         self.status_label.setText(text)
         self.status_label.show()
@@ -262,15 +278,27 @@ class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidge
         self.scope_combo.clear()
         chosen = 0
         for index, scope in enumerate(scopes):
-            self.scope_combo.addItem(scope_label(scope), scope)
+            self.scope_combo.addItem(scope.label, scope)
             if scope == selected:
                 chosen = index
         self.scope_combo.setCurrentIndex(chosen)
         self.scope_combo.blockSignals(False)
         self.scope_combo.setVisible(len(scopes) > 1)
+        self.open_config_window_button.show()
         self.status_label.hide()
         self.scroll.show()
         self.show_agent_scope_form(state)
+
+    def open_config_window(self) -> ToadConfigWindow | None:
+        """Open the full multi-scope OpenHCS-blueprint ``ConfigWindow`` for this chain."""
+        if self._chain is None:
+            return None
+        if self._config_window is not None:
+            self._config_window.close()
+        window = ToadConfigWindow.for_agent_settings(self._chain, parent=self.window())
+        self._config_window = window
+        window.show()
+        return window
 
     def show_agent_scope_form(self, state: AgentScopeState) -> None:
         if self._form is not None:
@@ -286,6 +314,9 @@ class QtAgentSettingsProperties(AgentSettingsPanel, QWidget, metaclass=PyQtWidge
 
     def release_page(self) -> None:
         self._alive = False
+        if self._config_window is not None:
+            self._config_window.close()
+            self._config_window = None
         self.finish_active_form()
         for task in tuple(self._tasks):
             if not task.done():

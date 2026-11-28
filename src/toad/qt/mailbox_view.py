@@ -17,9 +17,11 @@ NoAgent binding default) stay here.
 from __future__ import annotations
 
 import asyncio
+from typing import ClassVar
 
 from agent_comms.projects.checkouts import Checkout
 from agent_comms.registry.thread_identity import ThreadIncarnation
+from agent_comms.registry.threads import ExternalThread, Thread
 from PySide6.QtCore import Qt
 
 from toad.acp.agent_session import UnopenedSessionDisposition
@@ -48,6 +50,8 @@ class QtMailboxView(QtThreadView, BoundSources):
 
     Shares the transcript stack with `QtAcpSessionView` through `QtThreadView`.
     """
+
+    thread_class: ClassVar[type[Thread]] = ExternalThread
 
     def __init__(self, app, project: Checkout, thread_incarnation: ThreadIncarnation, root: str) -> None:
         super().__init__()
