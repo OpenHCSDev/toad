@@ -31,6 +31,7 @@ from rich.style import Style
 from rich.syntax import Syntax
 from rich.text import Text
 from textual.strip import Strip
+from toad.work_preparation import RetainedBytesStorage
 from ui_theme.scheme import MutedColour, ThemeColour
 
 from toad.client.prepared_pages import MeasuresFragments
@@ -808,9 +809,12 @@ class PlainRows(MeasuredRows):
 
 
 @dataclass(frozen=True)
-class TranscriptLinesRenderTask(MroProjection[LineBlock], ReusableRenderTask[LinePreparation]):
-    def result_size(self, result: LinePreparation) -> int:
-        return result.retained_bytes
+class TranscriptLinesRenderTask(
+    RetainedBytesStorage,
+    MroProjection[LineBlock],
+    ReusableRenderTask[LinePreparation],
+):
+    pass
 
     """Style one source once; width never enters the worker contract."""
 
