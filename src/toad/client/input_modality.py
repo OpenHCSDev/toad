@@ -16,6 +16,8 @@ class InputModality(ABC):
 
     #: The least height a tappable row has, in device-independent pixels (0: its text's).
     row_height: ClassVar[int]
+    #: Extra height reserved for the horizontal tab-strip scrollbar when overflowing (0 on touch).
+    tab_scrollbar_height: ClassVar[int]
 
     @classmethod
     @abstractmethod
@@ -37,6 +39,7 @@ class KeyboardInput(InputModality):
     """Driven by keys: rows show the keys that run them."""
 
     row_height = 0
+    tab_scrollbar_height = 6
 
     @classmethod
     def menu_keys(cls, keys: str) -> str:
@@ -56,6 +59,7 @@ class TouchInput(InputModality):
     description on its own line under the label."""
 
     row_height = 48
+    tab_scrollbar_height = 0
 
     @classmethod
     def menu_keys(cls, keys: str) -> str:

@@ -148,7 +148,7 @@ from toad.qt.history import QtWireHistory, RowPictures
 from toad.qt.transcript_fragments import QtWireFragment
 from toad.menus import MenuCommand
 from toad.client.menu_entry import MenuEntry, strip_menu_markup as _strip_menu_markup_shared
-from toad.qt.menu import QtMenu
+from toad.qt.menu import QtMenu, platform_input
 # Imported at load, not in open_transfer: this declares the Transfer members the shared
 # TransferMenuAction lists, so the menu offers Export and Import as Textual's does.
 from toad.client.transfers import Transfer
@@ -1866,9 +1866,9 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tab_strip.setWidgetResizable(True)
         self.tab_strip.setFrameShape(QFrame.Shape.NoFrame)
         self.tab_strip.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-            if host.is_android
-            else Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            Qt.ScrollBarPolicy.ScrollBarAsNeeded
+            if platform_input().tab_scrollbar_height
+            else Qt.ScrollBarPolicy.ScrollBarAlwaysOff
         )
         self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -2170,8 +2170,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def show_current_tab(self, *, scroll_to_current: bool = True) -> None:
         self.tabs.sync_strip_width(self.tab_strip.viewport().width())
         tab_bar_scroll_h = (
-            6
-            if (not host.is_android and self.tabs.sizeHint().width() > self.tab_strip.viewport().width())
+            platform_input().tab_scrollbar_height
+            if self.tabs.sizeHint().width() > self.tab_strip.viewport().width()
             else 0
         )
         self.tab_strip.setFixedHeight(self.tabs.sizeHint().height() + tab_bar_scroll_h)
