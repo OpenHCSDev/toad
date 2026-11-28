@@ -52,3 +52,10 @@ class Page:
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         """Selected: read again; a tab passes its identity to the visit history."""
         self.reload()
+
+
+class NonTranscriptPage(Page):
+    """Pages whose shown hook marks no transcript active."""
+
+    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
+        ...

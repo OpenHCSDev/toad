@@ -15,7 +15,7 @@ from textual.geometry import Spacing
 from textual.message import Message
 from textual.widget import Widget
 
-from toad.block_content import BlockContent
+from toad.block_content import BlockContent, BlockInteraction
 from toad.entry_placement import PostedEntry
 from toad.tone_paint import TonePaint
 from toad.client.notification_status import MessageQueueEntry
@@ -56,7 +56,7 @@ class DownCursor(NewerEnd, CursorDirection):
         return length
 
 
-class BlockCursor(DeclaredFamily, affix="BlockCursor"):
+class BlockCursor(BlockInteraction, DeclaredFamily, affix="BlockCursor"):
     def __init__(self, block):
         self.block = block
 
@@ -90,15 +90,6 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
 
     def clear(self) -> None:
         pass
-
-    def get_clipboard_text(self) -> str:
-        return ""
-
-    def get_prompt_text(self) -> str:
-        return self.get_clipboard_text()
-
-    def get_block_menu(self):
-        return ()
 
     @property
     def allow_maximize(self) -> bool:

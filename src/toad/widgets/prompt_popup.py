@@ -153,6 +153,14 @@ class PromptPopup(DismissibleControl, DeclaredWidget, VerticalGroup):
             self.is_open = False
 
 
+class AlwaysOpenPromptPopup(PromptPopup):
+    """Prompt popups that open unconditionally for every prompt."""
+
+    @classmethod
+    def for_prompt(cls, prompt: object) -> Self | None:
+        return cls()
+
+
 class CompletionInput(SideMargin, SidePadding, Input):
     """A completion popup's search field, inset under the popup's edge."""
 

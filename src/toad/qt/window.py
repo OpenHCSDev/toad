@@ -648,7 +648,7 @@ class BusRow(BusChoiceLine, SidebarItem):
         return self.choice.held_actions(listing)
 
 
-from toad.qt.page import Page  # re-export: callers already import Page from here
+from toad.qt.page import NonTranscriptPage, Page  # re-export: callers already import Page from here
 from toad.qt.metrics import UiGap, scaled_px
 
 
@@ -730,7 +730,7 @@ class QtWelcomeOrigin(HomeSessionOrigin, HomeNavigation):
         return self.app.coordination_access.observation.observed().root
 
 
-class Welcome(Page, NoConversationView, QWidget):
+class Welcome(NonTranscriptPage, NoConversationView, QWidget):
     """The home page: what the pages show while no tab is (the welcome mode, the origin new
     targets open from), and in place of a saved tab this app has not opened. It draws
     nothing: while it is selected the comms sidebar holds the whole window
@@ -746,9 +746,6 @@ class Welcome(Page, NoConversationView, QWidget):
     def workspace_navigation_owner(self, views):
         """Home navigates through the welcome's origin, as Textual's `WelcomeScreen` does."""
         return views.home_origin
-
-    def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
-        """The home page leaves the sidebar as the user left it, as Textual's does."""
 
 
 class TreeItemRows[KeyT](KeyedRows[KeyT]):

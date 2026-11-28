@@ -9,7 +9,7 @@ from functools import cached_property
 import os
 from pathlib import Path
 
-from typing import TYPE_CHECKING, Self, Sequence
+from typing import TYPE_CHECKING, Sequence
 
 
 from formbridge.key_declarations import TextEntryMode
@@ -52,7 +52,12 @@ from ui_theme.scheme import ForegroundColour
 
 from toad.native_style import MutedText, SideMargin, SidePadding
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
-from toad.widgets.prompt_popup import CompletionInput, CompletionOptionList, CompletionPopup
+from toad.widgets.prompt_popup import (
+    AlwaysOpenPromptPopup,
+    CompletionInput,
+    CompletionOptionList,
+    CompletionPopup,
+)
 
 
 if TYPE_CHECKING:
@@ -270,7 +275,15 @@ class SwitchPathPickerAction(WidgetAction):
 
 
 class PathSearch(
-    ProjectPathSearch, CoreEventReceiver, PriorityActions, HiddenActions, VisibleActions, ForwardsCursor, Submits, CompletionPopup,
+    AlwaysOpenPromptPopup,
+    ProjectPathSearch,
+    CoreEventReceiver,
+    PriorityActions,
+    HiddenActions,
+    VisibleActions,
+    ForwardsCursor,
+    Submits,
+    CompletionPopup,
     scopes={HiddenActions: (DismissAction, SubmitAction)},
     actions=(SwitchPathPickerAction,),
 ):
@@ -287,10 +300,6 @@ class PathSearch(
     def __init__(self) -> None:
         super().__init__()
         self._paths_dirty = True
-
-    @classmethod
-    def for_prompt(cls, prompt: Prompt) -> Self | None:
-        return cls()
 
     @on(events.Mount)
     def on_mount(self) -> None:

@@ -1,7 +1,7 @@
 """Native question bindings, availability and selection share one declaration."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, Literal
+from typing import TYPE_CHECKING, ClassVar, Literal, Self
 from abc import abstractmethod
 
 from formbridge.key_declarations import TextEntryMode
@@ -42,6 +42,14 @@ class QuestionContext:
     @property
     @abstractmethod
     def question(self) -> ChoiceQuestion: ...
+
+
+class SelfQuestionContext(QuestionContext):
+    """Question contexts that are themselves the question."""
+
+    @property
+    def question(self) -> Self:  # type: ignore[override]
+        return self
 
 
 class QuestionAction(Action[QuestionContext], affix="Action"):
