@@ -413,6 +413,40 @@ class DetachedCanvas(ViewportCanvas):
         return None
 
 
+class KeptRowSize(ABC):
+    """Previously stored row size entry to remove from the size index."""
+
+    def _unkeep(self, owner: RowDocumentStore) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: RowSize | None) -> KeptRowSize:
+        return AbsentKeptRowSize() if value is None else HeldKeptRowSize(value)
+
+
+@dataclass(frozen=True)
+class AbsentKeptRowSize(KeptRowSize):
+    """Absent `KeptRowSize` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldKeptRowSize(KeptRowSize):
+    """Held `KeptRowSize` carrying its present value."""
+
+    value: RowSize
+
+    def _unkeep(self, owner: RowDocumentStore) -> None:
+        under = owner._row_size_keys.get(self.value.key)
+        if under is None:
+            return
+        try:
+            under.remove(self.value)
+        except ValueError:
+            return
+        if not under:
+            del owner._row_size_keys[self.value.key]
+
+
 class RowDocumentStore(ABC):
     """Caches prepared row formatting, laid-out `QTextDocument`s, and per-row heights without
     `QStyledItemDelegate` or `QModelIndex` overhead."""
@@ -717,13 +751,13 @@ class RowDocumentStore(ABC):
             del_start = head + changed
             del_end = head + removed
             for kept in sizes[del_start:del_end]:
-                self._unkeep(kept)
+                self._unkeep(KeptRowSize.from_optional(kept))
             del sizes[del_start:del_end]
         if added > changed:
             ins_at = head + changed
             sizes[ins_at:ins_at] = [None] * (added - changed)
         for row in range(head, min(head + changed, len(sizes))):
-            self._unkeep(sizes[row])
+            self._unkeep(KeptRowSize.from_optional(sizes[row]))
             sizes[row] = None
         # Re-index surviving kept.row indices after splice
         if removed != added:
@@ -737,27 +771,17 @@ class RowDocumentStore(ABC):
         sizes = self._row_sizes
         for row in rows:
             if 0 <= row < len(sizes):
-                self._unkeep(sizes[row])
+                self._unkeep(KeptRowSize.from_optional(sizes[row]))
                 sizes[row] = None
 
-    def _unkeep(self, kept: RowSize | None) -> None:
-        if kept is None:
-            return
-        under = self._row_size_keys.get(kept.key)
-        if under is None:
-            return
-        try:
-            under.remove(kept)
-        except ValueError:
-            return
-        if not under:
-            del self._row_size_keys[kept.key]
+    def _unkeep(self, kept: KeptRowSize) -> None:
+        kept._unkeep(self)
 
     def keep_row_size(self, row: int, key: Hashable, size: QSize, font: QFont, *, estimated: bool = False) -> None:
         sizes, layout = self._row_sizes, self._row_sizes_for
         if layout is None or row >= len(sizes) or size.width() != layout[1]:
             return
-        self._unkeep(sizes[row])
+        self._unkeep(KeptRowSize.from_optional(sizes[row]))
         kept = RowSize(key, size, self._row_sizes_font, estimated, row)
         sizes[row] = kept
         self._row_size_keys.setdefault(key, []).append(kept)

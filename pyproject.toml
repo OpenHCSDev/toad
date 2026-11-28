@@ -116,4 +116,5 @@ ban-relative-imports = "all"
 forbidden-imports = [
     { from = "toad.qt", to = ["textual.app", "textual.widgets", "textual.screen", "textual.containers", "toad.widgets", "toad.screens", "toad.app"] },
     { from = "toad.client", to = ["textual", "toad.widgets", "toad.screens", "toad.app"] },
+    { from = "toad.widget_actions", to = ["textual.app", "textual.widgets", "textual.screen", "textual.containers", "toad.widgets", "toad.screens", "toad.app"] },
 ]

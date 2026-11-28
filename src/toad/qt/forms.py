@@ -58,7 +58,6 @@ from toad.form_family import (
     ThreadModelFieldEditing,
     ValueFields,
 )
-from toad.object_configuration import ObjectSettingField
 from toad.qt.flash_surface import QtFlashSurface
 from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import offered_schemes
@@ -366,8 +365,6 @@ class QtFormView(FieldForm):
 class QtObjectFieldView(ObjectFieldViews, QtFieldView):
     """A field of a viewed object's configuration; an edit goes through the view's
     configuration (`ObjectSettingField.edit`), not the global settings."""
-
-    field_type = ObjectSettingField
 
     @classmethod
     def family(cls):

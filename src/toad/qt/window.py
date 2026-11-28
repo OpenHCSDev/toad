@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+from abc import ABC
+
 import shiboken6
 from contextlib import contextmanager
 from time import time
@@ -86,7 +88,7 @@ from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
 from toad.client.application import ACTIVE_PRESENCE, ApplicationPresence, ClientApplication
 from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
-from toad.qt.widget_animation import QtAnimationClock, frame_interval
+from toad.qt.widget_animation import DisplayScreen, QtAnimationClock, frame_interval
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
 from toad.client.application_actions import (
@@ -1307,6 +1309,33 @@ class QtSidebarBuses(BusListing, RowFittedTree, ConversationRows):
         self.fit_rows()
 
 
+class PresentedSidebarModel(ABC):
+    """Sidebar model presented to update window channel order and tabs."""
+
+    def sync_window_order(self, owner: Sidebar) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: SidebarModel | None) -> PresentedSidebarModel:
+        return AbsentPresentedSidebarModel() if value is None else HeldPresentedSidebarModel(value)
+
+
+@dataclass(frozen=True)
+class AbsentPresentedSidebarModel(PresentedSidebarModel):
+    """Absent `PresentedSidebarModel` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldPresentedSidebarModel(PresentedSidebarModel):
+    """Held `PresentedSidebarModel` carrying its present value."""
+
+    value: SidebarModel
+
+    def sync_window_order(self, owner: Sidebar) -> None:
+        owner.window.channel_sort.update_order(self.value.observation.channel_order())
+        owner.window.paint_tabs()
+
+
 class ChannelTreeSidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine, ConversationRows):
     """A channel-tree view over the shared sidebar model: channels as expandable `ChannelLine`
     groups with `HeaderLineControl` + sort controls, members as `ThreadLine`s with live waving
@@ -1354,9 +1383,9 @@ class ChannelTreeSidebar(FindsOpenViews, QtWorkspaceHosted, SidebarStateMachine,
         if model is None and self.groups:
             self.groups = {}
             self.redraw(lambda top: None)
-        self.after_present(model)
+        self.after_present(PresentedSidebarModel.from_optional(model))
 
-    def after_present(self, model: SidebarModel | None) -> None:
+    def after_present(self, model: PresentedSidebarModel) -> None:
         """Hook after `present` finishes."""
 
     def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
@@ -1459,12 +1488,9 @@ class Sidebar(ChannelTreeSidebar):
         self._status_text = None
         super().model_replaced()
 
-    def after_present(self, model: SidebarModel | None) -> None:
+    def after_present(self, model: PresentedSidebarModel) -> None:
         self._refresh_status_only()
-        if model is None:
-            return
-        self.window.channel_sort.update_order(model.observation.channel_order())
-        self.window.paint_tabs()
+        model.sync_window_order(self)
 
     def draw_leading_rows(self, top: KeptLines) -> None:
         if self._status_text is not None:
@@ -1527,7 +1553,7 @@ class ChannelActivitySidebar(RowFittedTree, ChannelTreeSidebar):
     def after_sync(self) -> None:
         self.fit_rows()
 
-    def after_present(self, model: SidebarModel | None) -> None:
+    def after_present(self, model: PresentedSidebarModel) -> None:
         self.fit_rows()
 
     def close_activity(self) -> None:
@@ -2302,7 +2328,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, Hin
         """The clock's frame interval is the screen's this window is on: it follows the window to
         another screen, and a screen that changes its refresh rate (a phone's adaptive 60/120 Hz)."""
         screen = self.windowHandle().screen()
-        self.animation_clock.frame_interval = frame_interval(screen)
+        self.animation_clock.frame_interval = frame_interval(DisplayScreen.from_optional(screen))
         if screen is not None and screen not in self._display_screens:
             self._display_screens.add(screen)
             screen.refreshRateChanged.connect(self.follow_display)
