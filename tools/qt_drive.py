@@ -1656,6 +1656,8 @@ class ShippedScenario(ParticipantSteps):
                 dialog.close()
         if (menu := QtMenu.of(self.app)) is not None and menu.isVisible():
             menu.hide()
+        if self.app.hint_overlay.isVisible():
+            self.app.hint_overlay.dismiss_hints()
 
     async def press_bound_keys(self, label: str) -> None:
         """Every key a live shortcut answers, pressed as a real key event with focus in the
@@ -1673,6 +1675,8 @@ class ShippedScenario(ParticipantSteps):
         for where, target in targets.items():
             answered: dict[str, QKeySequence] = {}
             for bound in tuple(keys.bound.values()):
+                if isinstance(bound.action, self.creates):
+                    continue
                 parent = bound.shortcut.parent()
                 if parent.isVisible() and (parent is target or parent.isAncestorOf(target)):
                     for sequence in bound.shortcut.keys():

@@ -30,11 +30,10 @@ from ui_theme.scheme import (
     MutedColour,
     PrimaryColour,
     RuleColour,
-    SurfaceColour,
 )
 
 from toad.client.keymap_browser import KeymapBrowsing, KeymapSave
-from toad.client.theme_tones import InputPlaceholderToneColour, WorkspaceTabTones
+from toad.client.theme_tones import FloatToneColour, InputPlaceholderToneColour, WorkspaceTabTones
 from toad.keymap import KeyInvocationId
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
@@ -101,7 +100,7 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
         """Inherit the active app theme across the keymap dialog, table, inputs, and buttons."""
         renderer = self.app.renderer
         bg = renderer.theme(BackgroundColour)
-        surface = renderer.theme(SurfaceColour)
+        surface = renderer.theme(FloatToneColour)
         ink = renderer.theme(WorkspaceTabTones.active_text_colour)
         muted = renderer.theme(MutedColour)
         placeholder = renderer.theme(InputPlaceholderToneColour)
