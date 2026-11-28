@@ -191,6 +191,10 @@ class QtConversation(
     def active_composer(self) -> Composer | None:
         return self.composer
 
+    def viewport_geometry_changed(self) -> None:
+        if self.composer is not None:
+            self.composer._schedule_fit_height()
+
     def workspace_views(self):
         return self.app.workspace_sessions
 

@@ -2062,6 +2062,18 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         else:
             self._keyboard_open = (bottom - self._rest_bottom_margin) >= self.KEYBOARD_MARGIN_THRESHOLD
         self._sync_keyboard_chrome()
+        self._notify_viewport_geometry()
+
+    def _notify_viewport_geometry(self) -> None:
+        """Notify floating chrome and the active page when window size or safe-area margins
+        change, instead of installing permanent per-event `eventFilter`s on `QtToadApp`."""
+        if self.float_layer.isVisible():
+            self.float_layer.place()
+        self.workspace_sessions.selected.viewport_geometry_changed()
+
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        super().resizeEvent(event)
+        self._notify_viewport_geometry()
 
     def _sync_keyboard_chrome(self) -> None:
         hide_nav = (

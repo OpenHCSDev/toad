@@ -122,7 +122,6 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         self.pending.setAutoFillBackground(True)
         layout.addWidget(self.pending)
         self.follow_scheme(scheme)
-        window.installEventFilter(self)
         self.hide()
 
     def follow_scheme(self, scheme: ColorScheme) -> None:
@@ -180,8 +179,3 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
         self.setFixedWidth(max(1, width))
         self.adjustSize()
         self.move(margins.left(), margins.top())
-
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802 - Qt virtual method name
-        if watched is self.parentWidget() and event.type() == QEvent.Type.Resize and self.isVisible():
-            self.place()
-        return super().eventFilter(watched, event)
