@@ -2169,7 +2169,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         toggle_bg = renderer.theme(SidebarToggleToneColour)
         toggle_style = (
             f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
-            f" background-color: {toggle_bg}; border: none; padding: 2px 4px; }}"
+            f" background-color: {toggle_bg}; border: none; padding: 0px 2px; }}"
         )
         for side in self.chrome.sidebars:
             side.setStyleSheet(
@@ -2189,7 +2189,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
-            f" padding: 4px 2px 4px 6px; margin-right: {self.tabs.TAB_GAP}px;"
+            f" padding: 4px 1px 4px 5px; margin-right: {self.tabs.TAB_GAP}px;"
             " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
             f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
             f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
@@ -2204,7 +2204,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         self.navigation.setStyleSheet(
             scheme.styles.generate_frame_style()
-            + f"QFrame {{ background-color: {bar_bg}; padding: 2px 4px; }}"
+            + f"QFrame {{ background-color: {bar_bg}; padding: 2px 2px; }}"
             + f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
         )
         self.float_layer.follow_scheme(scheme)

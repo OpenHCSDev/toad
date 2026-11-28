@@ -285,9 +285,11 @@ def test_qt_session_tab_bar_close_button_sits_inside_painted_tab(monkeypatch):
             assert slot is not None
             btn = slot.findChild(QToolButton)
             assert btn is not None and btn.text() == "×"
-            assert btn.width() >= 24 and btn.height() >= 24
+            assert btn.width() >= 18 and btn.height() >= 24
             btn_in_bar = btn.geometry().translated(slot.pos())
             assert btn_in_bar.right() <= tab_rect.right() - bar.TAB_GAP
+            text_rect, _title = bar._cached_title(index)
+            assert slot.geometry().left() - text_rect.right() <= bar.TAB_TEXT_CLOSE_GAP + 1
         bar.tabButton(1, QTabBar.ButtonPosition.RightSide).findChild(QToolButton).click()
         assert closed == [1]
     finally:
@@ -3234,3 +3236,132 @@ def test_coalesced_loop_call_soon_avoids_deprecation_warning_and_caches_message_
     assert row.header is first
     unpickled = pickle.loads(pickle.dumps(row))
     assert unpickled.header == first
+
+
+def test_android_multifile_chooser_image_compression_and_tight_tab_marquee(monkeypatch, tmp_path) -> None:
+    """AttachChooser offers Android 13+ multi-select Photo Picker and clears getData() when
+    ClipData holds multiple URIs; Qt image compression shrinks oversized/attached images; and
+    QtSessionTabBar eliminates dead trailing padding between title and close button."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtCore import QBuffer, QIODevice, QUrl
+    from PySide6.QtGui import QColor, QImage
+    from agent_comms.messaging.message_files import FileUpload
+    from toad.client.message_files import ImageCompressionControl, MessagePromptComposer
+    from toad.motion import TAB_MARQUEE
+    from toad.qt.file_pickers import compress_image_bytes, read_picked
+
+    # 1. AttachChooser wires ACTION_PICK_IMAGES + EXTRA_PICK_IMAGES_MAX + ClipData normalization.
+    chooser = (Path(__file__).resolve().parents[2]
+               / "tools/android/keepalive/java/org/toadcomms/AttachChooser.java").read_text()
+    assert "MediaStore.ACTION_PICK_IMAGES" in chooser
+    assert "MediaStore.EXTRA_PICK_IMAGES_MAX" in chooser
+    assert "data.setData(null)" in chooser
+    assert "clip.getItemCount() > 1" in chooser
+
+    # 2. compress_image_bytes downscales and JPEG-compresses a large photo PNG to a much smaller upload.
+    import random
+    w, h = 2200, 300
+    raw = random.Random(42).randbytes(w * h * 3)
+    img = QImage(raw, w, h, w * 3, QImage.Format.Format_RGB888)
+    buf = QBuffer()
+    assert buf.open(QIODevice.OpenModeFlag.WriteOnly)
+    assert img.save(buf, "PNG")
+    png_bytes = bytes(buf.data().data())
+    buf.close()
+
+    compressed = compress_image_bytes("photo.png", "image/png", png_bytes)
+    assert compressed is not None
+    new_name, new_mime, jpg_bytes = compressed
+    assert new_name == "photo.jpg"
+    assert new_mime == "image/jpeg"
+    assert len(jpg_bytes) < len(png_bytes)
+    decoded = QImage.fromData(jpg_bytes)
+    assert not decoded.isNull()
+    assert max(decoded.width(), decoded.height()) <= 2048
+
+    # 3. MessagePromptComposer.compress_attached_images shrinks attached images and reports summary.
+    class FakeComposer(MessagePromptComposer):
+        def __init__(self) -> None:
+            self.attached_files = ()
+            self.takes_files = True
+            self.shown = 0
+            self.summaries: list[str] = []
+            self.failures: list[str] = []
+
+        def show_files_offered(self) -> None:
+            pass
+
+        def pick_in_window(self) -> None:
+            pass
+
+        def pick_by_path_search(self) -> None:
+            pass
+
+        def show_attached(self) -> None:
+            self.shown += 1
+
+        def show_failure(self, text: str) -> None:
+            self.failures.append(text)
+
+        def show_compression_summary(self, text: str) -> None:
+            self.summaries.append(text)
+
+        @property
+        def settings(self):
+            return SimpleNamespace()
+
+        def append_to_draft(self, suffix: str) -> None:
+            pass
+
+        def sync_queue(self) -> None:
+            pass
+
+        def compress_image(self, upload: FileUpload) -> FileUpload | None:
+            out = compress_image_bytes(upload.name, upload.mime_type, upload.content)
+            return None if out is None else FileUpload.of(out[0], out[1], out[2])
+
+    comp = FakeComposer()
+    comp.file_picked("photo.png", png_bytes, "image/png")
+    comp.file_picked("notes.txt", b"hello", "text/plain")
+    assert comp.has_compressible_images is True
+    assert comp.compressible_image_count == 1
+    ctrl = ImageCompressionControl()
+    ctrl.bind_compression(comp)
+    assert ctrl.compress_caption == "Compress image"
+    ctrl.compress_images()
+    assert comp.attached_files[0].name == "photo.jpg"
+    assert comp.attached_files[0].mime_type == "image/jpeg"
+    assert comp.attached_files[0].size < len(png_bytes)
+    assert comp.attached_files[1].name == "notes.txt"
+    assert any("Compressed 1 image:" in s for s in comp.summaries)
+
+    # 4. read_picked auto-compresses an oversized PNG when it exceeds composer.read_limit.
+    big_png = tmp_path / "huge.png"
+    big_png.write_bytes(png_bytes)
+
+    class TightLimitComposer(FakeComposer):
+        @property
+        def read_limit(self) -> int:
+            return len(jpg_bytes) + 4096
+
+    tight = TightLimitComposer()
+    assert len(png_bytes) > tight.read_limit
+    read_picked(QUrl.fromLocalFile(str(big_png)), tight)
+    assert tight.failures == []
+    assert len(tight.attached_files) == 1
+    assert tight.attached_files[0].name == "huge.jpg"
+    assert tight.attached_files[0].size < tight.read_limit
+
+    # 5. Tight marquee gap and compact close-button width.
+    assert TAB_MARQUEE.gap == 14.0
+    clock = AnimationClock(lambda _interval: None)
+    bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"))
+    try:
+        btn_w, btn_h, slot_w = bar._close_slot_metrics()
+        assert btn_h >= 24
+        assert btn_w <= btn_h
+        assert slot_w == btn_w + bar.TAB_GAP
+    finally:
+        bar.deleteLater()
+        app.processEvents()

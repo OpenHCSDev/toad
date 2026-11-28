@@ -11,6 +11,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * What a composer's Attach opens on the phone: Android's own chooser - the apps that give a
@@ -47,40 +49,65 @@ final class AttachChooser {
         if (intent.hasExtra(Intent.EXTRA_MIME_TYPES)) {
             content.putExtra(Intent.EXTRA_MIME_TYPES, intent.getStringArrayExtra(Intent.EXTRA_MIME_TYPES));
         }
-        content.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false));
+        boolean allowMultiple = intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+        content.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
         Intent chooser = Intent.createChooser(content, "Attach");
+        List<Intent> initial = new ArrayList<>();
+        if (allowMultiple && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+'s Photo Picker opens directly in checkbox multi-select mode,
+            // unlike ACTION_GET_CONTENT providers that default to single-tap selection.
+            Intent photoPicker = new Intent(MediaStore.ACTION_PICK_IMAGES)
+                    .putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, MediaStore.getPickImagesMaxLimit());
+            initial.add(photoPicker);
+        }
         Uri photo = newPhoto();
         if (photo != null) {
             Intent capture = new Intent(MediaStore.ACTION_IMAGE_CAPTURE)
                     .putExtra(MediaStore.EXTRA_OUTPUT, photo)
                     .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             capture.setClipData(ClipData.newRawUri("", photo));
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] {capture});
+            initial.add(capture);
             photos.put(requestCode, photo);
+        }
+        if (!initial.isEmpty()) {
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, initial.toArray(new Intent[0]));
         }
         return chooser;
     }
 
-    /** The answer Qt's dialog reads for an offered request: the camera's photo when it was the camera. */
+    /** The answer Qt's dialog reads for an offered request: the camera's photo when it was the camera,
+     *  and ClipData-only when multiple files were picked so Qt reads every URI instead of stopping at getData(). */
     Intent answered(int requestCode, int resultCode, Intent data) {
         Uri photo = photos.get(requestCode);
-        if (photo == null) {
-            return data;
-        }
-        photos.remove(requestCode);
-        ContentResolver resolver = activity.getContentResolver();
-        boolean picked = data != null && (data.getData() != null || data.getClipData() != null);
-        try {
-            if (resultCode == Activity.RESULT_OK && !picked) {
-                // The camera wrote the photo and answers with no URI of its own.
-                ContentValues taken = new ContentValues();
-                taken.put(MediaStore.MediaColumns.IS_PENDING, 0);
-                resolver.update(photo, taken, null, null);
-                return new Intent().setData(photo).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        if (photo != null) {
+            photos.remove(requestCode);
+            ContentResolver resolver = activity.getContentResolver();
+            boolean picked = data != null && (data.getData() != null || data.getClipData() != null);
+            try {
+                if (resultCode == Activity.RESULT_OK && !picked) {
+                    // The camera wrote the photo and answers with no URI of its own.
+                    ContentValues taken = new ContentValues();
+                    taken.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                    resolver.update(photo, taken, null, null);
+                    return new Intent().setData(photo).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+                resolver.delete(photo, null, null);
+            } catch (RuntimeException failure) {
+                Log.e(TAG, "could not settle the camera's photo " + photo, failure);
             }
-            resolver.delete(photo, null, null);
-        } catch (RuntimeException failure) {
-            Log.e(TAG, "could not settle the camera's photo " + photo, failure);
+        }
+        return normalizeMultiSelect(resultCode, data);
+    }
+
+    /** Qt 6's QAndroidPlatformFileDialogHelper checks intent.getData() before intent.getClipData()
+     *  and returns only that first URI whenever a picker populates both. Clearing data keeps
+     *  ClipData and its granted read permissions intact so Qt iterates all selected URIs. */
+    private static Intent normalizeMultiSelect(int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            ClipData clip = data.getClipData();
+            if (clip != null && clip.getItemCount() > 1 && data.getData() != null) {
+                data.setData(null);
+            }
         }
         return data;
     }
