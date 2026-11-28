@@ -9,7 +9,7 @@ from __future__ import annotations
 
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QColor
+from PySide6.QtGui import QBrush, QColor, QPalette
 from PySide6.QtWidgets import (
     QCheckBox,
     QDialog,
@@ -17,18 +17,29 @@ from PySide6.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
-    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
 )
 from toad.qt.window import QtToadApp
-from ui_theme.scheme import ErrorColour, MutedColour
+from ui_theme.scheme import (
+    BackgroundColour,
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
+    ErrorColour,
+    MutedColour,
+    PrimaryColour,
+    RuleColour,
+    SurfaceColour,
+)
 
 from toad.client.keymap_browser import KeymapBrowsing, KeymapSave
+from toad.client.theme_tones import InputPlaceholderToneColour, WorkspaceTabTones
 from toad.keymap import KeyInvocationId
+from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap
 from toad.qt.presented_window import PresentedWindow
+from toad.qt.tap_flash import QtPushButton
 
 class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
     """Modal keymap browser: heading, search, focus filter, the action × mode table,
@@ -71,10 +82,10 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
         self.keys.setPlaceholderText(self.keys_placeholder)
         controls.addWidget(self.keys, 1)
         for label, act in (("Apply", self.apply_typed_keys), ("Reset", self.reset_selected_keys)):
-            button = QPushButton(label, self)
+            button = QtPushButton(label, self)
             button.clicked.connect(lambda _checked=False, act=act: self.app.run_operation(KeymapSave, act))
             controls.addWidget(button)
-        close = QPushButton("Close", self)
+        close = QtPushButton("Close", self)
         close.clicked.connect(self.accept)
         controls.addWidget(close)
         layout.addLayout(controls)
@@ -82,8 +93,43 @@ class QtKeymapScreen(PresentedWindow, KeymapBrowsing, QDialog):
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
 
-        self.resize(600, 500)
+        self.resize(680, 540)
+        app.renderer.themed(self, self.paint_colours)
         self.refresh_rows()
+
+    def paint_colours(self) -> None:
+        """Inherit the active app theme across the keymap dialog, table, inputs, and buttons."""
+        renderer = self.app.renderer
+        bg = renderer.theme(BackgroundColour)
+        surface = renderer.theme(SurfaceColour)
+        ink = renderer.theme(WorkspaceTabTones.active_text_colour)
+        muted = renderer.theme(MutedColour)
+        placeholder = renderer.theme(InputPlaceholderToneColour)
+        border = renderer.theme(RuleColour)
+        primary = renderer.theme(PrimaryColour)
+        sel_bg = renderer.theme(BlockCursorBackgroundColour)
+        sel_fg = renderer.theme(BlockCursorForegroundColour)
+        for field in (self.search, self.keys):
+            pal = field.palette()
+            pal.setColor(QPalette.ColorRole.PlaceholderText, QColor(placeholder))
+            field.setPalette(pal)
+        QtLineRenderer.apply_sheet(
+            self,
+            f"QDialog {{ background-color: {bg}; color: {ink}; }}"
+            f"QLabel, QCheckBox {{ color: {ink}; background: transparent; }}"
+            f"QLineEdit {{ background-color: {surface}; color: {ink};"
+            f" placeholder-text-color: {placeholder}; border: 1px solid {border};"
+            f" border-radius: 3px; padding: 4px 8px; }}"
+            f"QLineEdit:focus {{ border-color: {primary}; }}"
+            f"QTableWidget {{ background-color: {surface}; color: {ink}; gridline-color: {border};"
+            f" border: 1px solid {border}; selection-background-color: {sel_bg};"
+            f" selection-color: {sel_fg}; }}"
+            f"QHeaderView::section {{ background-color: {bg}; color: {muted};"
+            f" border: none; border-bottom: 1px solid {border}; padding: 4px 6px; font-weight: bold; }}"
+            f"QPushButton {{ background-color: {surface}; color: {ink};"
+            f" border: 1px solid {border}; border-radius: 3px; padding: 4px 10px; }}"
+            f"QPushButton:focus {{ border-color: {primary}; }}",
+        )
 
     # The native reads and writes `KeymapBrowsing` asks for.
 

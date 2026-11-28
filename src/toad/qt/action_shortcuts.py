@@ -16,6 +16,8 @@ is off its tail (`BackToBottomAction`, priority) and otherwise dismisses the com
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -24,7 +26,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeyEvent, QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QWidget
 
-from toad.keymap import KeymapRow
+from toad.keymap import KeyInvocationId, KeymapRow
 from toad.widget_actions import DeclaredWidgetActions
 
 
@@ -134,8 +136,27 @@ class ActionKeys:
         for bound in candidates:
             if bound.available():
                 self.ran.append(bound.action)
-                bound.fire()
+                result = bound.fire()
+                if inspect.isawaitable(result):
+                    asyncio.ensure_future(result)
                 return
+
+    def focused_invocations(self) -> frozenset[KeyInvocationId]:
+        """Declared action IDs bound on the current focus chain or application-wide."""
+        chain: set[int] = set()
+        widget = QApplication.focusWidget()
+        while widget is not None:
+            chain.add(id(widget))
+            widget = widget.parentWidget()
+        return frozenset(
+            KeyInvocationId(bound.action.key_identity())
+            for bound in self.bound.values()
+            if bound.shortcut.isEnabled()
+            and (
+                bound.shortcut.context() == Qt.ShortcutContext.ApplicationShortcut
+                or id(bound.shortcut.parent()) in chain
+            )
+        )
 
     def bind_family(self, widget: QWidget, family: type, context: Any,
                     scope: Qt.ShortcutContext = Qt.ShortcutContext.WidgetWithChildrenShortcut,

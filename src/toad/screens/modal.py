@@ -2,40 +2,19 @@
 from textual import containers
 from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
 from textual.css.styles import Styles
-from textual.document._editing import VimMode
 from textual.screen import ModalScreen as NativeModalScreen
 from textual.widget import Widget
-from textual.widgets._hints import HintClick, HintHost
 from ui_theme.scheme import BackgroundColour, PrimaryColour
 
+from toad.client.hints import HintHostSurface, OpenContextHintsAction, OpenHintsAction
 from toad.keymap import KeymapCatalog
 from toad.native_style import AutoHeight, CenteredChildren, RightPadding, SurfaceBackground
-from toad.widget_actions import DismissibleControl, ProfileKeys, WidgetAction
+from toad.widget_actions import DismissibleControl, ProfileKeys
 
 KeymapCatalog.register_modal_scope(NativeModalScreen)
 
 
-class OpenHintsAction(WidgetAction):
-    """Show left-click hints."""
-
-    title = HintClick.LEFT.description
-    keys = {VimMode: ("f",)}
-
-    async def apply(self, context: HintHost) -> None:
-        await context.action_show_hints()
-
-
-class OpenContextHintsAction(WidgetAction):
-    """Show right-click hints."""
-
-    title = HintClick.RIGHT.description
-    keys = {VimMode: ("ctrl+f",)}
-
-    async def apply(self, context: HintHost) -> None:
-        await context.action_show_context_hints()
-
-
-class HintKeys(ProfileKeys, actions=(OpenHintsAction, OpenContextHintsAction)):
+class HintKeys(HintHostSurface, ProfileKeys, actions=(OpenHintsAction, OpenContextHintsAction)):
     """In a Vim profile, f and ctrl+f show the screen's left- and right-click hints."""
 
 

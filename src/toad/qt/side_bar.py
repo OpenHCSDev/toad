@@ -32,6 +32,7 @@ from ui_theme.clock import AnimationClock
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 
 from toad.motion import TransitionTarget
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import drain_layout_items, scaled_px
 from toad.pointer_gesture import NO_GESTURE, Gesture, GestureControl, PressedGesture
@@ -191,11 +192,17 @@ class QtGripPointer(GestureControl):
             self._gesture = self._gesture.released(self, self._position(event))
 
 
-class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel, metaclass=PyQtWidgetMeta):
+class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QtHintTargetSource, QLabel, metaclass=PyQtWidgetMeta):
     """The toggle strip on the conversation-facing side, as Textual's `SideBarToggle`: the
     edge's arrows around the heading. A click shows or hides the pane; a drag resizes it
     exactly as the resize handle does. A column strip draws its heading turned to read along
     the strip, where a terminal can only stack the letters one per row."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        x, y = self.hint_anchor(self, host)
+        return (QtCallbackHintTarget(self, x, y, self.grip_clicked),)
 
     def __init__(self, surface: QtSideBar) -> None:
         super().__init__(surface)

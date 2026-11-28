@@ -546,3 +546,94 @@ def test_touch_modality_suppresses_sticky_hover_and_standard_attaches_cleanly(mo
         assert editor.overwriteMode() is False
 
     asyncio.run(_attach_standard())
+
+
+def test_qt_vimium_hints_polymorphic_dispatch_and_themed_keymap_screen() -> None:
+    """Hoisted Vimium UI hints (`OpenHintsAction`/`OpenContextHintsAction`, `HintSessionState`,
+    `QtHintTarget`, `QtHintOverlay`) dispatch primary/context hints polymorphically across Qt
+    controls, and `QtKeymapScreen` receives real `ActionKeys.focused_invocations()` + theme QSS."""
+    from PySide6.QtWidgets import QVBoxLayout
+    from toad.client.application_actions import KeymapAction, SettingsAction
+    from toad.client.hints import ContextHint, OpenContextHintsAction, OpenHintsAction, PrimaryHint
+    from toad.hint_labels import FullKeyHintLabels, NextLetterHintLabels
+    from toad.keymap import KeyInvocationId, Keymap
+    from toad.qt.action_shortcuts import ActionKeys
+    from toad.qt.hints import QtHintOverlay
+    from toad.qt.keymap_screen import QtKeymapScreen
+    from toad.qt.tap_flash import QtPushButton
+    from ui_theme.scheme import BackgroundColour, SurfaceColour
+
+    app = _app()
+    scheme = SCHEMES[0]
+    renderer = QtLineRenderer(scheme, LinkContext(None, ()), DiffSettings())
+
+    # 1. Shared declared hint actions carry the exact saved_key names across Textual & Qt.
+    assert OpenHintsAction.saved_key_name() == "OpenHintsAction"
+    assert OpenContextHintsAction.saved_key_name() == "OpenContextHintsAction"
+
+    # 2. Polymorphic QtHintTarget collection + progressive narrowing + Backspace + match activation.
+    host = QWidget()
+    host.resize(320, 200)
+    layout = QVBoxLayout(host)
+    clicks: list[str] = []
+    btn_a = QtPushButton("Alpha", host)
+    btn_a.clicked.connect(lambda: clicks.append("alpha"))
+    btn_b = QtPushButton("Beta", host)
+    btn_b.clicked.connect(lambda: clicks.append("beta"))
+    clock = SimpleNamespace(enabled=False, scrolling=False)
+    tabs = QtSessionTabBar(clock, QColor("#90a827"), QColor("#c3c3c3"), QColor("#888888"))
+    tabs.setParent(host)
+    tabs.show_tabs([("#comms", "c1"), ("#nra", "c2")])
+    tab_clicks: list[int] = []
+    tab_menus: list[object] = []
+    tabs.tabBarClicked.connect(tab_clicks.append)
+    tabs.customContextMenuRequested.connect(tab_menus.append)
+    layout.addWidget(btn_a)
+    layout.addWidget(btn_b)
+    layout.addWidget(tabs)
+    host.show()
+    app.processEvents()
+
+    overlay = QtHintOverlay(host, renderer)
+    assert overlay.open_for(PrimaryHint(), FullKeyHintLabels) is True
+    # 2 buttons + 2 visible tabs (+ their close buttons) = >= 4 primary targets, sorted by (y, x).
+    assert len(overlay.entries) >= 4
+    first_key = overlay.entries[0].key
+    # Paint path exercises FullKeyHintLabels + theme colours cleanly.
+    img = QImage(320, 200, QImage.Format.Format_ARGB32_Premultiplied)
+    overlay.render(img)
+    # Pressing first key activates btn_a ("alpha") and hides overlay.
+    for ch in first_key:
+        ev = QKeyEvent(QEvent.Type.KeyPress, getattr(Qt.Key, f"Key_{ch.upper()}"), Qt.KeyboardModifier.NoModifier, ch)
+        overlay.keyPressEvent(ev)
+    assert clicks == ["alpha"]
+    assert not overlay.isVisible()
+
+    # Context hints collect ONLY ContextHint targets (the 2 tabs, NOT plain buttons!).
+    assert overlay.open_for(ContextHint(), NextLetterHintLabels) is True
+    assert len(overlay.entries) == 2
+    ctx_key = overlay.entries[0].key
+    ev = QKeyEvent(QEvent.Type.KeyPress, getattr(Qt.Key, f"Key_{ctx_key.upper()}"), Qt.KeyboardModifier.NoModifier, ctx_key)
+    overlay.keyPressEvent(ev)
+    assert len(tab_menus) == 1
+    assert not overlay.isVisible()
+
+    # 3. ActionKeys.focused_invocations() reports real bound actions, and QtKeymapScreen themes cleanly.
+    settings = SimpleNamespace(ui=SimpleNamespace(key_mode=VimNormal, keymap=Keymap()))
+    ak = ActionKeys(lambda: settings)
+    ak.bind(host, KeymapAction(), lambda: None, Qt.ShortcutContext.ApplicationShortcut)
+    ak.bind(host, SettingsAction(), lambda: None, Qt.ShortcutContext.ApplicationShortcut)
+    ak.bind(host, OpenHintsAction(), lambda: None, Qt.ShortcutContext.WindowShortcut)
+    focused = ak.focused_invocations()
+    assert KeyInvocationId(KeymapAction().key_identity()) in focused
+    assert KeyInvocationId(SettingsAction().key_identity()) in focused
+
+    host.renderer = renderer
+    host.settings = settings
+    host.run_operation = lambda _kind, fn: None
+    dialog = QtKeymapScreen(host, focused)
+    assert renderer.theme(BackgroundColour) in dialog.styleSheet()
+    assert renderer.theme(SurfaceColour) in dialog.styleSheet()
+    assert dialog.table.rowCount() >= 2
+    dialog.close()
+    host.close()

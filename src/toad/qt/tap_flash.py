@@ -15,11 +15,19 @@ from PySide6.QtWidgets import QPushButton, QToolButton
 from ui_theme.scheme import BackgroundColour, ThemeColour
 
 from toad.client.tap_flash import TapFeedback
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 
 
-class TapFlashControl(TapFeedback):
-    """Mixin giving any Qt text button or label a 160 ms ink/background inversion flash on tap."""
+class TapFlashControl(TapFeedback, QtHintTargetSource):
+    """Mixin giving any Qt text button or label a 160 ms ink/background inversion flash on tap,
+    and declaring it as a primary Vimium hint target via `QtHintTargetSource`."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        x, y = self.hint_anchor(self, host)
+        return (QtCallbackHintTarget(self, x, y, self.click),)
 
     _tap_flashing: bool = False
     _tap_flash_timer: QTimer | None = None

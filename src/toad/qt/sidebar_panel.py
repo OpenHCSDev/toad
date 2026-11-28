@@ -41,6 +41,7 @@ from PySide6.QtWidgets import (
 from toad.client.session_tracker import SidebarState
 from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
 from toad.client.sidebar_panels import PanelMenuModel, PanelSpec, SidebarPanelCollapse, SidebarPanelColumn
+from toad.qt.hints import QtCallbackHintTarget, QtHintTargetSource
 from toad.qt.lines import QtLineRenderer
 from toad.qt.metrics import UiGap, scaled_px
 from toad.qt.tap_flash import QtTextButton
@@ -164,9 +165,15 @@ class QtSidebarPanelFrame(SidebarPanelCollapse, QFrame, metaclass=PyQtWidgetMeta
         self._header_row.setContentsMargins(0, pad_y, 0, pad_y)
 
 
-class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
+class QtSidebarSearch(SidebarSearchField, QtHintTargetSource, QLineEdit, metaclass=PyQtWidgetMeta):
     """The sidebar's search input, as Textual's `SidebarSearch`: its text is the sidebar's
     `SidebarFilter` text, Escape clears it, and its colours come from `SidebarSearchField`."""
+
+    def primary_hint_targets(self, host):
+        if not self.isVisible() or not self.isEnabled():
+            return ()
+        x, y = self.hint_anchor(self, host)
+        return (QtCallbackHintTarget(self, x, y, lambda: self.setFocus(Qt.FocusReason.ShortcutFocusReason)),)
 
     def __init__(self, search: SidebarFilter, parent: QWidget | None = None) -> None:
         super().__init__(parent)
