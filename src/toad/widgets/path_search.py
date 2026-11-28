@@ -17,6 +17,7 @@ from textual import on
 from textual.app import ComposeResult
 
 from textual.navigation import MovesCursor
+from toad.core.link_context_changed import LinkContextChanged
 from toad.widget_actions import ForwardsCursor, WidgetAction, PriorityActions, HiddenActions, Submits, DismissAction, SubmitAction, VisibleActions
 from textual import work
 from textual import getters
@@ -43,7 +44,6 @@ from textual.widgets.tree import TreeNode
 
 from metaclass_registry.mro_dispatch import handles
 
-from toad.core.events import LinkContextChanged
 from toad.core_event_carrier import CoreEventReceiver
 from toad.project_path_owner import ProjectPathOwner
 from toad.client.project_paths import ProjectPathSearch

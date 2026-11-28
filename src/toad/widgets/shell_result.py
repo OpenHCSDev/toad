@@ -7,12 +7,12 @@ from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
 from textual.css.styles import Styles
 from textual.highlight import highlight
 from textual.widgets import Static
+from toad.client.block_claim import CommitBarrier
 from ui_theme.scheme import ForegroundColour, PrimaryColour
 
 
 from toad.native_style import PrimaryText, RightMargin
 from toad.widgets.non_selectable_label import NonSelectableLabel
-from toad.client.committed_presentation import CommitBarrier
 from toad.shell_output import ShellCommandOutput
 
 

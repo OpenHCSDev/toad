@@ -12,6 +12,7 @@ from textual.geometry import Size
 from textual.selection import Selection
 from textual.strip import Strip
 from textual.widget import Widget
+from toad.client.block_claim import block_claim
 from ui_theme.effects import NEW_MESSAGE, Mix
 
 from toad.block_content import BlockContent
@@ -26,7 +27,6 @@ from toad.native_style import (
     StartsHidden,
 )
 from toad.message_rows import LiveMessageClock, MessageClock, MessageRow
-from toad.client.committed_presentation import block_claim
 from toad.commit_claims import CommitParticipant
 from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
 from toad.widgets.transcript_lines import (

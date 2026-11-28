@@ -12,7 +12,7 @@ from pyqt_reactive.services.publication_delivery import QtDeliveryReceiver
 from toad.app_node import AppScoped
 from toad.client.connection import CoordinationAccess
 from toad.client.subscribers import CallbackSubscription, CoreObserverDispatch
-from toad.core.events import CoreEvent, Publication
+from toad.core.link_context_changed import CoreEvent, Publication
 
 
 @dataclass(frozen=True)

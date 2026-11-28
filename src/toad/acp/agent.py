@@ -34,6 +34,7 @@ from toad.client.agent_schema import AgentDefinition
 from toad.core import events as core_events
 from toad.client.platform import host
 from toad.core.events import UpdateStatusLine
+from toad.core.link_context_changed import CoreEventStream
 
 
 @rich.repr.auto
@@ -53,7 +54,7 @@ class Agent(SessionAgent):
         session_id: AcpSessionId | NoAcpSessionId,
         session_pk: int | None = None,
         *,
-        app_events: core_events.CoreEventStream,
+        app_events: CoreEventStream,
         transcripts: CoordinationTranscriptReader,
     ) -> None:
         """

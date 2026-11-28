@@ -21,7 +21,7 @@ from toad.client.conversation import (
     DmConversation,
     IrcConversation,
 )
-from toad.core.events import CoreEvent
+from toad.core.link_context_changed import CoreEvent
 from toad.navigation_context import (
     NavigationContext,
     NavigationDestination,

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from toad.core.events import CoreEvent
+from toad.core.link_context_changed import CoreEvent
 
 
 @dataclass(frozen=True)

@@ -43,6 +43,7 @@ from metaclass_registry.mro_dispatch import MroDispatch, handles
 from toad.client.view_binding_protocols import BoundViewHost
 from toad.client.session_sources import SourcedConversation
 from toad.client.thread_binding_dispatch import ThreadBindingDispatch
+from toad.core.link_context_changed import LinkContextChanged
 from toad.flash_host import FlashHost
 from rich.console import Console
 from rich.segment import Segment
@@ -1726,8 +1727,8 @@ class Conversation(
     def command_navigation(self):
         return self.query_ancestor(NavigationScope).navigation_owner.navigation_context
 
-    @handles(core_events.LinkContextChanged)
-    async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
+    @handles(LinkContextChanged)
+    async def _command_source_changed(self, event: LinkContextChanged) -> None:
         self.on_composer("refresh_commands", lambda prompt: prompt.slash_complete.refresh_commands())
 
     @handles(core_events.SessionSelected, core_events.OpenTabsChanged)

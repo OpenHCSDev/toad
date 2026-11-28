@@ -18,7 +18,7 @@ from toad.client.agent_schema import AgentDefinition
 from toad.client.agents import read_agents
 from toad.client.db import DB
 from toad.core import session_requests
-from toad.core.events import CoreEventStream
+from toad.core.link_context_changed import CoreEventStream
 from toad.surface_binding import SurfaceBinding
 from toad.thread_identity import SessionIdentity
 from toad.transcript_scope import TranscriptScope

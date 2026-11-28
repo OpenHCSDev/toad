@@ -22,7 +22,7 @@ from textual.screen import Screen
 from toad.client.bus_submission import BusSubmissions, SubmissionView
 from toad.client.composer_pool import ComposerPoolHost, WorkspaceComposerPool
 from toad.client.input_attention import InputAttention
-from toad.core.events import CoreEventStream
+from toad.core.link_context_changed import CoreEventStream
 from toad.key_modes import KeyMode, VimNormal
 from toad.neovim_editing import HostsNeovim, NeovimEditing
 from toad.project_path_owner import ProjectPathOwner

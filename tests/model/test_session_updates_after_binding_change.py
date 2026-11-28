@@ -13,7 +13,8 @@ from toad.acp.sdk_boundary import (
     ValidateSessionUpdateTask,
 )
 from toad.client.connection import CoreConnection
-from toad.core.events import CoreEvent, Update
+from toad.core.events import Update
+from toad.core.link_context_changed import CoreEvent
 from toad.render_processes import RenderProcessPool
 
 

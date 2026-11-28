@@ -18,7 +18,7 @@ from agent_comms.projects.checkouts import Checkout
 from toad.application_outcome import ApplicationOutcome
 from toad.client.bus_selection import BusPickerHost
 from toad.client.host import NavigatingHost
-from toad.core.events import CoreEventStream
+from toad.core.link_context_changed import CoreEventStream
 from toad.core_event_carrier import CoreEventReceiver
 from toad.textual_colours import ThemedApp
 from toad.work_preparation import PreparationRuntime

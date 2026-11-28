@@ -30,6 +30,7 @@ from PySide6.QtCore import QEvent, QPoint, QPointF, QRect, QRectF, QSize, Qt, QT
 from PySide6.QtGui import QAbstractTextDocumentLayout, QColor, QDesktopServices, QFont, QFontMetrics, QFontMetricsF, QImage, QPainter, QPalette, QPen, QPixmap, QRegion, QScrollEvent, QTextDocument
 from PySide6.QtWidgets import QApplication, QPushButton, QScroller, QScrollerProperties, QWidget
 from pyqt_reactive.widgets.virtual_rows import HtmlRow, RowFormatting, RowPreparer
+from toad.core.link_context_changed import CoreEventStream
 from toad.qt.virtual_scroll import (
     FragmentRowList,
     NO_TAP_HIGHLIGHT,
@@ -46,7 +47,6 @@ from toad.client.pending import AwaitsFirstPage
 from toad.client.view_settings import SettingsReading
 from toad.qt.finger_press import FingerPress, Press
 from toad.client.fragments import BusMessageHistoryFragment, FragmentCollapse, HistoryFragment, Shown
-from toad.core.events import CoreEventStream
 from toad.core.projection import MroProjection
 from toad.link_opening import TogglesFragmentShown
 from toad.navigation_target import NavigationTarget

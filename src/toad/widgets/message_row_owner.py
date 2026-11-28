@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from textual.widget import Widget
 
 from toad.client.line_blocks import Divider
-
-if TYPE_CHECKING:
-    from toad.widgets.message_divider import MessageDivider
-
+from toad.widgets.message_divider import MessageDivider
 
 class MessageRowOwner(Widget):
     """A complete live message, not a divider or another message-menu surface."""

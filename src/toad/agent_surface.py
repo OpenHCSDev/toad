@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from toad.acp.terminal_owner import OperationalTerminalOwner
     from toad.ansi import TerminalState
     from toad.answer import Answer
-    from toad.core.events import CoreEventStream
+    from toad.core.link_context_changed import CoreEventStream
     from toad.core_event_carrier import CoreEventMessage
     from toad.shell_output import ShellOutput
     from toad.terminal_execution import TerminalExecution

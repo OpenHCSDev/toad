@@ -9,7 +9,7 @@ from functools import cached_property, partial
 from toad.client.subscribers import CallbackSubscription, CoreObserverDispatch
 from formbridge.publications import Subscription
 
-from toad.core.events import CoreEvent, CoreEventStream, Publication
+from toad.core.link_context_changed import CoreEvent, CoreEventStream, Publication
 
 
 async def dispatch_publication(receiver, message) -> None:

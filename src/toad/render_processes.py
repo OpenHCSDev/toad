@@ -20,6 +20,8 @@ from agent_comms.execution.child_process import ProcessName, WorkerStart
 from agent_comms.execution.helper_workers import HelperWorkers
 from agent_comms.execution.thread_launch import ThreadLaunch
 
+from toad import render_tasks
+from toad.acp import sdk_boundary
 from toad.render_backend import Renderer, RenderTask, capture_submitted
 from toad.work_preparation import PreparedValue
 
@@ -38,10 +40,6 @@ def _initialize_worker() -> None:
     """
     RENDER_WORKER_PROCESS.publish()
     ThreadLaunch.strip(os.environ)
-    from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities
-    from toad.acp import (
-        sdk_boundary,  # noqa: F401 -- declare worker ingress capabilities
-    )
     launch_root.started()
 
 

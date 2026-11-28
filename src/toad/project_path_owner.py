@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.projects.checkouts import Checkout
+from toad.core.link_context_changed import LinkContextChanged
 
 if TYPE_CHECKING:
     from textual.widget import Widget
@@ -35,7 +36,6 @@ class ProjectPathOwner:
         return self.core_publications
 
     def link_context_changed(self):
-        from toad.core.events import LinkContextChanged
 
         self.publish_core(LinkContextChanged())
 

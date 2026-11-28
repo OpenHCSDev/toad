@@ -11,7 +11,7 @@ from agent_comms.execution.launch_root import LaunchRoot
 from agent_comms.nominal.field_codec import AcpSessionId, FieldCodec, NoAcpSessionId
 from agent_comms.projects.checkouts import Checkout
 
-from toad.core.events import CoreEvent
+from toad.core.link_context_changed import CoreEvent
 from toad.launch_binding import NoAgent
 
 if TYPE_CHECKING:

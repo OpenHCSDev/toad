@@ -91,10 +91,6 @@ class UsageReports:
             return
 
 
-class ApplicationStartupObserverAlreadyInstalled(RuntimeError):
-    """Only one external observer may await the next application startup."""
-
-
 class ApplicationStartupHook:
     """One-shot startup observation state owned by the application lifetime."""
 
@@ -110,7 +106,7 @@ class PendingApplicationStartupHook(ApplicationStartupHook):
     observer: Callable[[ApplicationLifetime], None]
 
     def install(self, observer: Callable[[ApplicationLifetime], None]) -> ApplicationStartupHook:
-        raise ApplicationStartupObserverAlreadyInstalled(
+        raise RuntimeError(
             "An application startup observer is already installed")
 
     def notify(self, lifetime: ApplicationLifetime) -> ApplicationStartupHook:

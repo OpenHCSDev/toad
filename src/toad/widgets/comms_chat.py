@@ -24,6 +24,7 @@ from toad.client.conversation import ConversationKind
 from toad.conversation_submission import AgentInputSubmission, ConversationSubmissions
 from toad.core import events as core_events
 from toad.client.referenced_core import ReferencedCore
+from toad.core.link_context_changed import LinkContextChanged
 from toad.session_scope import SessionScope
 from toad.status_thread import StatusThread
 from toad.submission_queue import NoQueueSource, QueueSource
@@ -150,8 +151,8 @@ class CommsChatView(WireConversationView):
         self.refresh_identity()
         await self._refresh()
 
-    @handles(core_events.LinkContextChanged)
-    async def _command_source_changed(self, event: core_events.LinkContextChanged) -> None:
+    @handles(LinkContextChanged)
+    async def _command_source_changed(self, event: LinkContextChanged) -> None:
         """The sidebar's references changed: the label and commands follow them."""
         await super()._command_source_changed(event)
         self.refresh_identity()

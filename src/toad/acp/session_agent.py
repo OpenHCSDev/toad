@@ -45,10 +45,11 @@ from agent_comms.ui_model.delivery import DeliveryView, ReadDeliveryView
 from agent_comms.ui_model.observation import ReadOwnerOperation
 from pydantic import JsonValue
 
-from toad.acp.agent_controller import AgentController, SourceIdentity
+from toad.acp.agent_controller import AgentController
 from toad.acp.client_session import ClientSessionRequest, OwnerRequest
 from toad.acp.comms_updates import PendingThreadRead
 from toad.acp.goal_control import ClientGoalControls
+from toad.acp.session_binding import SourceIdentity
 from toad.agent import AgentBase
 from toad.core import events as core_events
 

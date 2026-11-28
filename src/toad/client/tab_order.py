@@ -6,9 +6,10 @@ from contextlib import asynccontextmanager
 
 from agent_comms.execution.child_process import join_retirement
 
-from toad.core.events import CoreEventStream, TabHistoryChanged
+from toad.core.events import TabHistoryChanged
 from toad.client.db import DB, TabScope
 from toad.client.tab_identity import TabIdentity
+from toad.core.link_context_changed import CoreEventStream
 
 
 class TabOrder:

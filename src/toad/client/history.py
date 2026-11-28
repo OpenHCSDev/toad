@@ -41,7 +41,7 @@ from toad.client.composer_pool import ComposerPoolHost
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation import ConversationKind
 from toad.client.resource_release import ResourceRelease
-from toad.core.events import Publication
+from toad.core.link_context_changed import Publication
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.client.conversation_capabilities import (
     ConversationActivity,

@@ -9,7 +9,7 @@ import typing
 from pathlib import Path
 
 import toad
-from toad.core.events import CoreEvent, Publication
+from toad.core.link_context_changed import CoreEvent, Publication
 from toad.core_event_carrier import CoreEventReceiver
 
 PACKAGE = Path(toad.__file__).parent

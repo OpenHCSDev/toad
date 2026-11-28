@@ -23,7 +23,7 @@ from toad.acp.status import ToolCallStatus
 from toad.client.fragments import GrowsInPlace, Shown
 from toad.client.subscribers import CallbackSubscription
 from toad.commit_claims import CAPTURED_CLAIM, CapturedClaim, SnapshotPresentation
-from toad.core.events import CoreEvent, CoreEventStream
+from toad.core.link_context_changed import CoreEvent, CoreEventStream
 from toad.permission_presentation import (
     DialogPermissionPresentation,
     DiffPermissionPresentation,

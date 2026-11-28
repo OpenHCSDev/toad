@@ -11,7 +11,8 @@ from formbridge.publications import Subscription
 
 from metaclass_registry.mro_dispatch import MroDispatch
 
-from toad.core.events import CoreEvent, CoreEventStream, ThreadChangeSubscription
+from toad.core.events import ThreadChangeSubscription
+from toad.core.link_context_changed import CoreEvent, CoreEventStream
 
 
 @dataclass(eq=False)
