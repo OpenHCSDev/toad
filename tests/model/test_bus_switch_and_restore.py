@@ -85,6 +85,67 @@ async def test_restored_tabs_prepares_entries_concurrently_in_saved_order() -> N
 
 
 @pytest.mark.asyncio
+async def test_restored_tabs_undrawn_tab_does_not_trigger_lost_failures_while_siblings_wait() -> None:
+    """A PreviewTab raising TabNotDrawnHere inside gather must not report a LostFailures
+    `Task-* failed` while slower sibling tabs are still preparing."""
+    from toad.client.lost_failures import LostFailures
+
+    loop = asyncio.get_running_loop()
+    lost: list[tuple[object, str]] = []
+    previous_factory = loop.get_task_factory()
+    previous_handler = loop.get_exception_handler()
+    LostFailures(lambda err, label: lost.append((err, label))).hear(loop)
+    try:
+        async def slow_entry(tab: _FakeTab, _nav):
+            await asyncio.sleep(0.05)
+            return f"entry:{tab.mode_name}"
+
+        async def undrawn_entry(tab: _FakeTab, _nav):
+            raise TabNotDrawnHere(tab)
+
+        async def gone_entry(tab: _FakeTab, _nav):
+            raise TabTargetGone(tab, "gone")
+
+        tabs = (
+            _FakeTab("preview", undrawn_entry),
+            _FakeTab("stale", gone_entry),
+            _FakeTab("slow", slow_entry),
+        )
+        registered: list[str] = []
+
+        class _FakeNav:
+            def get(self, _mode):
+                return None
+
+            async def register(self, entry):
+                registered.append(entry)
+
+            async def open(self, _entry):
+                pass
+
+        class _FakeOrder:
+            async def load(self):
+                return tabs
+
+            async def close(self, _modes):
+                pass
+
+        app = SimpleNamespace(
+            session_navigation=_FakeNav(),
+            tab_order=_FakeOrder(),
+            log_error=lambda _msg: None,
+        )
+        lifetime = ApplicationLifetime(app, resumed_session=None)  # type: ignore[arg-type]
+        await asyncio.wait_for(lifetime.restored_tabs(), timeout=2.0)
+        await asyncio.sleep(0.01)
+        assert registered == ["entry:slow"]
+        assert lost == [], f"expected zero LostFailures reports for TabNotDrawnHere/TabTargetGone, got {lost}"
+    finally:
+        loop.set_task_factory(previous_factory)
+        loop.set_exception_handler(previous_handler)
+
+
+@pytest.mark.asyncio
 async def test_switch_connection_does_not_block_on_previous_connection_close() -> None:
     release_close = threading.Event()
     close_started = threading.Event()

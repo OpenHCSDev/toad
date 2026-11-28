@@ -44,6 +44,10 @@ class CommandCatalog:
         commands = {command.command: command for command in advertised}
         try:
             target = await context
+            if target is None:
+                # A retired or closed wire view (`ClosedPageSource`) has no target context;
+                # keep local commands without failing the background refresh worker.
+                return await app.preparation.run_thread(cls.joined, commands, local)
             definitions = await app.preparation.run_thread(target.available_actions)
         except UnregisteredThreadError:
             # An unbound or shell-only view has no backend thread. The session

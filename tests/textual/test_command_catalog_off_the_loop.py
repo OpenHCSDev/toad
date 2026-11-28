@@ -42,8 +42,20 @@ async def unbound_context():
     raise UnregisteredThreadError("a view with no backend thread")
 
 
+async def closed_context():
+    return None
+
+
 async def test_a_catalog_is_projected_off_the_event_loop():
     asked_on = []
     catalog = await CommandCatalog.read(App(), [AskingCommand("/asks", asked_on)], unbound_context(), LocalCommand)
     assert "/asks" in catalog.commands
+    assert asked_on and threading.main_thread() not in asked_on
+
+
+async def test_closed_page_source_none_context_keeps_local_commands():
+    asked_on = []
+    catalog = await CommandCatalog.read(App(), [AskingCommand("/asks", asked_on)], closed_context(), LocalCommand)
+    assert "/asks" in catalog.commands
+    assert catalog.context is None
     assert asked_on and threading.main_thread() not in asked_on
