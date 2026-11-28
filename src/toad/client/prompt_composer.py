@@ -13,11 +13,12 @@ from typing import ClassVar
 
 from agent_comms.messaging.message_files import FileUpload
 from metaclass_registry import AbstractHooksMeta
-from ui_theme.scheme import InputToneColour, PromptToneColour, ThemeColour, TurnBandColour
+from ui_theme.scheme import ForegroundColour, InputToneColour, PromptToneColour, ThemeColour, TurnBandColour
 
 from toad.client.composer_pool import RebindableComposer
 from toad.client.input_decision import InputDecision
 from toad.client.mention_completion import MentionCompletion
+from toad.client.theme_tones import InputPlaceholderToneColour
 from toad.setting_declarations import EachOpenWidget
 
 
@@ -69,6 +70,8 @@ class PromptComposer(RebindableComposer, metaclass=AbstractHooksMeta):
     # both: each interactive part of the composer is its own surface, in both frontends.
     queue_tone: ClassVar[type[ThemeColour]] = TurnBandColour
     input_tone: ClassVar[type[ThemeColour]] = InputToneColour
+    text_colour: ClassVar[type[ThemeColour]] = ForegroundColour
+    placeholder_colour: ClassVar[type[ThemeColour]] = InputPlaceholderToneColour
 
     @property
     @abstractmethod

@@ -18,6 +18,7 @@ from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+import shiboken6
 from PySide6.QtCore import QEvent, QMimeData, QRect, Qt
 from PySide6.QtGui import QBrush, QColor, QImage, QKeyEvent, QPainter, QPalette
 from PySide6.QtWidgets import QApplication, QStyleOptionViewItem, QTreeWidget, QTreeWidgetItem, QWidget
@@ -26,15 +27,16 @@ from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextL
 
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.client.message_files import MessagePromptComposer
+from toad.client.prompt_composer import PromptComposer
 from toad.client.sidebar_filter import SidebarFilter, SidebarSearchField
-from toad.client.theme_tones import ScrollbarTones, SidebarToggleToneColour
-from toad.key_modes import Standard, VimInsert
+from toad.client.theme_tones import InputPlaceholderToneColour, ScrollbarTones, SidebarToggleToneColour
+from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 from toad.patch import DiffSettings
 from toad.prompt_actions import PasteClipboardAction
 from toad.qt.action_shortcuts import _qt_sequences
-from toad.qt.composer import Composer, QtMessageComposer
+from toad.qt.composer import Composer, ComposerEditor, QtMessageComposer
 from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
 from toad.qt.history import HistoryRowDelegate
 from toad.qt.lines import QtLineRenderer
@@ -326,3 +328,64 @@ def test_qt_ui_zoom_scales_tab_chrome_and_scrollbars() -> None:
     assert tabs._close_slot_metrics()[0] > slot_100[0]
     assert "width: 18px;" in _scrollbar_qss(renderer, scale=150)
     assert "width: 12px;" in _scrollbar_qss(renderer, scale=100)
+
+
+def test_qt_composer_placeholder_qss_vim_cursor_shape_and_toggle_hover_fg() -> None:
+    _app()
+    scheme = SCHEMES[0]
+    renderer = QtLineRenderer(scheme, LinkContext(None, ()), DiffSettings())
+
+    # 1. Placeholder colour role lives on PromptComposer (shared base) and renders via QSS.
+    assert PromptComposer.placeholder_colour is InputPlaceholderToneColour
+    expected_placeholder = renderer.theme(PromptComposer.placeholder_colour).lower()
+
+    fake_composer = SimpleNamespace(
+        settings=SimpleNamespace(ui=SimpleNamespace(key_mode=VimNormal)),
+    )
+    editor = ComposerEditor(fake_composer)
+    # Vim Normal: block cursor + overwriteMode True.
+    assert editor.overwriteMode() is True
+    assert editor.cursorWidth() >= max(6, editor.fontMetrics().averageCharWidth())
+    # Entering Insert switches immediately to a thin beam cursor + overwriteMode False.
+    editor.vim.enter_insert()
+    editor.sync_cursor_shape()
+    assert editor.overwriteMode() is False
+    assert editor.cursorWidth() < editor.fontMetrics().averageCharWidth()
+    # Escaping back to Normal restores the block cursor.
+    editor.vim.enter_normal()
+    editor.sync_cursor_shape()
+    assert editor.overwriteMode() is True
+    assert editor.cursorWidth() >= max(6, editor.fontMetrics().averageCharWidth())
+
+    # 2. QtSidebarSearch includes placeholder-text-color in QSS (not palette-only).
+    search = QtSidebarSearch(SidebarFilter())
+    search.paint_theme(renderer)
+    assert f"placeholder-text-color: {expected_placeholder}" in search.styleSheet().lower()
+
+    # 3. QtSideBarToggle stores inherited hover foreground colour for vertical paintEvent.
+    host = QWidget()
+    layout = SidebarLayout(
+        SimpleNamespace(current_terminals=lambda: (), store_terminals=lambda _t: None),
+        TerminalOrigin(),
+    )
+    side = QtSideBar(
+        layout,
+        ChannelsSidebarPlacement,
+        QWidget(host),
+        heading=lambda: "All",
+        laid_out=lambda: None,
+        client=SimpleNamespace(),
+        parent=host,
+    )
+    side.toggle.paint_theme(renderer)
+    assert side.toggle._hover_fg_colour is not None
+    assert side.toggle._hover_fg_colour.name().lower() == renderer.theme(SidebarToggleFace.hover_foreground_colour).lower()
+    assert side.toggle._fg_colour is not None
+    assert side.toggle._fg_colour.name().lower() == renderer.theme(SidebarToggleFace.foreground_colour).lower()
+
+    # 4. QtTabMarquee.animation_visible handles deleted QtSessionTabBar cleanly.
+    clock = SimpleNamespace(enabled=False, scrolling=False)
+    tabs = QtSessionTabBar(clock, QColor("#90a827"), QColor("#c3c3c3"), QColor("#888888"))
+    marquee = tabs.marquee
+    shiboken6.delete(tabs)
+    assert marquee.animation_visible is False

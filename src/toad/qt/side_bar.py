@@ -22,7 +22,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from PySide6.QtCore import QPoint, QRect, Qt
-from PySide6.QtGui import QPainter, QPalette
+from PySide6.QtGui import QColor, QPainter, QPalette
 from PySide6.QtWidgets import QGridLayout, QLabel, QStyle, QStyleOption, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from textual.geometry import Offset, Region, Size
@@ -206,6 +206,8 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         self._symbol = self._heading = ""
         self._leading_splitter = False
         self._trailing_splitter = False
+        self._fg_colour: QColor | None = None
+        self._hover_fg_colour: QColor | None = None
 
     def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
         """Apply the resting and hover colour roles inherited from `SidebarToggleFace`."""
@@ -214,12 +216,23 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         fg = renderer.theme(self.foreground_colour)
         hover_bg = renderer.theme(self.hover_background_colour)
         hover_fg = renderer.theme(self.hover_foreground_colour)
-        self.setStyleSheet(
+        self._fg_colour = QColor(fg)
+        self._hover_fg_colour = QColor(hover_fg)
+        QtLineRenderer.apply_sheet(
+            self,
             f"QLabel#SidebarToggle {{"
             f" background-color: {bg}; color: {fg}; border: none; padding: 0px {pad_x}px; }}"
             f"QLabel#SidebarToggle:hover {{"
-            f" background-color: {hover_bg}; color: {hover_fg}; }}"
+            f" background-color: {hover_bg}; color: {hover_fg}; }}",
         )
+        self.update()
+
+    def enterEvent(self, event) -> None:  # type: ignore[override]
+        super().enterEvent(event)
+        self.update()
+
+    def leaveEvent(self, event) -> None:  # type: ignore[override]
+        super().leaveEvent(event)
         self.update()
 
     def set_band_splitters(self, leading: bool, trailing: bool) -> None:
@@ -260,7 +273,12 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         option = QStyleOption()
         option.initFrom(self)
         self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, option, painter, self)
-        painter.setPen(option.palette.color(QPalette.ColorRole.WindowText))
+        hovered = self.underMouse() or bool(option.state & QStyle.StateFlag.State_MouseOver)
+        pen_colour = (
+            (self._hover_fg_colour if hovered else self._fg_colour)
+            or option.palette.color(QPalette.ColorRole.WindowText)
+        )
+        painter.setPen(pen_colour)
         metrics = self.fontMetrics()
         line = metrics.lineSpacing()
         shown = metrics.elidedText(self._heading, Qt.TextElideMode.ElideRight, max(0, self.height() - 4 * line))

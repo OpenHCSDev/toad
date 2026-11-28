@@ -1665,6 +1665,7 @@ class ShippedScenario(ParticipantSteps):
         runs (`ActionKeys.resolve`); each press must run exactly one action and raise nothing."""
         keys = self.app.action_keys
         page = self.page
+        self.close_dialogs()
         self.app.show()
         self.app.activateWindow()
         targets = {"composer": page.composer.editor, "history": page.messages}

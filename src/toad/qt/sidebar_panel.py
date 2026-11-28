@@ -189,13 +189,14 @@ class QtSidebarSearch(SidebarSearchField, QLineEdit, metaclass=PyQtWidgetMeta):
         palette = self.palette()
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(placeholder))
         self.setPalette(palette)
-        self.setStyleSheet(
+        QtLineRenderer.apply_sheet(
+            self,
             f"QLineEdit#SidebarSearch {{"
-            f" background-color: {bg}; color: {fg};"
+            f" background-color: {bg}; color: {fg}; placeholder-text-color: {placeholder};"
             f" border: {border_w}px solid {border}; border-radius: 0px;"
             f" padding: {pad_y}px {pad_x}px; }}"
             f"QLineEdit#SidebarSearch:focus {{"
-            f" border: {border_w}px solid {focus_border}; }}"
+            f" border: {border_w}px solid {focus_border}; }}",
         )
 
     def show_search(self, text: str) -> None:

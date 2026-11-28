@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from math import ceil
 
+import shiboken6
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
 from PySide6.QtGui import QColor, QCursor, QFont, QFontMetrics, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
@@ -435,7 +436,7 @@ class QtTabMarquee(TitleMarquee):
 
     @property
     def animation_visible(self) -> bool:
-        return self.bar.isVisible() and not self.bar.clock.scrolling
+        return shiboken6.isValid(self.bar) and self.bar.isVisible() and not self.bar.clock.scrolling
 
     def marquee_running(self) -> bool:
         return self.animation is not None
@@ -486,6 +487,7 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
         self.marquee = QtTabMarquee(self)
+        self.destroyed.connect(lambda *_: self.marquee.stop_marquee())
         self._strip_width = 0
         self._scale_percent = 100
 

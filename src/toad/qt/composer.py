@@ -240,6 +240,23 @@ class ComposerEditor(QPlainTextEdit):
         key_mode = self.composer.settings.ui.key_mode
         self.vim_enabled = key_mode.modal
         self.vim = ComposerVimMode(key_mode if key_mode.modal else VimInsert)
+        self.sync_cursor_shape()
+
+    def sync_cursor_shape(self) -> None:
+        """Block cursor in Vim Normal/Visual (`accepts_text == False`), beam in Insert/Standard."""
+        metrics = self.fontMetrics()
+        block = not self.editing_mode.accepts_text
+        self.setOverwriteMode(block)
+        self.setCursorWidth(
+            max(6, metrics.averageCharWidth())
+            if block
+            else max(1, round(metrics.lineSpacing() * 0.12))
+        )
+
+    def changeEvent(self, event: QEvent) -> None:  # type: ignore[override]
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.FontChange:
+            self.sync_cursor_shape()
 
     @property
     def editing_mode(self):
@@ -533,30 +550,47 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         return self.host.submissions
 
     def paint_colours(self) -> None:
-        """The area's tone, the muted placeholder, the offer list, the glyph and the frame's
-        border, under the renderer's current scheme."""
+        """The area's tone, inherited text/placeholder ink, the offer list, the glyph and
+        the frame's border, under the renderer's current scheme."""
         # The area, the band its delivery and queue lines sit on, and the field typed into: the
-        # shared composer's three tones (Textual paints the same ones through TonePaint).
+        # shared composer's tones (Textual paints the same ones through TonePaint).
         queue = self.renderer.theme(self.queue_tone)
-        self.setStyleSheet(
+        self.renderer.apply_sheet(
+            self,
             f"#composer {{ background: {self.renderer.theme(self.area_tone)} }}"
-            f" #composer-queue, #composer-delivery {{ background: {queue} }}")
+            f" #composer-queue, #composer-delivery {{ background: {queue} }}",
+        )
+        fg = self.renderer.theme(self.text_colour)
+        placeholder = self.renderer.theme(self.placeholder_colour)
+        # Qt's QStyleSheetStyle ignores QPalette.PlaceholderText once a stylesheet is set on
+        # QPlainTextEdit, falling back to black; declare placeholder-text-color in QSS too.
+        self.renderer.apply_sheet(
+            self.editor,
+            f"QPlainTextEdit {{ background: transparent; border: none;"
+            f" color: {fg}; placeholder-text-color: {placeholder}; }}",
+        )
         palette = self.editor.palette()
-        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(self.renderer.colour(MutedRole)))
+        palette.setColor(QPalette.ColorRole.Text, QColor(fg))
+        palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(placeholder))
         self.editor.setPalette(palette)
-        self.offers.setStyleSheet(self.host.app.theme.color_scheme.styles.generate_list_widget_style())
-        self.glyph.setStyleSheet(f"color: {self.renderer.theme(SecondaryColour)}")
+        self.renderer.apply_sheet(
+            self.offers,
+            self.host.app.theme.color_scheme.styles.generate_list_widget_style(),
+        )
+        self.renderer.apply_sheet(self.glyph, f"color: {self.renderer.theme(SecondaryColour)}")
         self.focus_changed(self.editor.hasFocus())
 
     def focus_changed(self, focused: bool) -> None:
         """The frame's border follows focus (Textual's `PromptContainer.border`), and the
-        badge shows the editing mode only while focused."""
+        badge and cursor shape follow the active editing mode."""
         colour = self.renderer.theme(PrimaryColour if focused else MutedColour)
         field = self.renderer.theme(self.input_tone)
         self.renderer.apply_sheet(self.frame, self.settings.ui.input.box.qt_frame_sheet(field, colour))
+        self.editor.sync_cursor_shape()
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, focused)
 
     def refresh_editing_mode(self) -> None:
+        self.editor.sync_cursor_shape()
         self.info_bar.badge.present_editing_mode(self.editor.editing_mode, self.editor.hasFocus())
         RowReveal.toggle(self.delivery_controls, self.shows_delivery_controls, self)
 
