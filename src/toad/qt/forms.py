@@ -59,6 +59,7 @@ from toad.form_family import (
     ValueFields,
 )
 from toad.object_configuration import ObjectSettingField
+from toad.qt.flash_surface import QtFlashSurface
 from toad.qt.lines import QtLineRenderer
 from toad.qt.theme import offered_schemes
 from toad.setting_choices import SchemeName
@@ -336,10 +337,13 @@ class QtFormView(FieldForm):
         for part in parts:
             layout.addWidget(part.widget)
         layout.addStretch(1)
+        self.flash_surface = QtFlashSurface(self.body)
+        self.flash_surface.bind_targets({path: view.widget for path, view in self.values.items()})
 
     def theme(self, renderer: QtLineRenderer) -> None:
         """Colour what the shared family declares a colour for, from the app's scheme, now
         and whenever the scheme changes."""
+        self.flash_surface.set_renderer(renderer)
         renderer.themed(self.body, lambda: self.body.setStyleSheet(
             f"#{GROUP_HEADING} {{ color: {renderer.theme(GroupFields.heading_colour)} }}"))
 
