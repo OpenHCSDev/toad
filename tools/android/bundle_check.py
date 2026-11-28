@@ -39,6 +39,14 @@ ENTRY = "toad.qt.android"
 FRONTEND_UI = ("toad.widgets", "toad.screens", "toad.app", "textual.app", "textual.widgets",
                "textual.screen", "textual.containers")
 OPTIONAL = {"ImportError", "ModuleNotFoundError"}
+# C extensions present in desktop Linux Python 3.14 that Android's Python 3.14 APK build omits
+# (android-build/Modules/config.c + lib.android-28-arm64_v8a-3.14, e.g. bionic has no POSIX
+# named semaphores so _multiprocessing is absent). Blocking them in the desktop import probe
+# catches build-time ModuleNotFoundError before an APK ships to a phone.
+ANDROID_ABSENT_C_EXTENSIONS = (
+    "_bz2", "_curses", "_curses_panel", "_dbm", "_lzma",
+    "_multiprocessing", "_posixshmem", "_tkinter", "_uuid", "_zstd", "readline",
+)
 
 
 @dataclass(frozen=True)
@@ -222,7 +230,10 @@ with tempfile.TemporaryDirectory() as recipes:
     result = subprocess.run(
         # -B: the app folder ships the bytecode assemble.py compiled; this run writes none.
         [sys.executable, "-S", "-B", "-c",
-         (f"import json, sys; sys.path[:0] = [{str(app)!r}, {recipes!r}]; from toad.qt.android_app import enter; enter(); import {ENTRY}; {ENTRY}.load_client(); "
+         (f"import json, sys; sys.path[:0] = [{str(app)!r}, {recipes!r}]; "
+          f"sys.modules.update(dict.fromkeys({ANDROID_ABSENT_C_EXTENSIONS!r})); "
+          f"from toad.qt.android_app import enter; enter(); import {ENTRY}; {ENTRY}.load_client(); "
+          "from toad.client.host import post_crash_to_sink; "
           "from toad.client.application_actions import ApplicationAction; "
           "blank = [action.__name__ for action in ApplicationAction.declarations() if not action.summary()]; "
           "blank and sys.exit(f'error: application actions with an empty summary at -O{sys.flags.optimize}: {blank}'); "
