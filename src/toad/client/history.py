@@ -41,7 +41,7 @@ from toad.client.composer_pool import ComposerPoolHost
 from toad.client.connection import CoordinationAccess, Observation
 from toad.client.conversation import ConversationKind
 from toad.client.resource_release import ResourceRelease
-from toad.core.events import CoordinationObserved, Publication
+from toad.core.events import Publication
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.client.conversation_capabilities import (
     ConversationActivity,
@@ -738,17 +738,6 @@ class WirePageBuffer(SavedHistory):
 
     def uses_observation(self, observation: Observation) -> bool:
         return observation.observes(self.loader.root)
-
-    def observe_availability(self, view, access: CoordinationAccess, resume: Callable[[object], object]) -> ResourceRelease:
-        """A wire conversation has no thread transcript scope (`NoTranscript.observe` is a
-        no-op), so a read paused on `CoordinationReadUnavailable` resumes on Core's own
-        coordination stream instead of wedging the tab in `WorkingTranscript` forever."""
-        release = ResourceRelease()
-        release.callback(
-            view.retire_core,
-            view.observe_core_callback(access.events, CoordinationObserved, resume),
-        )
-        return release
 
     async def route_is_current(self) -> bool:
         if self.closed:

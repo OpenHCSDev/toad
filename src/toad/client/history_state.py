@@ -17,17 +17,21 @@ from agent_comms.errors import RouteChangedError
 from agent_comms.nominal.declared_family import DeclaredFamily
 from agent_comms.nominal.lifecycle import LifecycleState
 from agent_comms.transcript.transcripts import TranscriptPage
+from agent_comms.ui_model.observation import ObserverUnattached
+from agent_comms.ui_model.observation_wire import ObservationEnded
 
 from toad.client.history_coverage import NO_COVERAGE, PAGE_COVERAGE, HistoryCoverage
 from toad.client.history_preparation import NEWER_END, OLDER_END, PageRequest
 from toad.client.resource_release import ResourceRelease
 from toad.client.subscribers import CoreObserver
 
-# Network drops, route changes and remote socket failures are recoverable outages, never
-# permanent source corruption: defer the operation so CoordinationObserved resumes it
-# when connectivity returns instead of retiring the tab into RetiredSourceTranscript.
+# Network drops, route changes, observer restarts and remote socket failures are recoverable
+# outages, never permanent source corruption: defer the operation so CoordinationObserved
+# resumes it when connectivity returns instead of retiring the tab into RetiredSourceTranscript.
 TRANSIENT_SOURCE_ERRORS = (
     CoordinationReadUnavailable,
+    ObservationEnded,
+    ObserverUnattached,
     RouteChangedError,
     ConnectionError,
     TimeoutError,
@@ -338,11 +342,9 @@ class WaitingSourceWork[Owner, Snapshot, Result]:
 
     @contextmanager
     def observe(self):
-        # The pager's page source owns how availability returns: a saved transcript watches
-        # its view's thread scope, while a wire conversation watches Core's coordination
-        # stream (`WirePageBuffer.observe_availability`) because its `thread_scope` is
-        # `NoTranscript` (whose `observe` is a no-op that left channel tabs wedged forever
-        # after any background/reconnect `CoordinationReadUnavailable`).
+        # `PreparedPageSource.observe_availability` watches both the view's thread scope
+        # (a no-op on wire conversations whose scope is `NoTranscript`) and Core's
+        # coordination stream so reconnection resumes paused transcript and wire reads alike.
         view = self.owner.view
         with self.owner.page_source.observe_availability(
             view, self.owner.app.coordination_access, self.resume
@@ -388,6 +390,11 @@ class WorkingTranscript(ResumableTranscript):
         key = (work.func, work.args) if isinstance(work, partial) else work
         self.owed[key] = work
         return DEFERRED_WORK
+
+    def publish(self) -> TranscriptState:
+        """Advance the wrapped state without dropping this running operation before `finish_source_work`."""
+        object.__setattr__(self, "source", self.source.publish())
+        return self
 
     def rows_published(self, owner) -> None:
         self.source.rows_published(owner)

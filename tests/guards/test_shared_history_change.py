@@ -96,8 +96,11 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
     from toad.client.history_state import WaitingSourceWork
     from toad.client.prepared_pages import PreparedPageSource
     from toad.core.events import CoordinationObserved
+    from toad.transcript_scope import NoTranscript
 
     observed = []
+    saved_subscribed = []
+    saved_retired = []
 
     @contextmanager
     def observe(owner, access, resume):
@@ -105,7 +108,11 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
         yield
 
     access = SimpleNamespace(events=object())
-    view = SimpleNamespace(thread_scope=SimpleNamespace(observe=observe))
+    view = SimpleNamespace(
+        thread_scope=SimpleNamespace(observe=observe),
+        observe_core_callback=lambda stream, event_type, cb: (saved_subscribed.append((stream, event_type, cb)), "saved-sub")[1],
+        retire_core=lambda sub: saved_retired.append(sub),
+    )
     owner = SimpleNamespace(
         view=view,
         page_source=PreparedPageSource(),
@@ -114,15 +121,19 @@ def test_a_paused_source_observes_the_scope_its_pager_view_owns():
     waiting = WaitingSourceWork(owner, object(), lambda: None, object())
 
     with waiting.observe():
-        pass
+        assert saved_subscribed == [(access.events, CoordinationObserved, waiting.resume)]
+        assert saved_retired == []
 
     assert observed == [(view, access, waiting.resume)]
+    assert saved_retired == ["saved-sub"]
 
-    # A wire conversation has NoTranscript as thread_scope, so WirePageBuffer must watch
-    # Core's CoordinationObserved stream instead of silently returning an empty release.
+    # A wire conversation has NoTranscript as thread_scope and inherits the same
+    # PreparedPageSource.observe_availability so both transcript and wire reads wake on
+    # CoordinationObserved.
     subscribed = []
     retired = []
     wire_view = SimpleNamespace(
+        thread_scope=NoTranscript(),
         observe_core_callback=lambda stream, event_type, cb: (subscribed.append((stream, event_type, cb)), "sub")[1],
         retire_core=lambda sub: retired.append(sub),
     )

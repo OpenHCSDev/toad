@@ -896,6 +896,7 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
     from toad.qt.thread_view import QtThreadView
     from toad.transcript_publication import BoundView
     from toad.client.committed_presentation import CommitTranscript, block_claim
+    from toad.client.history_state import LiveTranscript
 
     from toad.arrivals import AnimatesArrivals
     redrawn = []
@@ -986,7 +987,7 @@ def test_qt_live_blocks_survive_page_range_changes_and_retire_only_by_commit_cov
 
     async def check_commit_retirement():
         commit = CommitTranscript(
-            source=SimpleNamespace(),
+            source=LiveTranscript(),
             owner=fake_owner,
             live_blocks=(uncovered_response,),
             claims=(block_claim(uncovered_response),),

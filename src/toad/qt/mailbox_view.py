@@ -67,6 +67,10 @@ class QtMailboxView(QtThreadView, BoundSources):
         # made the empty page look already published and no first-page read was scheduled.
         self._identity: ThreadIdentity | NoThreadIdentity = ThreadIdentity(thread_incarnation, root)
         self._lay_out_thread(app, thread_incarnation.name, thread_incarnation)
+        # Qt's mailbox view never hosts a local ACP agent: its composer and submission path
+        # always send through Core's inbox, including when opened on a local desktop bus
+        # where `NativeThreadNavigation.bind` calls `apply_native_load_plan`.
+        self.operational_sources = self.mailbox_sources()
 
     def composer_class(self) -> type[MailboxComposer]:
         """Textual's `MailboxSessionSources.prompt`: a `MailboxPrompt`."""

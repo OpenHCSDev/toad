@@ -36,6 +36,7 @@ from toad.client.input_decision import TranscriptNotReady
 from toad.client.resource_release import ResourceRelease
 from toad.client.submission import ComposeAccess, SubmissionOwner, SubmissionStart, SubmittedText
 from toad.commit_claims import RETAINED_SOURCE_CLAIM, CommitClaim, RetainedBlockClaim
+from toad.core.events import CoordinationObserved
 from toad.status_thread import NoStatusThread
 from toad.work_preparation import (
     PreparationRuntime,
@@ -434,9 +435,16 @@ class PreparedPageSource:
     def observe_availability(
         self, view, access: CoordinationAccess, resume: Callable[[object], object]
     ) -> ResourceRelease:
-        """How a paused read learns its source can answer again: saved transcripts watch
-        their view's thread scope; wire conversations override this to watch Core's stream."""
-        return view.thread_scope.observe(view, access, resume)
+        """How a paused read learns its source can answer again: watch both the view's thread
+        scope (a no-op on wire conversations whose scope is `NoTranscript`) and Core's
+        coordination stream so reconnection resumes paused transcript and wire reads alike."""
+        release = ResourceRelease()
+        release.enter_context(view.thread_scope.observe(view, access, resume))
+        release.callback(
+            view.retire_core,
+            view.observe_core_callback(access.events, CoordinationObserved, resume),
+        )
+        return release
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
              projection: HeldProjection = NoProjection()) -> None:
