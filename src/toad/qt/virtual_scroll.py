@@ -908,6 +908,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         self._layouts = 0
         self._geometry_revision = 0
         self._estimating = False
+        self._scroll_cover_cache: tuple[QRect, list[QRect], list[QRect], QRect, QRegion | None] | None = None
         self.viewport().setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, True)
 
     @property
@@ -1240,24 +1241,34 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         viewport = self.viewport()
         vp_rect = viewport.rect()
         covers, opaque = self.floating_covers()
-        clear = self.uncovered(vp_rect, covers) if covers and not dx else QRect()
+        if not covers or dx:
+            viewport.scroll(dx, dy)
+            return
+        cached = self._scroll_cover_cache
+        if cached is not None and cached[0] == vp_rect and cached[1] == covers and cached[2] == opaque:
+            clear, dirty = cached[3], cached[4]
+        else:
+            clear = self.uncovered(vp_rect, covers)
+            if clear.isEmpty():
+                dirty = None
+            elif (
+                len(covers) == 1
+                and len(opaque) == 1
+                and clear.width() * clear.height() + opaque[0].width() * opaque[0].height()
+                == vp_rect.width() * vp_rect.height()
+            ):
+                dirty = None
+            else:
+                region = QRegion(vp_rect).subtracted(QRegion(clear))
+                for rect in opaque:
+                    region = region.subtracted(QRegion(rect))
+                dirty = None if region.isEmpty() else region
+            self._scroll_cover_cache = (vp_rect, covers, opaque, clear, dirty)
         if clear.isEmpty():
             viewport.scroll(dx, dy)
             return
         viewport.scroll(dx, dy, clear)
-        # Since `clear` and `cover` are disjoint subsets of `vp_rect`, their areas sum
-        # to `vp_rect`'s area iff `vp_rect \ clear == cover`, skipping all QRegion work.
-        if (
-            len(covers) == 1
-            and len(opaque) == 1
-            and clear.width() * clear.height() + opaque[0].width() * opaque[0].height()
-            == vp_rect.width() * vp_rect.height()
-        ):
-            return
-        dirty = QRegion(vp_rect).subtracted(QRegion(clear))
-        for rect in opaque:
-            dirty = dirty.subtracted(QRegion(rect))
-        if not dirty.isEmpty():
+        if dirty is not None:
             viewport.update(dirty)
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
