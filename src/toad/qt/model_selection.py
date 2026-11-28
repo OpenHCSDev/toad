@@ -11,7 +11,7 @@ binding all come from `toad.client.model_selection`. Importing this module regis
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 import shiboken6
 from agent_comms.config_options import ModelConfigOption
@@ -34,7 +34,9 @@ from toad.acp.agent_configuration import ModelConfigurationSetting
 from toad.client.model_selection import (
     CatalogChoiceSelection,
     CatalogModelField,
+    ModelChoice,
     ModelSelectionCore,
+    ProviderChoiceSelection,
     RankedModel,
     ResetsHighlight,
     SessionChoiceSelection,
@@ -231,6 +233,37 @@ class QtSessionModelSelection(SessionChoiceSelection, QtModelSelection):
         return self._setting_provider()
 
 
+class QtProviderModelSelection(ProviderChoiceSelection, QtModelSelection):
+    """Generic provider-driven Qt model selection shared by native and CLI-inbox tabs."""
+
+    def __init__(
+        self,
+        choices_provider: Callable[[], Sequence[ModelChoice]],
+        current_provider: Callable[[], str],
+        history_scope: str,
+        *,
+        on_selected: Callable[[str], None],
+        on_dismiss: Callable[[], None],
+        on_connect: Callable[[], None],
+        parent: QWidget | None = None,
+    ) -> None:
+        self._choices_provider = choices_provider
+        self._current_provider = current_provider
+        self.history_scope = history_scope
+        super().__init__(
+            on_selected=on_selected,
+            on_dismiss=on_dismiss,
+            on_connect=on_connect,
+            parent=parent,
+        )
+
+    def provider_choices(self) -> Sequence[ModelChoice]:
+        return self._choices_provider()
+
+    def provider_current(self) -> str:
+        return self._current_provider()
+
+
 class QtModelChoiceDialog(PresentedWindow, QDialog, DismissibleContract, metaclass=PyQtWidgetMeta):
     """Modal `PresentedWindow` hosting a `QtModelSelection` without a nested event loop."""
 
@@ -272,6 +305,27 @@ class QtModelChoiceDialog(PresentedWindow, QDialog, DismissibleContract, metacla
         return cls(
             lambda dialog: QtSessionModelSelection(
                 setting_provider,
+                history_scope,
+                on_selected=dialog._accept_model,
+                on_dismiss=dialog.reject,
+                on_connect=dialog._connect_provider,
+                parent=dialog,
+            ),
+            parent,
+        )
+
+    @classmethod
+    def for_provider_catalog(
+        cls,
+        choices_provider: Callable[[], Sequence[ModelChoice]],
+        current_provider: Callable[[], str],
+        history_scope: str,
+        parent: QWidget | None = None,
+    ) -> QtModelChoiceDialog:
+        return cls(
+            lambda dialog: QtProviderModelSelection(
+                choices_provider,
+                current_provider,
                 history_scope,
                 on_selected=dialog._accept_model,
                 on_dismiss=dialog.reject,
