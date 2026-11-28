@@ -4,8 +4,9 @@ import asyncio
 import io
 import os.path
 import shlex
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from contextlib import suppress
+from dataclasses import dataclass
 from functools import cached_property
 from itertools import filterfalse
 from operator import attrgetter
@@ -949,6 +950,39 @@ class SourcesScope(DOMNode):
     def initial_editing_mode(self) -> EditingMode: ...
 
 
+class RequestedModeId(ABC):
+    """Optional agent mode identifier requested for Conversation.set_mode."""
+
+    async def apply_to_conversation(self, owner: Conversation) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: str | None) -> RequestedModeId:
+        return AbsentRequestedModeId() if value is None else HeldRequestedModeId(value)
+
+
+@dataclass(frozen=True)
+class AbsentRequestedModeId(RequestedModeId):
+    """Absent `RequestedModeId` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldRequestedModeId(RequestedModeId):
+    """Held `RequestedModeId` carrying its present value."""
+
+    value: str
+
+    async def apply_to_conversation(self, owner: Conversation) -> None:
+        agent = owner.agent_binding
+        error = await agent.set_mode(self.value)
+        if agent is not owner.agent_binding:
+            return
+        if error is not None:
+            owner.app.show_error(error, 'Set Mode')
+        elif (mode := agent.current_mode) is not None:
+            owner.feedback.flash(Content.from_markup('Mode changed to [b]$mode', mode=mode.name), style='success')
+
+
 class Conversation(
     AgentTurnEvents,
     FirstPromptTitle,
@@ -1383,7 +1417,7 @@ class Conversation(
     @work
     @handles(input_events.ChangeMode)
     async def on_change_mode(self, event: input_events.ChangeMode) -> None:
-        await self.set_mode(event.mode_id)
+        await self.set_mode(RequestedModeId.from_optional(event.mode_id))
 
     @handles(input_events.ProviderLogin)
     def on_provider_login(self, event: input_events.ProviderLogin, message: CoreEventMessage) -> None:
@@ -1599,20 +1633,8 @@ class Conversation(
         else:
             await self.post(ConversationPlan(event.entries))
 
-    async def set_mode(self, mode_id: str | None) -> None:
-        if mode_id is None:
-            return
-        agent = self.agent_binding
-        error = await agent.set_mode(mode_id)
-        if agent is not self.agent_binding:
-            return
-        if error is not None:
-            self.app.show_error(error, "Set Mode")
-        elif (mode := agent.current_mode) is not None:
-            self.feedback.flash(
-                Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
-                style="success",
-            )
+    async def set_mode(self, mode_id: RequestedModeId) -> None:
+        await mode_id.apply_to_conversation(self)
 
     @handles(input_events.HistoryMove)
     async def on_history_move(self, event: input_events.HistoryMove, message: CoreEventMessage) -> None:

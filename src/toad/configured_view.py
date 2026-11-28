@@ -139,7 +139,7 @@ class AgentSettingsProperties(AgentSettingsPanel, FillHeight, SidebarPanelWidget
             (), allow_blank=True, compact=True
         )
         self._scope_select.display = False
-        self._status = Static("Loading agent settings…", markup=False)
+        self._status: Static = Static("Loading agent settings…", markup=False)
         self._form_host = containers.Vertical()
         self._form_host.display = False
 

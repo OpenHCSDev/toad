@@ -23,6 +23,8 @@ a right-click, because a mouse has one.
 
 from __future__ import annotations
 
+from abc import ABC
+from dataclasses import dataclass
 from weakref import WeakSet
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QPointF, Qt, QTimer, Signal
@@ -75,6 +77,34 @@ class Press:
         return False
 
 
+class WatchedWindow(ABC):
+    """Optional top-level QWindow watched by FingerPress."""
+
+    def install_filter(self, owner: FingerPress) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: QWindow | None) -> WatchedWindow:
+        return AbsentWatchedWindow() if value is None else HeldWatchedWindow(value)
+
+
+@dataclass(frozen=True)
+class AbsentWatchedWindow(WatchedWindow):
+    """Absent `WatchedWindow` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldWatchedWindow(WatchedWindow):
+    """Held `WatchedWindow` carrying its present value."""
+
+    value: QWindow
+
+    def install_filter(self, owner: FingerPress) -> None:
+        if self.value not in owner._windows:
+            owner._windows.add(self.value)
+            self.value.installEventFilter(owner)
+
+
 class FingerPress(QObject, GestureControl):
     """The application's one classifier of presses (see the module): a `GestureControl` fed
     every press its windows receive."""
@@ -105,12 +135,10 @@ class FingerPress(QObject, GestureControl):
         # (`_withheld`): the press was held, or its tap claimed.
         self.withholding = False
 
-    def watch(self, window: QWindow | None) -> None:
+    def watch(self, window: WatchedWindow) -> None:
         """Install this press classifier on ``window`` alone, keeping timer, paint and
         child-widget events out of Python."""
-        if window is not None and window not in self._windows:
-            self._windows.add(window)
-            window.installEventFilter(self)
+        window.install_filter(self)
 
     def _set_app_filter(self, active: bool) -> None:
         """Install on QApplication only for the brief span a held press or claimed tap needs
@@ -132,15 +160,15 @@ class FingerPress(QObject, GestureControl):
     def install(cls, application: QApplication) -> FingerPress:
         """The application's classifier; installing again (a consumer asking for it) returns
         the one already held."""
-        held = application.findChild(cls)
+        held: FingerPress | None = application.findChild(cls)
         if held is not None:
             for window in application.topLevelWindows():
-                held.watch(window)
+                held.watch(WatchedWindow.from_optional(window))
             return held
         classifier = cls(application)
         for window in application.topLevelWindows():
-            classifier.watch(window)
-        application.focusWindowChanged.connect(classifier.watch)
+            classifier.watch(WatchedWindow.from_optional(window))
+        application.focusWindowChanged.connect(lambda window: classifier.watch(WatchedWindow.from_optional(window)))
         return classifier
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:

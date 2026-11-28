@@ -61,6 +61,7 @@ from toad.client.history_state import (
     SourceWork,
 )
 from toad.client.prepared_pages import (
+    DrawnPage,
     PreparedTranscriptPage,
     ReplaceablePageSource,
     SavedHistory,
@@ -831,7 +832,9 @@ class WirePageBuffer(SavedHistory):
     async def observe_changes(self, revision):
         return await self.runtime.run_thread(self.loader.observe, revision)
 
-    async def accept_page(self, history, edge, prepared) -> bool:
+    async def accept_page(
+        self, history, edge: DrawnPage, prepared: PreparedTranscriptPage
+    ) -> bool:
         if edge.prepared.page.accepts(prepared.page.source):
             return True
         prepared.configure(batch_size=len(prepared.fragments))

@@ -25,7 +25,7 @@ class ResetSettingButton(ActingButton):
 class ObjectValueView(ObjectValueFields, ValueView, ObjectFieldView, shows=(ParameterInfo,)):
     def __init__(self, field):
         super().__init__(field)
-        self.source = Static("", markup=False)
+        self.source: Static = Static("", markup=False)
         self.reset = ResetSettingButton()
         self.listen(events.Mount, lambda event: self.mark(False))
 

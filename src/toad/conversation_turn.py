@@ -254,7 +254,7 @@ class ConversationTurn:
         self._changed = changed
 
     @property
-    def binding(self):
+    def binding(self) -> TurnBinding:
         return self._source()
 
     @property

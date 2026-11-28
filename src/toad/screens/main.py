@@ -69,7 +69,7 @@ from toad.widget_actions import (
     WidgetAction,
 )
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.conversation import Conversation, SourcesScope
+from toad.widgets.conversation import Conversation, RequestedModeId, SourcesScope
 from toad.client.history_reads import NothingToRead, PaintedRead, ReadWork
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import NO_PROJECT_VIEW, ProjectSearchButton, ProjectView
@@ -107,7 +107,7 @@ class ModeProvider(SessionCommands):
         ):
             yield SimpleCommand(
                 mode.name,
-                partial(session.conversation.set_mode, mode.value),
+                partial(session.conversation.set_mode, RequestedModeId.from_optional(mode.value)),
                 mode.description,
             )
 
@@ -343,7 +343,7 @@ class MainScreen(
 
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
-    conversation = getters.query_one(Conversation)
+    conversation: Conversation = getters.query_one(Conversation)
 
     @property
     def configuration_panels(self):

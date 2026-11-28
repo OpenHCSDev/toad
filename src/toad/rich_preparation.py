@@ -108,6 +108,32 @@ class PreparedPaintSource:
         ...
 
 
+class CapturedSelection(ABC):
+    """Optional text selection converted to coordinate pairs for worker rendering."""
+
+    def selection_coordinates(self):
+        pass
+
+    @classmethod
+    def from_optional(cls, value: Selection | None) -> CapturedSelection:
+        return AbsentCapturedSelection() if value is None else HeldCapturedSelection(value)
+
+
+@dataclass(frozen=True)
+class AbsentCapturedSelection(CapturedSelection):
+    """Absent `CapturedSelection` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldCapturedSelection(CapturedSelection):
+    """Held `CapturedSelection` carrying its present value."""
+
+    value: Selection
+
+    def selection_coordinates(self):
+        return tuple((None if offset is None else (offset.x, offset.y) for offset in self.value))
+
+
 class RichSource(ABC):
     """Picklable data which materializes Rich or native content in the worker."""
 
@@ -125,7 +151,7 @@ class RichSource(ABC):
         """Mutable/custom renderables must acquire their supplied value again."""
         return False
 
-    def capture_selection(self, selection: Selection | None,
+    def capture_selection(self, selection: CapturedSelection,
                           style: NativeStyle | None) -> RichSource:
         return self
 
@@ -140,11 +166,9 @@ class NativeContentSource(RichSource):
     selection: tuple[tuple[int, int] | None, tuple[int, int] | None] | None = None
     selection_style: NativeStyle | None = None
 
-    def capture_selection(self, selection: Selection | None,
+    def capture_selection(self, selection: CapturedSelection,
                           style: NativeStyle | None) -> NativeContentSource:
-        coordinates = (None if selection is None else
-                       tuple(None if offset is None else (offset.x, offset.y)
-                             for offset in selection))
+        coordinates = (selection.selection_coordinates())
         return replace(self, selection=coordinates, selection_style=style)
 
     @abstractmethod
@@ -186,7 +210,7 @@ class ContentSource(NativeContentSource):
     @classmethod
     def capture(cls, value: Content, selection: Selection | None,
                 selection_style: NativeStyle | None) -> ContentSource:
-        return cls(value).capture_selection(selection, selection_style)
+        return cls(value).capture_selection(CapturedSelection.from_optional(selection), selection_style)
 
     @property
     def style_names(self) -> tuple[str, ...]:
