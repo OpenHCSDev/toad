@@ -323,6 +323,9 @@ def test_navigation_target_agent_settings_scopes_and_labels() -> None:
         ThreadSettingsScope("agent-comms", "comms-a"),
         "",
     )
+    from toad.thread_identity import LocalThreadIdentity, NoThreadIdentity
+    assert NoThreadIdentity().navigation_target(ThreadTarget, NoTarget) == NoTarget()
+    assert LocalThreadIdentity("toad-qt").navigation_target(ThreadTarget, NoTarget) == ThreadTarget("toad-qt")
     assert GlobalSettingsScope().label == "Global"
     assert ProjectSettingsScope("agent-comms").label == "Project agent-comms"
     assert ChannelSettingsScope("agent-comms", "#comms").label == "Channel #comms"
