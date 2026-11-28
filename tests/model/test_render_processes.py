@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 from agent_comms.execution.child_process import ForkedStart
-from agent_comms.execution.launch_runtime import ThreadLaunch
+from agent_comms.execution.thread_launch import ThreadLaunch
 from agent_comms.projects.checkouts import Checkout
 
 from toad.client.connection import CoreConnection
