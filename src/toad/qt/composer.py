@@ -45,6 +45,7 @@ from toad.client.prompt_composer import (
     PromptSettingEffects,
     SlashCommandOffer,
 )
+from toad.client import platform as toad_platform
 from toad.client.condensed_path import home_relative
 from toad.key_modes import Standard, VimInsert
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
@@ -209,11 +210,15 @@ class ComposerEditor(QPlainTextEdit):
         # Android soft-keyboard wiring: without these the tap registers but the IME
         # never raises, so the user sees a composer they can't type into. Desktop Qt
         # raises the OS keyboard implicitly on focus; Android Qt doesn't — the editor
-        # has to opt in explicitly. Three pieces: (1) StrongFocus so a tap can take
-        # keyboard focus, (2) WA_InputMethodEnabled so the IME considers the widget,
-        # (3) mousePressEvent explicitly requests the IME show on tap (focusInEvent
-        # alone fires too early on Android, before the window is composited).
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        # has to opt in explicitly. Three pieces: (1) ClickFocus on Android (StrongFocus
+        # on desktop) so a tap takes keyboard focus without QStackedWidget tab switches
+        # auto-selecting the input box, (2) WA_InputMethodEnabled so the IME considers
+        # the widget, (3) mousePressEvent/MouseFocusReason explicitly requests IME show.
+        self.setFocusPolicy(
+            Qt.FocusPolicy.StrongFocus
+            if toad_platform.host.auto_focus_composer
+            else Qt.FocusPolicy.ClickFocus
+        )
         self.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.follow_key_mode()
 
@@ -260,9 +265,10 @@ class ComposerEditor(QPlainTextEdit):
     def focusInEvent(self, event) -> None:
         super().focusInEvent(event)
         self.composer.focus_changed(True)
-        # Same defer as mousePressEvent — focusInEvent also runs inside Qt's
-        # event-dispatch path on Android.
-        QTimer.singleShot(0, self._show_ime_if_hidden)
+        # Only raise Android's soft keyboard on an explicit tap/click (MouseFocusReason),
+        # never on implicit focus transfers when switching tabs or reactivating the window.
+        if event.reason() == Qt.FocusReason.MouseFocusReason:
+            QTimer.singleShot(0, self._show_ime_if_hidden)
 
     def event(self, event) -> bool:
         """A key a priority action answers is the action's, not the text control's: Enter

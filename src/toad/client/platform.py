@@ -80,6 +80,7 @@ class Platform(DeclaredFamily, affix="Platform"):
     system: ClassVar[str]
     key: ClassVar[OS]
     application_name: ClassVar[str] = "Toad"
+    auto_focus_composer: ClassVar[bool] = True
 
     @classmethod
     def select[V](cls, matrix: Mapping[OS, V]) -> V | None:
@@ -114,6 +115,7 @@ class LinuxPlatform(Platform):
 class AndroidPlatform(Platform):
     system = "Android"
     key = "android"
+    auto_focus_composer = False
 
     @classmethod
     def open_window(cls, window) -> None:

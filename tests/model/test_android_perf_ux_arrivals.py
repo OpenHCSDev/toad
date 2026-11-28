@@ -3141,3 +3141,54 @@ def test_compact_marquee_tabs_and_multifile_pickers(monkeypatch, tmp_path) -> No
     finally:
         search.close()
         host.close()
+
+
+def test_android_tab_switch_does_not_autofocus_composer_or_raise_ime(monkeypatch) -> None:
+    """On AndroidPlatform (`auto_focus_composer = False`), ComposerPlaceholder and ComposerEditor
+    use ClickFocus and only mount/raise the IME on an explicit tap (MouseFocusReason), never on
+    implicit QStackedWidget focus transfers during tab switches."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from types import SimpleNamespace
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QFocusEvent
+    from toad.client import platform as toad_platform
+    from toad.client.platform import AndroidPlatform, LinuxPlatform
+    from toad.qt.composer import ComposerEditor
+    from toad.qt.conversation import ComposerPlaceholder
+
+    assert LinuxPlatform.auto_focus_composer is True
+    assert AndroidPlatform.auto_focus_composer is False
+    monkeypatch.setattr(toad_platform, "host", AndroidPlatform)
+
+    mounted: list[bool] = []
+    view = SimpleNamespace(mount_composer=lambda *, focus=False: mounted.append(focus))
+    placeholder = ComposerPlaceholder(view, 48)
+    try:
+        assert placeholder.focusPolicy() == Qt.FocusPolicy.ClickFocus
+        # Implicit focus transfer (OtherFocusReason) must NOT mount with focus.
+        placeholder.focusInEvent(QFocusEvent(QFocusEvent.Type.FocusIn, Qt.FocusReason.OtherFocusReason))
+        assert mounted == []
+        # Explicit tap (MouseFocusReason) DOES mount with focus.
+        placeholder.focusInEvent(QFocusEvent(QFocusEvent.Type.FocusIn, Qt.FocusReason.MouseFocusReason))
+        assert mounted == [True]
+    finally:
+        placeholder.close()
+
+    ime_shown: list[bool] = []
+    monkeypatch.setattr(ComposerEditor, "_show_ime_if_hidden", staticmethod(lambda: ime_shown.append(True)))
+    fake_composer = SimpleNamespace(
+        settings=SimpleNamespace(ui=SimpleNamespace(key_mode=SimpleNamespace(modal=False))),
+        focus_changed=lambda _focused: None,
+    )
+    editor = ComposerEditor(fake_composer)
+    try:
+        assert editor.focusPolicy() == Qt.FocusPolicy.ClickFocus
+        editor.focusInEvent(QFocusEvent(QFocusEvent.Type.FocusIn, Qt.FocusReason.OtherFocusReason))
+        app.processEvents()
+        assert ime_shown == []
+        editor.focusInEvent(QFocusEvent(QFocusEvent.Type.FocusIn, Qt.FocusReason.MouseFocusReason))
+        app.processEvents()
+        assert ime_shown == [True]
+    finally:
+        editor.close()
