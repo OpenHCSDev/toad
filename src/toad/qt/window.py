@@ -198,6 +198,7 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
     its title after its status prefix, its detail indented under it; a tap activates it."""
 
     key: str
+    animation: object | None = None
     drawn: tuple[str, str, str, str] = ("", "", "", "")
     _painted_tone: QBrush | None = None
     _fitted_layout: tuple[str, str, str] | None = None
