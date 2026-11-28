@@ -67,7 +67,7 @@ from ui_theme.scheme import (
 from ui_theme.wal import WalFile
 from pyqt_reactive.theming import ColorScheme
 
-from toad.client.theme_tones import SidebarToggleToneColour, WorkspaceTabTones
+from toad.client.theme_tones import ScrollbarTones, SidebarToggleToneColour, WorkspaceTabTones
 
 from toad.client.pending import ActionRunning, awaited
 from toad.app_core import CorePrewarm
@@ -1865,13 +1865,14 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tab_strip.setWidget(self.tabs)
         self.tab_strip.setWidgetResizable(True)
         self.tab_strip.setFrameShape(QFrame.Shape.NoFrame)
-        self.tab_strip.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.tab_strip.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+            if host.is_android
+            else Qt.ScrollBarPolicy.ScrollBarAsNeeded
+        )
         self.tab_strip.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.tab_strip.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        # The header band's sheet pads and borders every frame inside it (a 5 px inset here,
-        # which clipped the tabs' lower 10 px); the strip is only a window onto the tabs.
         self.tab_strip.setObjectName("toad-tab-strip")
-        self.tab_strip.setStyleSheet("#toad-tab-strip { border: none; padding: 0px; background: transparent; }")
         self._last_tab_mode: str | None = None
         bar = QHBoxLayout()
         bar.setSpacing(UiGap.tight)
@@ -2168,7 +2169,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
 
     def show_current_tab(self, *, scroll_to_current: bool = True) -> None:
         self.tabs.sync_strip_width(self.tab_strip.viewport().width())
-        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
+        tab_bar_scroll_h = (
+            6
+            if (not host.is_android and self.tabs.sizeHint().width() > self.tab_strip.viewport().width())
+            else 0
+        )
+        self.tab_strip.setFixedHeight(self.tabs.sizeHint().height() + tab_bar_scroll_h)
         scroller = QScroller.scroller(self.tab_strip.viewport())
         if scroll_to_current and scroller.state() == QScroller.State.Inactive and (index := self.tabs.currentIndex()) >= 0:
             rect = self.tabs.tabRect(index)
@@ -2180,14 +2186,23 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         """The sidebars, the tab bar and the navigation band in the shared theme tones."""
         scheme = self.theme.color_scheme
         renderer = self.renderer
+        sidebar_bg = renderer.theme(SidebarToneColour)
         toggle_bg = renderer.theme(SidebarToggleToneColour)
+        sidebar_pane_style = (
+            f"QWidget#SidebarPane, QWidget#SidebarPane > QWidget,"
+            f" QWidget#SidebarPane QFrame#QtSidebarPanelFrame,"
+            f" QWidget#SidebarPane QWidget#QtSidebarPanelHeader,"
+            f" QWidget#SidebarPane QScrollArea,"
+            f" QWidget#SidebarPane QScrollArea > QWidget > QWidget {{"
+            f" background-color: {sidebar_bg}; color: {renderer.theme(WorkspaceTabTones.active_text_colour)}; }}"
+        )
         toggle_style = (
             f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
             f" background-color: {toggle_bg}; border: none; padding: 0px 2px; }}"
         )
         for side in self.chrome.sidebars:
             side.setStyleSheet(
-                scheme.styles.generate_sidebar_pane_style()
+                sidebar_pane_style
                 + scheme.styles.generate_sidebar_bar_style()
                 + toggle_style
             )
@@ -2200,6 +2215,22 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         inactive_ink = renderer.theme(WorkspaceTabTones.inactive_text_colour)
         close_idle = renderer.theme(WorkspaceTabTones.close_idle_colour)
         close_hover = renderer.theme(WorkspaceTabTones.close_hover_colour)
+        scroll_track = renderer.theme(ScrollbarTones.track_colour)
+        scroll_thumb = renderer.theme(ScrollbarTones.thumb_colour)
+        scroll_active = renderer.theme(ScrollbarTones.active_colour)
+        self.tab_strip.setStyleSheet(
+            f"#toad-tab-strip, #toad-tab-strip > QWidget {{"
+            f" border: none; padding: 0px; background-color: {bar_bg}; }}"
+            f"#toad-tab-strip QScrollBar:horizontal {{"
+            f" height: 6px; background-color: {scroll_track}; border: none; margin: 0px; }}"
+            f"#toad-tab-strip QScrollBar::handle:horizontal {{"
+            f" background-color: {scroll_thumb}; min-width: 24px; border-radius: 3px; }}"
+            f"#toad-tab-strip QScrollBar::handle:horizontal:hover,"
+            f"#toad-tab-strip QScrollBar::handle:horizontal:pressed {{"
+            f" background-color: {scroll_active}; }}"
+            f"#toad-tab-strip QScrollBar::add-line:horizontal,"
+            f"#toad-tab-strip QScrollBar::sub-line:horizontal {{ width: 0px; height: 0px; }}"
+        )
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
@@ -2218,9 +2249,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         nav_edge = self.settings.ui.navigation_bar.qt_separator_edge
         self.navigation.setStyleSheet(
-            scheme.styles.generate_frame_style()
-            + f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: 2px 2px; border: none; {nav_edge}: 1px solid {sep_hex}; }}"
-            + f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
+            f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: 2px 2px; border: none; {nav_edge}: 1px solid {sep_hex}; }}"
+            f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
         )
         self.float_layer.follow_scheme(scheme)
 
