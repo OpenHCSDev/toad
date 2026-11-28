@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import asyncio
 import time
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from functools import partial
 
 from PySide6.QtCore import Qt
@@ -55,6 +57,36 @@ from toad.qt.presented_window import PresentedWindow
 from toad.qt.window import QtToadApp
 from toad.target_commands import BoardCommand
 
+class BoardStateCut(ABC):
+    """Optional board state cut carrying changed teammate keys."""
+
+    @abstractmethod
+    def changed_keys(self):
+        ...
+
+    @classmethod
+    def from_optional(cls, value: TeamBoardCut | None) -> BoardStateCut:
+        return AbsentBoardStateCut() if value is None else HeldBoardStateCut(value)
+
+
+@dataclass(frozen=True)
+class AbsentBoardStateCut(BoardStateCut):
+    """Absent `BoardStateCut` carrying no value."""
+
+    def changed_keys(self):
+        return frozenset()
+
+
+@dataclass(frozen=True)
+class HeldBoardStateCut(BoardStateCut):
+    """Held `BoardStateCut` carrying its present value."""
+
+    value: TeamBoardCut
+
+    def changed_keys(self):
+        return self.value.changed
+
+
 class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     """Modal team board dialog.
 
@@ -71,7 +103,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
         self.resize(900, 650)
         self.app = app  # QtCoreObserver's AppScoped expects this
         self.state = TeamBoardState(team_name_filter=team_name)
-        self.state.observe(self._state_changed)
+        self.state.observe(lambda cut: self._state_changed(BoardStateCut.from_optional(cut)))
         self._attached = False
 
         layout = QVBoxLayout(self)
@@ -121,7 +153,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
     def _on_hud_failed(self, event: TeamHudFailed) -> None:
         self.state.apply_hud_failure(event.error)
 
-    def _state_changed(self, cut: TeamBoardCut | None) -> None:
+    def _state_changed(self, cut: BoardStateCut) -> None:
         """Reconcile only identities named by Core's atomic publication."""
         if self.state.last_error is not None:
             message = " ".join(str(self.state.last_error).splitlines())
@@ -141,7 +173,7 @@ class QtTeamBoardScreen(PresentedWindow, QtCoreObserver, QDialog):
             if index >= 0:
                 self.tabs.removeTab(index)
             view.deleteLater()
-        changed = cut.changed if cut is not None else frozenset()
+        changed = cut.changed_keys()
         for index, (key, hud) in enumerate(huds.items()):
             view = self.members.get(key)
             if view is None:

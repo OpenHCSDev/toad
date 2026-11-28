@@ -121,7 +121,7 @@ class ViewSurfaceBinding(SurfaceBinding, MroDispatch):
             self.subscription.close()
 
 
-class DetachedSurfaceBinding(NonPostingSurfaceBinding, SurfaceBinding):
+class DetachedSurfaceBinding(NonPostingSurfaceBinding):
     pass
 
 

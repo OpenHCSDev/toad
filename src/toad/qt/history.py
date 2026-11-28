@@ -12,6 +12,7 @@ from __future__ import annotations
 
 
 import asyncio
+from abc import ABC, abstractmethod
 
 import shiboken6
 from collections import OrderedDict, deque
@@ -88,7 +89,7 @@ from toad.qt.lines import QtLineRenderer
 from toad.patch import PREFORMATTED, DiffSettings
 from toad.reader_actions import ReaderAction
 from toad.view_actions import LatestJumpBar, ShowsLatestJumpBar
-from toad.qt.widget_animation import frame_interval
+from toad.qt.widget_animation import DisplayScreen, frame_interval
 from toad.qt.transcript_fragments import (
     QT_FRAGMENT_CLASSES,
     QtContextTranscriptFragment,
@@ -159,6 +160,41 @@ class QtPage(ReaderPage):
         return self.history.window.fragment_location(key)
 
 
+class BackingFormatWidget(ABC):
+    """Widget whose backing store may choose the row image format."""
+
+    @abstractmethod
+    def backing_image_format(self) -> QImage.Format:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: QWidget | None) -> BackingFormatWidget:
+        return AbsentBackingFormatWidget() if value is None else HeldBackingFormatWidget(value)
+
+
+@dataclass(frozen=True)
+class AbsentBackingFormatWidget(BackingFormatWidget):
+    """Absent `BackingFormatWidget` carrying no value."""
+
+    def backing_image_format(self) -> QImage.Format:
+        return QImage.Format.Format_ARGB32_Premultiplied
+
+
+@dataclass(frozen=True)
+class HeldBackingFormatWidget(BackingFormatWidget):
+    """Held `BackingFormatWidget` carrying its present value."""
+
+    value: QWidget
+
+    def backing_image_format(self) -> QImage.Format:
+        backing = self.value.backingStore()
+        if backing is not None:
+            paint_device = backing.paintDevice()
+            if isinstance(paint_device, QImage) and paint_device.format() != QImage.Format.Format_Invalid:
+                return paint_device.format()
+        return QImage.Format.Format_ARGB32_Premultiplied
+
+
 class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     """Each fragment's line blocks as Qt rich text, rendered on the worker pool at the row's
     width (dividers fill it); a row paints plain text until prepared, and cached `QImage` tiles
@@ -191,7 +227,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._fast_docs: dict[tuple[int, int], tuple[HistoryFragment, int, str, float, QTextDocument]] = {}
 
     @staticmethod
-    def _backing_image_format(widget: QWidget | None, painter: QPainter) -> QImage.Format:
+    def _backing_image_format(widget: BackingFormatWidget, painter: QPainter) -> QImage.Format:
         """Match the live backing store's `QImage.Format` (e.g. `ARGB32_Premultiplied` on
         Android `QRhiBackingStore`, `RGB32` on offscreen) so `CompositionMode_Source` tile
         blits hit Qt's zero-conversion memcpy fast path instead of spawning 4-thread raster
@@ -199,13 +235,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         device = painter.device()
         if isinstance(device, QImage) and device.format() != QImage.Format.Format_Invalid:
             return device.format()
-        if widget is not None:
-            backing = widget.backingStore()
-            if backing is not None:
-                paint_device = backing.paintDevice()
-                if isinstance(paint_device, QImage) and paint_device.format() != QImage.Format.Format_Invalid:
-                    return paint_device.format()
-        return QImage.Format.Format_ARGB32_Premultiplied
+        return widget.backing_image_format()
 
     def _font_metrics(self, font: QFont) -> tuple[float, int]:
         """Cached ``(averageCharWidth, lineSpacing)`` for ``font``, avoiding per-row and
@@ -634,7 +664,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         if cached_fmt is not None and cached_fmt[0] == dev_id and cached_fmt[1] == wid_id:
             img_format = cached_fmt[2]
         else:
-            img_format = self._backing_image_format(device, painter)
+            img_format = self._backing_image_format(BackingFormatWidget.from_optional(device), painter)
             self._backing_format_cache = (dev_id, wid_id, img_format)
         bg_hex, bg_color, fg_color = self._theme_colours()
         font_family, font_size = self._font_spec(font)
@@ -967,6 +997,33 @@ class SourceTask(asyncio.Task):
         await asyncio.gather(self, return_exceptions=True)
 
 
+class TaskGroupKey(ABC):
+    """Optional group key under which a conversation worker task was tracked."""
+
+    def clear_group_task(self, task: SourceTask, owner: QtConversationHistory) -> None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: str | None) -> TaskGroupKey:
+        return AbsentTaskGroupKey() if value is None else HeldTaskGroupKey(value)
+
+
+@dataclass(frozen=True)
+class AbsentTaskGroupKey(TaskGroupKey):
+    """Absent `TaskGroupKey` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldTaskGroupKey(TaskGroupKey):
+    """Held `TaskGroupKey` carrying its present value."""
+
+    value: str
+
+    def clear_group_task(self, task: SourceTask, owner: QtConversationHistory) -> None:
+        if owner._grouped_tasks.get(self.value) is task:
+            del owner._grouped_tasks[self.value]
+
+
 class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHistory, ConversationPager,
                             MeasuresFragments, NativePager):
     """A wire conversation's pages, read marks and message statuses in a Qt window: the
@@ -1179,13 +1236,12 @@ class QtConversationHistory(DrawsBusMessages, SourceNotifications, ReadMarkedHis
         self._tasks.add(task)
         if group is not None:
             self._grouped_tasks[group] = task
-        task.add_done_callback(partial(self._worker_done, group))
+        task.add_done_callback(partial(self._worker_done, TaskGroupKey.from_optional(group)))
         return task
 
-    def _worker_done(self, group: str | None, task: SourceTask) -> None:
+    def _worker_done(self, group: TaskGroupKey, task: SourceTask) -> None:
         self._tasks.discard(task)
-        if group is not None and self._grouped_tasks.get(group) is task:
-            del self._grouped_tasks[group]
+        group.clear_group_task(task, self)
 
     def cancel_work(self) -> list:
         tasks = list(self._tasks)
@@ -1471,7 +1527,7 @@ class QtStickyHeader(HeaderPin, QWidget):
             painter.end()
             return
         dpr = self.devicePixelRatioF()
-        img_format = HistoryRowDelegate._backing_image_format(self, painter)
+        img_format = HistoryRowDelegate._backing_image_format(HeldBackingFormatWidget(self), painter)
         key = (self.drawn, self.width(), self.height(), dpr, bg_hex, img_format)
         image = self._pixmap_cache.get(key)
         if image is not None:
@@ -2358,7 +2414,7 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def _schedule_scroll_frame(self) -> None:
         if not self._scroll_frame_pending:
             self._scroll_frame_pending = True
-            interval = max(1, round(frame_interval(QWidget.screen(self)) * 1000))
+            interval = max(1, round(frame_interval(DisplayScreen.from_optional(QWidget.screen(self))) * 1000))
             self._scroll_frame_timer.start(interval)
 
     def _scroll_frame(self) -> None:

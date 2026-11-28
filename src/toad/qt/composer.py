@@ -705,8 +705,51 @@ class ComposerEditor(QPlainTextEdit, NeovimEditorSurface, QtHintTargetSource):
 
     def insertFromMimeData(self, source: QMimeData) -> None:  # type: ignore[override]
         """Route clipboard/dragged images through the composer's attachment path."""
-        if not self.composer.paste_mime_data(source):
+        if not self.composer.paste_mime_data(HeldPasteMimePayload(source)):
             super().insertFromMimeData(source)
+
+
+class PasteMimePayload(ABC):
+    """MIME payload offered to the composer for pasting."""
+
+    @abstractmethod
+    def paste_mime_data(self, owner: Composer) -> bool:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: QMimeData | None) -> PasteMimePayload:
+        return AbsentPasteMimePayload() if value is None else HeldPasteMimePayload(value)
+
+
+@dataclass(frozen=True)
+class AbsentPasteMimePayload(PasteMimePayload):
+    """Absent `PasteMimePayload` carrying no value."""
+
+    def paste_mime_data(self, owner: Composer) -> bool:
+        return False
+
+
+@dataclass(frozen=True)
+class HeldPasteMimePayload(PasteMimePayload):
+    """Held `PasteMimePayload` carrying its present value."""
+
+    value: QMimeData
+
+    def paste_mime_data(self, owner: Composer) -> bool:
+        if owner.editor.isReadOnly():
+            return False
+        if self.value.hasImage():
+            data = self.value.imageData()
+            image = data if isinstance(data, QImage) else QImage(data)
+            if not image.isNull():
+                owner._paste_qimage(image)
+                return True
+        if self.value.hasText():
+            text = self.value.text()
+            if text:
+                owner.editor.editing_mode.insert_text(owner.editor, text)
+                return True
+        return False
 
 
 class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContract, DismissibleContract, QWidget,
@@ -1153,7 +1196,7 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         if self.editor.isReadOnly():
             return
         clipboard = QApplication.clipboard()
-        if not self.paste_mime_data(clipboard.mimeData()):
+        if not self.paste_mime_data(PasteMimePayload.from_optional(clipboard.mimeData())):
             image = clipboard.image()
             if not image.isNull():
                 self._paste_qimage(image)
@@ -1162,22 +1205,9 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
             if text:
                 self.editor.editing_mode.insert_text(self.editor, text)
 
-    def paste_mime_data(self, mime: QMimeData | None) -> bool:
+    def paste_mime_data(self, mime: PasteMimePayload) -> bool:
         """Handle image or text MIME data; return True when handled."""
-        if mime is None or self.editor.isReadOnly():
-            return False
-        if mime.hasImage():
-            data = mime.imageData()
-            image = data if isinstance(data, QImage) else QImage(data)
-            if not image.isNull():
-                self._paste_qimage(image)
-                return True
-        if mime.hasText():
-            text = mime.text()
-            if text:
-                self.editor.editing_mode.insert_text(self.editor, text)
-                return True
-        return False
+        return mime.paste_mime_data(self)
 
     def _paste_qimage(self, image: QImage) -> None:
         buffer = QBuffer()

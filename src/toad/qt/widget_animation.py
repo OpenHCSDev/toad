@@ -11,6 +11,9 @@ gone is never touched.
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
 import shiboken6
 from PySide6.QtGui import QScreen
 from PySide6.QtWidgets import QWidget
@@ -23,11 +26,41 @@ class QtAnimationClock(ScrollAwareClock):
     """Qt's scroll-aware animation clock."""
 
 
-def frame_interval(screen: QScreen | None) -> float:
+class DisplayScreen(ABC):
+    """Display screen queried for its refresh rate."""
+
+    @abstractmethod
+    def refresh_rate(self):
+        ...
+
+    @classmethod
+    def from_optional(cls, value: QScreen | None) -> DisplayScreen:
+        return AbsentDisplayScreen() if value is None else HeldDisplayScreen(value)
+
+
+@dataclass(frozen=True)
+class AbsentDisplayScreen(DisplayScreen):
+    """Absent `DisplayScreen` carrying no value."""
+
+    def refresh_rate(self):
+        return 0.0
+
+
+@dataclass(frozen=True)
+class HeldDisplayScreen(DisplayScreen):
+    """Held `DisplayScreen` carrying its present value."""
+
+    value: QScreen
+
+    def refresh_rate(self):
+        return self.value.refreshRate()
+
+
+def frame_interval(screen: DisplayScreen) -> float:
     """Seconds between the frames `screen` shows: one over its refresh rate (a Pixel 8a's 120 Hz),
     or 60 Hz where it reports none (offscreen, some remote displays). Motion ticks at it
     (`ui_theme.effects.DisplayRate`); the window's clock and the activity sweep both read it here."""
-    rate = screen.refreshRate() if screen is not None else 0.0
+    rate = screen.refresh_rate()
     return 1 / (rate if rate >= 20 else 60)
 
 

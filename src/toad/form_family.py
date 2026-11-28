@@ -14,6 +14,8 @@ from typing import ClassVar
 
 from agent_comms.nominal.field_codec import FieldCodec
 from agent_comms.registry.thread_model import ThreadModel
+from toad.object_configuration import ObjectSettingField
+
 from formbridge.forms.declared_fields import DeclaredField, DeclaredViews, FormPage, form_pages
 from formbridge.forms.form_following import FollowedFieldView, FollowedValueView, FollowingForm
 from formbridge.forms.parameter_form_service import ParameterFormService
@@ -208,6 +210,8 @@ class ObjectFieldViews(FieldViews):
     """Field views bound to a scoped configuration state (`ObjectConfiguration` or
     `AgentScopeState`), delegating field construction to the state itself so each state
     supplies its own `ObjectSettingField` subtype with its own provenance and persistence."""
+
+    field_type = ObjectSettingField
 
     @classmethod
     def field_for(cls, state: ObjectState, path) -> DeclaredField:

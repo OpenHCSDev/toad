@@ -64,7 +64,7 @@ class EncodedProjectLink(ABC):
         return f"{cls.declared_name}:{quote(str(value))}"
 
 
-class ProjectLink(PlainInlineLink, LineLink):
+class ProjectLink(PlainInlineLink):
     runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
 
     @classmethod

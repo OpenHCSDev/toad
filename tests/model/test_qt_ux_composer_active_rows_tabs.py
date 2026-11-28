@@ -39,7 +39,7 @@ from toad.neovim_editing import HostsNeovim
 from toad.patch import DiffSettings
 from toad.prompt_actions import PasteClipboardAction
 from toad.qt.action_shortcuts import _qt_sequences
-from toad.qt.composer import Composer, ComposerEditor, QtMessageComposer, _qt_key_to_input
+from toad.qt.composer import Composer, ComposerEditor, HeldPasteMimePayload, QtMessageComposer, _qt_key_to_input
 from toad.qt.history import HistoryRowDelegate
 from toad.qt.lines import QtLineRenderer
 from toad.qt.name_wave import PaintedRowTone, QtNameWaveDelegate, QtSessionTabBar
@@ -286,7 +286,7 @@ def test_qt_vim_ctrl_v_pastes_clipboard_image_in_normal_and_insert_modes() -> No
     img.fill(QColor("#90a827"))
     mime = QMimeData()
     mime.setImageData(img)
-    assert composer.paste_mime_data(mime) is True
+    assert composer.paste_mime_data(HeldPasteMimePayload(mime)) is True
     assert len(pasted_pngs) == 1
     assert pasted_pngs[0].startswith(b"\x89PNG\r\n\x1a\n")
 
@@ -298,7 +298,7 @@ def test_qt_vim_ctrl_v_pastes_clipboard_image_in_normal_and_insert_modes() -> No
     )
     text_mime = QMimeData()
     text_mime.setText("pasted text")
-    assert composer.paste_mime_data(text_mime) is True
+    assert composer.paste_mime_data(HeldPasteMimePayload(text_mime)) is True
     assert inserted == ["pasted text"]
 
 

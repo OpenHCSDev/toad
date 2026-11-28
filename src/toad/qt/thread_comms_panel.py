@@ -11,6 +11,8 @@ renderers.
 from __future__ import annotations
 
 import asyncio
+from abc import ABC
+from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar
 
@@ -76,6 +78,34 @@ class QtRelationshipItem(RelationshipLine, QTreeWidgetItem):
     @property
     def menu_tree(self) -> QtThreadCommsPanel:
         return self.panel
+
+
+class RelationshipRowItem(ABC):
+    """Tree row item queried for its relationship entry."""
+
+    def _row_entry(self) -> tuple[object, RelationshipEntry] | None:
+        pass
+
+    @classmethod
+    def from_optional(cls, value: QTreeWidgetItem | None) -> RelationshipRowItem:
+        return AbsentRelationshipRowItem() if value is None else HeldRelationshipRowItem(value)
+
+
+@dataclass(frozen=True)
+class AbsentRelationshipRowItem(RelationshipRowItem):
+    """Absent `RelationshipRowItem` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldRelationshipRowItem(RelationshipRowItem):
+    """Held `RelationshipRowItem` carrying its present value."""
+
+    value: QTreeWidgetItem
+
+    def _row_entry(self) -> tuple[object, RelationshipEntry] | None:
+        if self.value.data(0, _ENTRY) is None:
+            return None
+        return (self.value.parent().data(0, Qt.ItemDataRole.UserRole), self.value.data(0, _ENTRY))
 
 
 class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget, metaclass=PyQtWidgetMeta):
@@ -218,14 +248,12 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
             row.setToolTip(0, entry.detail)
         row.setData(0, _ENTRY, entry)
 
-    def _row_entry(self, item: QTreeWidgetItem | None) -> tuple[object, RelationshipEntry] | None:
+    def _row_entry(self, item: RelationshipRowItem) -> tuple[object, RelationshipEntry] | None:
         """The group and relationship an entry row shows; a group or "none" line shows none."""
-        if item is None or item.data(0, _ENTRY) is None:
-            return None
-        return item.parent().data(0, Qt.ItemDataRole.UserRole), item.data(0, _ENTRY)
+        return item._row_entry()
 
     def _item_clicked(self, item: QTreeWidgetItem) -> None:
-        shown = self._row_entry(item)
+        shown = self._row_entry(HeldRelationshipRowItem(item))
         if shown is not None and shown[1].available:
             asyncio.ensure_future(
                 self.open_current_relationship(
@@ -237,7 +265,7 @@ class QtThreadCommsPanel(LineMenuTree, RelationshipPanel, SessionPanel, QWidget,
         """The relationship's own menu (`RelationshipLine.menu_entries`) for the row under
         ``point`` (viewport coordinates), in the window's menu panel; a group line has none."""
         item = self._tree.itemAt(point)
-        if self._row_entry(item) is None:
+        if self._row_entry(RelationshipRowItem.from_optional(item)) is None:
             return
         asyncio.ensure_future(self._offer_read(item))
 
