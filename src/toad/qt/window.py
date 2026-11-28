@@ -70,8 +70,6 @@ from pyqt_reactive.theming import ColorScheme
 
 from toad.client.theme_tones import (
     ScrollbarTones,
-    SidebarToggleHoverToneColour,
-    SidebarToggleToneColour,
     WorkspaceTabTones,
 )
 
@@ -82,7 +80,15 @@ from toad.qt.workspace_frame import QtWorkspaceFrame, QtWorkspaceHosted
 from toad.qt.widget_animation import QtAnimationClock, frame_interval
 from toad.workspace_frame import WorkspaceFrame
 from toad.client.session_scope import NoConversationView
-from toad.client.application_actions import ApplicationAction, MenuActionRun, NewSessionAction, NewSessionControl
+from toad.client.application_actions import (
+    ApplicationAction,
+    MenuActionRun,
+    NewSessionAction,
+    NewSessionControl,
+    ResetZoomAction,
+    ZoomInAction,
+    ZoomOutAction,
+)
 from toad.client.bus_connect import BusConnectDecision
 from toad.client.bus_selection import (
     BusAddressEntry,
@@ -161,7 +167,7 @@ from toad.client.transfers import Transfer
 from toad.qt.transfer import QtTransferDialog
 from toad.qt.channel_sort import QtChannelListSort, QtChannelSortControl
 from toad.motion import animations_enabled
-from toad.qt.name_wave import QtClockedWave, QtNameWaveDelegate, QtSessionTabBar
+from toad.qt.name_wave import PaintedRowTone, QtClockedWave, QtNameWaveDelegate, QtSessionTabBar
 from toad.qt.sidebar_panel import QtPanelEntry, QtSidebarPanels, QtSidebarShell
 from toad.qt.view_settings import capability_widgets
 from toad.qt.attention import QtWindowAttention
@@ -189,18 +195,33 @@ from toad.target_commands import TargetContext
 from toad.work_preparation import PreparationRuntime
 
 
-def _scrollbar_qss(renderer: QtLineRenderer, *, selector: str = "QScrollBar") -> str:
+def _scrollbar_qss(
+    renderer: QtLineRenderer,
+    *,
+    selector: str = "QScrollBar",
+    scale: int = 100,
+    fixed_thickness: bool = True,
+) -> str:
     """Shared scrollbar stylesheet matching Textual's `$scrollbar-*` tokens across Qt."""
     track = renderer.theme(ScrollbarTones.track_colour)
     thumb = renderer.theme(ScrollbarTones.thumb_colour)
     hover = renderer.theme(ScrollbarTones.hover_colour)
     active = renderer.theme(ScrollbarTones.active_colour)
+    min_thumb = scaled_px(24, scale)
+    size_qss = ""
+    if fixed_thickness:
+        thick = scaled_px(12, scale)
+        size_qss = (
+            f"{selector}:vertical {{ width: {thick}px; }}"
+            f"{selector}:horizontal {{ height: {thick}px; }}"
+        )
     return (
         f"{selector}:vertical, {selector}:horizontal {{"
         f" background-color: {track}; border: none; margin: 0px; }}"
-        f"{selector}::handle:vertical, {selector}::handle:horizontal {{"
+        + size_qss
+        + f"{selector}::handle:vertical, {selector}::handle:horizontal {{"
         f" background-color: {thumb}; border: none; border-radius: 0px;"
-        f" min-width: 24px; min-height: 24px; }}"
+        f" min-width: {min_thumb}px; min-height: {min_thumb}px; }}"
         f"{selector}::handle:vertical:hover, {selector}::handle:horizontal:hover {{"
         f" background-color: {hover}; }}"
         f"{selector}::handle:vertical:pressed, {selector}::handle:horizontal:pressed {{"
@@ -224,7 +245,7 @@ class ObservedSource(ConversationSource):
     project: Checkout
 
 
-class SidebarItem(DetailedLine, QTreeWidgetItem):
+class SidebarItem(DetailedLine, PaintedRowTone, QTreeWidgetItem):
     """One line of the sidebar tree, the shared `DetailedLine` (Textual's `DetailedRow`):
     its title after its status prefix, its detail indented under it; a tap activates it."""
 
@@ -613,7 +634,7 @@ class BusRow(BusChoiceLine, SidebarItem):
 
 
 from toad.qt.page import Page  # re-export: callers already import Page from here
-from toad.qt.metrics import UiGap
+from toad.qt.metrics import UiGap, scaled_px
 
 
 class BusAddress(BusAddressEntry, QLineEdit):
@@ -899,20 +920,21 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
             f" border: none; border-radius: 3px; selection-background-color: {selection_bg}; }}"
             f"QTreeWidget::item:hover {{ background-color: {hover_bg}; }}"
             f"QTreeWidget::item:selected {{ background-color: {selection_bg}; color: {selection_ink}; }}"
-            + _scrollbar_qss(renderer)
+            + _scrollbar_qss(renderer, fixed_thickness=False)
             + f"QScrollBar:vertical {{ width: {bar}px; }}"
             f"QScrollBar:horizontal {{ height: {bar}px; }}",
         )
         self._tone_brushes: dict[type[ThemeColour], QBrush] = {}
         self._paint_subtree_row_tones(self.invisibleRootItem())
         previous = self.itemDelegateForColumn(0)
-        self.setItemDelegateForColumn(0, QtNameWaveDelegate(
+        self.delegate = QtNameWaveDelegate(
             QColor(renderer.theme(WorkspaceTabTones.underline_colour)),
             scheme.to_qcolor(scheme.text_primary),
             scheme.to_qcolor(scheme.text_secondary),
             scheme.to_qcolor(scheme.selection_text),
             self,
-        ))
+        )
+        self.setItemDelegateForColumn(0, self.delegate)
         if previous is not None:
             previous.deleteLater()
 
@@ -944,6 +966,7 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
             brush = self._row_tone_brush(child.row_tones[row % 2])
             if child._painted_tone is not brush:
                 child._painted_tone = brush
+                child._painted_rgba = brush.color().rgba()
                 child.setBackground(0, brush)
 
     def _paint_subtree_row_tones(self, parent: QTreeWidgetItem) -> None:
@@ -1956,11 +1979,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.profile_paste_panel = QtProfilePastePanel(self)
         chrome_layout.addWidget(self.profile_paste_panel)
         chrome_layout.addLayout(bar)
-        self.renderer.themed(self, self.paint_chrome_colours)
         self._rest_bottom_margin: int | None = None
         self._keyboard_open: bool = False
         self._base_app_font_pt: float = QApplication.font().pointSizeF()
         self._applied_font_scale: int = 100
+        self.renderer.themed(self, self.paint_chrome_colours)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
         self.apply_layout_preferences()
@@ -1981,6 +2004,20 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._back_shortcut = QShortcut(QKeySequence("Back"), self)
         self._back_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
         self._back_shortcut.activated.connect(self._handle_back_shortcut)
+        self._zoom_shortcuts = (
+            self.action_keys.bind(
+                self, ZoomInAction(), lambda: self.adjust_message_font_scale(5),
+                Qt.ShortcutContext.ApplicationShortcut,
+            ),
+            self.action_keys.bind(
+                self, ZoomOutAction(), lambda: self.adjust_message_font_scale(-5),
+                Qt.ShortcutContext.ApplicationShortcut,
+            ),
+            self.action_keys.bind(
+                self, ResetZoomAction(), self.reset_message_font_scale,
+                Qt.ShortcutContext.ApplicationShortcut,
+            ),
+        )
         self.winId()
         FingerPress.install(QApplication.instance()).watch(self.windowHandle())
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
@@ -2130,6 +2167,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         super().resizeEvent(event)
         self._notify_viewport_geometry()
 
+    def wheelEvent(self, event) -> None:  # type: ignore[override]
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            delta = event.angleDelta().y()
+            if delta:
+                self.adjust_message_font_scale(5 if delta > 0 else -5)
+            event.accept()
+            return
+        super().wheelEvent(event)
+
     def _sync_keyboard_chrome(self) -> None:
         hide_nav = (
             self._keyboard_open
@@ -2240,12 +2286,12 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.input_attention.update()
 
     def paint_chrome_colours(self) -> None:
-        """The sidebars, the tab bar and the navigation band in the shared theme tones."""
+        """Delegate chrome theming to each widget's inherited colour declarations (`SidebarSurface`,
+        `SidebarToggleFace`, `SidebarSearchField`, `SidebarPanelCollapse`, `WorkspaceTabTones`,
+        `ScrollbarTones`) with zero parallel QSS colour copies."""
         scheme = self.theme.color_scheme
         renderer = self.renderer
-        sidebar_bg = renderer.theme(SidebarToneColour)
-        toggle_bg = renderer.theme(SidebarToggleToneColour)
-        toggle_hover_bg = renderer.theme(SidebarToggleHoverToneColour)
+        scale = self._applied_font_scale
         bar_bg = renderer.theme(WorkspaceTabTones.bar_tone)
         inactive_bg = renderer.theme(WorkspaceTabTones.inactive_tab_tone)
         selected_bg = renderer.theme(WorkspaceTabTones.selected_tab_tone)
@@ -2255,39 +2301,37 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         inactive_ink = renderer.theme(WorkspaceTabTones.inactive_text_colour)
         close_idle = renderer.theme(WorkspaceTabTones.close_idle_colour)
         close_hover = renderer.theme(WorkspaceTabTones.close_hover_colour)
-        scrollbar_qss = _scrollbar_qss(renderer)
+        nav_hover_bg = renderer.theme(WorkspaceTabTones.header_button_hover_bg)
+        nav_hover_fg = renderer.theme(WorkspaceTabTones.header_button_hover_fg)
+        nav_disabled_fg = renderer.theme(WorkspaceTabTones.header_button_disabled_fg)
+        scrollbar_qss = _scrollbar_qss(renderer, scale=scale)
         self.setStyleSheet(scrollbar_qss)
-        sidebar_pane_style = (
-            f"QWidget#SidebarPane, QWidget#SidebarPane > QWidget,"
-            f" QWidget#SidebarPane QFrame#QtSidebarPanelFrame,"
-            f" QWidget#SidebarPane QWidget#QtSidebarPanelHeader,"
-            f" QWidget#SidebarPane QScrollArea,"
-            f" QWidget#SidebarPane QScrollArea > QWidget > QWidget {{"
-            f" background-color: {sidebar_bg}; color: {active_ink}; }}"
-        )
-        toggle_style = (
-            f"QWidget#SidebarToggle, QWidget#SidebarToggle > QWidget {{"
-            f" background-color: {toggle_bg}; color: {inactive_ink}; border: none; padding: 0px 2px; }}"
-            f"QWidget#SidebarToggle:hover {{"
-            f" background-color: {toggle_hover_bg}; color: {active_ink}; }}"
-        )
         for side in self.chrome.sidebars:
-            side.setStyleSheet(sidebar_pane_style + toggle_style + scrollbar_qss)
-        self.tab_scrollbar.setStyleSheet(_scrollbar_qss(renderer, selector="#toad-tab-scrollbar"))
+            side.paint_theme(renderer, scrollbar_qss=scrollbar_qss, scale=scale)
+        self.sidebar_search.paint_theme(renderer, scale=scale)
+        self.thread_pane.paint_theme(renderer, scale=scale)
+        self.tab_scrollbar.setStyleSheet(
+            _scrollbar_qss(renderer, selector="#toad-tab-scrollbar", scale=scale, fixed_thickness=False)
+        )
         self.tab_column.setStyleSheet(f"#toad-tab-column {{ background-color: {bar_bg}; }}")
         self.tab_strip.setStyleSheet(
             f"#toad-tab-strip, #toad-tab-strip > QWidget {{"
             f" border: none; padding: 0px; background-color: {bar_bg}; }}"
         )
+        tab_pad_y = scaled_px(4, scale)
+        tab_pad_l = scaled_px(5, scale)
+        tab_pad_r = scaled_px(1, scale)
+        border_w = scaled_px(2, scale)
+        tab_gap = self.tabs.scaled_tab_gap()
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
-            f" border-bottom: 2px solid {hover_bg};"
-            f" padding: 4px 1px 4px 5px; margin-right: {self.tabs.TAB_GAP}px;"
+            f" border-bottom: {border_w}px solid {hover_bg};"
+            f" padding: {tab_pad_y}px {tab_pad_r}px {tab_pad_y}px {tab_pad_l}px; margin-right: {tab_gap}px;"
             " border-top-left-radius: 0px; border-top-right-radius: 0px; }"
             f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
             f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
-            f" font-weight: bold; border-bottom: 2px solid {underline_hex}; }}"
+            f" font-weight: bold; border-bottom: {border_w}px solid {underline_hex}; }}"
             f"QToolButton#tab-close-button {{"
             f" border: none; border-radius: 0px; padding: 0px;"
             f" background: transparent; color: {close_idle}; font-weight: bold; }}"
@@ -2297,9 +2341,18 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tabs.set_colours(QColor(underline_hex), QColor(active_ink), QColor(inactive_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         nav_edge = self.settings.ui.navigation_bar.qt_separator_edge
+        nav_pad = scaled_px(2, scale)
+        sep_margin = scaled_px(4, scale)
         self.navigation.setStyleSheet(
-            f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: 2px 2px; border: none; {nav_edge}: 1px solid {sep_hex}; }}"
-            f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: 4px 0px; background: {sep_hex}; }}"
+            f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: {nav_pad}px {nav_pad}px;"
+            f" border: none; {nav_edge}: 1px solid {sep_hex}; }}"
+            f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: {sep_margin}px 0px; background: {sep_hex}; }}"
+            f"QFrame#toad-navigation QToolButton {{"
+            f" background: transparent; color: {active_ink}; border: none; border-radius: 0px; }}"
+            f"QFrame#toad-navigation QToolButton:hover {{"
+            f" background-color: {nav_hover_bg}; color: {nav_hover_fg}; }}"
+            f"QFrame#toad-navigation QToolButton:disabled {{"
+            f" color: {nav_disabled_fg}; }}"
         )
         self.float_layer.follow_scheme(scheme)
 
@@ -2307,8 +2360,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         return capability_widgets(self, widget_type)
 
     def apply_text_scale(self, percent: int) -> None:
-        """Single hoisted text-size owner: scales `QApplication`'s font uniformly from the
-        platform base so history rows, composers, sidebars, tabs and menus scale together."""
+        """Single hoisted UI-scale owner: scales fonts, chrome buttons, tabs, sidebars,
+        search boxes, scrollbars, and row geometry together like terminal zoom."""
         clamped = max(50, min(200, int(percent)))
         if clamped == self._applied_font_scale:
             return
@@ -2317,11 +2370,22 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         font = QFont(QApplication.font())
         font.setPointSizeF(round(base * clamped / 100.0, 2))
         QApplication.setFont(font)
+        btn_min_w = scaled_px(36, clamped)
+        btn_min_h = scaled_px(32, clamped)
         for button in (self.menu, self.back, self.forward):
             btn_font = QFont(font)
             btn_font.setPointSizeF(round(font.pointSizeF() * 1.2, 2))
             button.setFont(btn_font)
+            button.setMinimumSize(btn_min_w, btn_min_h)
+        self.tabs.apply_scale(clamped)
+        self.paint_chrome_colours()
         self.show_current_tab(scroll_to_current=False)
+        self.rearrange_sidebars()
+        self.sidebar.paint_colours()
+        for index in range(self.sidebar.topLevelItemCount()):
+            for item in self.sidebar.topLevelItem(index).subtree():
+                item.fit()
+        self.sidebar.doItemsLayout()
 
     def apply_layout_preferences(self) -> None:
         """The navigation bar sits above or below the conversation row as `ui.navigation_bar`

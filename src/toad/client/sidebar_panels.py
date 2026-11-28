@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar
 
 from metaclass_registry import AbstractHooksMeta
+from ui_theme.scheme import ForegroundColour, SidebarToneColour, ThemeColour
 
 if TYPE_CHECKING:
     from formbridge.forms.declared_fields import DeclaredField
@@ -79,9 +80,12 @@ class ObjectPropertiesPanel:
 
 
 class SidebarPanelCollapse(metaclass=AbstractHooksMeta):
-    """A collapsible sidebar panel's open state, kept in its sidebar's `SidebarState` under
-    the panel's title: Textual's `SideBarCollapsible` and Qt's `QtSidebarPanelFrame` both
-    inherit this, so both frontends read and write the one record."""
+    """A collapsible sidebar panel's open state and surface colours: Textual's
+    `SideBarCollapsible` and Qt's `QtSidebarPanelFrame` both inherit this, so both frontends
+    read and write the one record and inherit the same surface/ink roles."""
+
+    panel_surface_colour: ClassVar[type[ThemeColour]] = SidebarToneColour
+    panel_foreground_colour: ClassVar[type[ThemeColour]] = ForegroundColour
 
     @property
     @abstractmethod

@@ -19,8 +19,16 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Callable, Iterable
+from typing import ClassVar
 
 from metaclass_registry import AbstractHooksMeta
+from ui_theme.scheme import ForegroundColour, PrimaryColour, ThemeColour
+
+from toad.client.theme_tones import (
+    InputBorderToneColour,
+    InputPlaceholderToneColour,
+    InputSurfaceToneColour,
+)
 
 
 class SidebarFilter:
@@ -88,10 +96,15 @@ class SidebarFilter:
 
 class SidebarSearchField(metaclass=AbstractHooksMeta):
     """The sidebar's search input as a frontend draws it: Textual's `SidebarSearch` and Qt's
-    `QtSidebarSearch` both inherit this. It says what it searches while empty, and clearing
-    it (Escape on both) empties the field, whose text the sidebar's `SidebarFilter` follows."""
+    `QtSidebarSearch` both inherit this. It declares the placeholder, the shared colour roles
+    for both toolkits, and clearing the field (Escape on both)."""
 
-    search_placeholder = "Search"
+    search_placeholder: ClassVar[str] = "Search"
+    search_background_colour: ClassVar[type[ThemeColour]] = InputSurfaceToneColour
+    search_foreground_colour: ClassVar[type[ThemeColour]] = ForegroundColour
+    search_placeholder_colour: ClassVar[type[ThemeColour]] = InputPlaceholderToneColour
+    search_border_colour: ClassVar[type[ThemeColour]] = InputBorderToneColour
+    search_focus_border_colour: ClassVar[type[ThemeColour]] = PrimaryColour
 
     @abstractmethod
     def show_search(self, text: str) -> None:

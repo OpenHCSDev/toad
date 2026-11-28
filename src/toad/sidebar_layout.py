@@ -10,6 +10,16 @@ from typing import TYPE_CHECKING, ClassVar, Protocol
 from agent_comms.nominal.declared_family import DeclaredFamily
 from metaclass_registry import AbstractHooksMeta
 from textual.geometry import Offset, Region, Size, Spacing
+from ui_theme.scheme import (
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
+    ForegroundColour,
+    MutedColour,
+    SidebarToneColour,
+    ThemeColour,
+)
+
+from toad.client.theme_tones import SidebarToggleToneColour
 
 from toad.sidebar_placement import (
     ActiveSidebarPlacement,
@@ -199,9 +209,13 @@ class StoredSidebarLayout(metaclass=AbstractHooksMeta):
 
 class SidebarSurface(SidebarControlsOwner, metaclass=AbstractHooksMeta):
     """One sidebar as a frontend presents it: Textual's SideBar and Qt's QtSideBar both
-    inherit this. A surface names its placement role and whether it is folded to its toggle;
-    the chrome arrangement reads only these two to place it, and the surface's own parts
-    (toggle strip, resize handle, content) sit where its edge's owners put them."""
+    inherit this. A surface names its placement role, surface/text colour roles, and whether
+    it is folded to its toggle; the chrome arrangement reads only placement and collapsed to
+    place it, and the surface's own parts (toggle strip, resize handle, content) sit where
+    its edge's owners put them."""
+
+    tone: ClassVar[type[ThemeColour]] = SidebarToneColour
+    foreground_colour: ClassVar[type[ThemeColour]] = ForegroundColour
 
     @property
     @abstractmethod
@@ -416,8 +430,13 @@ class SurfaceParts:
 
 class SidebarToggleFace(metaclass=AbstractHooksMeta):
     """A sidebar's toggle strip as a frontend draws it — Textual's SideBarToggle, Qt's
-    QtSideBarToggle. The edge owns the strip's text (its arrows around the heading); the
-    face only shows what this computes, so the two frontends' strips read the same."""
+    QtSideBarToggle. The edge owns the strip's text (its arrows around the heading); this
+    base also declares the resting and hover colour roles once for both frontends."""
+
+    background_tone: ClassVar[type[ThemeColour]] = SidebarToggleToneColour
+    foreground_colour: ClassVar[type[ThemeColour]] = MutedColour
+    hover_background_colour: ClassVar[type[ThemeColour]] = BlockCursorBackgroundColour
+    hover_foreground_colour: ClassVar[type[ThemeColour]] = BlockCursorForegroundColour
 
     @abstractmethod
     def show_toggle(self, text: str, tooltip: str) -> None:

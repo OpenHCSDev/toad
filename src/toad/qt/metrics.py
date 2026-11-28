@@ -49,6 +49,11 @@ def delete_layout_widgets(layout: QLayout, *, keep: int = 0) -> None:
         shiboken6.delete(item)
 
 
+def scaled_px(base: int, percent: int, *, minimum: int = 1) -> int:
+    """Scale a logical pixel measure ``base`` by UI zoom ``percent`` (50-200%)."""
+    return max(minimum, round(base * percent / 100.0))
+
+
 class UiGap(IntEnum):
     """Pixel-sized spacing tokens.
 
@@ -67,3 +72,6 @@ class UiGap(IntEnum):
     wide = 10
     dialog = 12
     page = 24
+
+    def scaled(self, percent: int) -> int:
+        return scaled_px(int(self), percent, minimum=1 if self > 0 else 0)

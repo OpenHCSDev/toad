@@ -31,7 +31,8 @@ from ui_theme.clock import AnimationClock
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 
 from toad.motion import TransitionTarget
-from toad.qt.metrics import drain_layout_items
+from toad.qt.lines import QtLineRenderer
+from toad.qt.metrics import drain_layout_items, scaled_px
 from toad.pointer_gesture import NO_GESTURE, Gesture, GestureControl, PressedGesture
 from toad.sidebar_layout import (
     PlacedSidebar,
@@ -199,11 +200,27 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         super().__init__(surface)
         self.setObjectName("SidebarToggle")
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._symbol = self._heading = ""
         self._leading_splitter = False
         self._trailing_splitter = False
+
+    def paint_theme(self, renderer: QtLineRenderer, *, scale: int = 100) -> None:
+        """Apply the resting and hover colour roles inherited from `SidebarToggleFace`."""
+        pad_x = scaled_px(2, scale)
+        bg = renderer.theme(self.background_tone)
+        fg = renderer.theme(self.foreground_colour)
+        hover_bg = renderer.theme(self.hover_background_colour)
+        hover_fg = renderer.theme(self.hover_foreground_colour)
+        self.setStyleSheet(
+            f"QLabel#SidebarToggle {{"
+            f" background-color: {bg}; color: {fg}; border: none; padding: 0px {pad_x}px; }}"
+            f"QLabel#SidebarToggle:hover {{"
+            f" background-color: {hover_bg}; color: {hover_fg}; }}"
+        )
+        self.update()
 
     def set_band_splitters(self, leading: bool, trailing: bool) -> None:
         if self._leading_splitter != leading or self._trailing_splitter != trailing:
@@ -302,6 +319,8 @@ class QtSideBar(StoredSidebarLayout, SidebarSurface, QWidget, metaclass=PyQtWidg
         self._client = client
         self.content = content
         self.content_stack = QWidget(self)
+        self.content_stack.setObjectName("SidebarContentStack")
+        self.content_stack.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.controls = QWidget(self.content_stack)
         self.slider = QtSidebarSlider(self)
         self.slider.setParent(self.controls)
@@ -323,6 +342,21 @@ class QtSideBar(StoredSidebarLayout, SidebarSurface, QWidget, metaclass=PyQtWidg
         self.handle = QtSidebarResizeHandle(self)
         self.toggle = QtSideBarToggle(self)
         self._cells = Size(1, 1)
+
+    def paint_theme(
+        self, renderer: QtLineRenderer, *, scrollbar_qss: str = "", scale: int = 100
+    ) -> None:
+        """Apply `SidebarSurface` colour roles directly to this pane without clobbering
+        child widgets (`QtSideBarToggle`, `QtSidebarSearch`, `QtSidebarPanelFrame`) that
+        inherit their own theme roles."""
+        surface = renderer.theme(self.tone)
+        ink = renderer.theme(self.foreground_colour)
+        self.setStyleSheet(
+            f"QWidget#SidebarPane, QWidget#SidebarContentStack {{"
+            f" background-color: {surface}; color: {ink}; }}"
+            + scrollbar_qss
+        )
+        self.toggle.paint_theme(renderer, scale=scale)
 
     @property
     def placement_identity(self) -> type[SidebarPlacement]:

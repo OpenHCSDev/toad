@@ -40,9 +40,12 @@ def _qt_sequences(key: str) -> tuple[QKeySequence, ...]:
     if len(spelling) == 1 and spelling.isalpha() and spelling.isupper():
         return (QKeySequence(f"Shift+{spelling}"),)
     parts = spelling.split("+")
-    if parts[-1].lower() == "enter":
-        prefix = "+".join((*parts[:-1], ""))
+    tail = parts[-1].lower()
+    prefix = "+".join((*parts[:-1], ""))
+    if tail == "enter":
         return (QKeySequence(f"{prefix}Return"), QKeySequence(f"{prefix}Enter"))
+    if tail == "plus":
+        return (QKeySequence(f"{prefix}+"), QKeySequence(f"{prefix}Shift+="))
     return (QKeySequence(spelling),)
 
 

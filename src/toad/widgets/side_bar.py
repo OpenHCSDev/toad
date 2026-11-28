@@ -557,8 +557,10 @@ class SideBarToggle(
     """Collapse target spanning the conversation-facing resize edge."""
 
     native_theme = (
-        NativeDeclaration.of(Styles.background, Variable(SidebarToggleToneColour.name)),
+        NativeDeclaration.of(Styles.background, Variable(SidebarToggleFace.background_tone.name)),
     )
+    highlight_background = SidebarToggleFace.hover_background_colour
+    highlight_foreground = SidebarToggleFace.hover_foreground_colour
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
@@ -839,7 +841,12 @@ class ClearSidebarSearchAction(WidgetAction):
 
 
 class SidebarSearch(SidebarSearchField, DeclaredWidgetActions, widgets.Input, actions=(ClearSidebarSearchAction,)):
-    """Sidebar text filter with a declared clear action."""
+    """Sidebar text filter with a declared clear action and inherited theme colour roles."""
+
+    native_theme = (
+        NativeDeclaration.of(Styles.background, Variable(SidebarSearchField.search_background_colour.name)),
+        NativeDeclaration.of(Styles.color, Variable(SidebarSearchField.search_foreground_colour.name)),
+    )
 
     def show_search(self, text: str) -> None:
         self.value = text
@@ -895,7 +902,6 @@ class SideBar(
     ToadNode,
     actions=(SearchSidebarAction,),
 ):
-    tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
 
     def apply_native_layout(self) -> None:

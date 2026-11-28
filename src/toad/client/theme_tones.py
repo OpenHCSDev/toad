@@ -18,6 +18,8 @@ from ui_theme.colour import Rgb
 from ui_theme.scheme import (
     AccentColour,
     BackgroundColour,
+    BlockCursorBackgroundColour,
+    BlockCursorForegroundColour,
     ErrorColour,
     FloatHoverToneColour,
     FloatToneColour,
@@ -73,11 +75,55 @@ class SidebarToggleToneColour(HueToneColour):
     amount = 0.08
 
 
-class SidebarToggleHoverToneColour(HueToneColour):
-    """The sidebar collapse/resize edge bar under pointer hover, tinted toward PrimaryColour."""
+class InputSurfaceToneColour(ToneColour):
+    """Single-line input surface matching Textual's `$surface` (`background` lightened 7.5%)."""
 
-    name = "tone-sidebar-toggle-hover"
-    amount = 0.22
+    name = "tone-input-surface"
+    amount = 0.075
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        bg = read(BackgroundColour)
+        hue, lightness, saturation = colorsys.rgb_to_hls(
+            bg.red / 255.0, bg.green / 255.0, bg.blue / 255.0
+        )
+        red, green, blue = colorsys.hls_to_rgb(
+            hue, max(0.0, min(1.0, lightness + cls.amount)), saturation
+        )
+        return Rgb(round(red * 255), round(green * 255), round(blue * 255))
+
+
+class InputBorderToneColour(ToneColour):
+    """Unfocused input border matching Textual's `$border-blurred`."""
+
+    name = "tone-input-border"
+    amount = 0.08
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        return read(BackgroundColour).blend(read(ForegroundColour), cls.amount)
+
+
+class InputPlaceholderToneColour(ToneColour):
+    """Input placeholder ink matching Textual's `$text-disabled` (38% foreground over surface)."""
+
+    name = "tone-input-placeholder"
+    amount = 0.38
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        return InputSurfaceToneColour.resolve_rgb(read).blend(read(ForegroundColour), cls.amount)
+
+
+class DisabledHeaderInkToneColour(ToneColour):
+    """Disabled navigation button ink matching Textual's `DisabledHeaderButtonLook` (38% foreground)."""
+
+    name = "tone-header-disabled-ink"
+    amount = 0.38
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        return SidebarToneColour.resolve_rgb(read).blend(read(ForegroundColour), cls.amount)
 
 
 class TabHoverToneColour(ToneColour):
@@ -150,6 +196,9 @@ class WorkspaceTabTones:
     close_idle_colour: ClassVar[type[ThemeColour]] = MutedColour
     close_hover_colour: ClassVar[type[ThemeColour]] = ErrorColour
     unread_badge_colour: ClassVar[type[ThemeColour]] = AccentColour
+    header_button_hover_bg: ClassVar[type[ThemeColour]] = BlockCursorBackgroundColour
+    header_button_hover_fg: ClassVar[type[ThemeColour]] = BlockCursorForegroundColour
+    header_button_disabled_fg: ClassVar[type[ThemeColour]] = DisabledHeaderInkToneColour
 
 
 class ScrollbarTones:
