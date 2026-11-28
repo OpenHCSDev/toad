@@ -11,6 +11,8 @@ from pathlib import Path
 
 from typing import TYPE_CHECKING, Sequence
 
+from toad.widget_contracts import SubmitsContract
+
 
 from formbridge.key_declarations import TextEntryMode
 from textual import on
@@ -148,7 +150,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
         return super().render_line(y, paint)
 
 
-class PickerPane(containers.VerticalGroup):
+class PickerPane(SubmitsContract, containers.VerticalGroup):
     """One way of picking a path. The popup shows only the picked pane, and every key,
     submit and suggestion goes to it."""
 
@@ -179,9 +181,6 @@ class PickerPane(containers.VerticalGroup):
 
     async def prepare(self) -> None:
         """Make this pane ready to be picked."""
-
-    @abstractmethod
-    def submit(self) -> None: ...
 
     def suggest_option(self, option: Option) -> None:
         """A list highlight suggests nothing unless this pane picks from the list."""
@@ -251,12 +250,16 @@ class TreePane(PickerPane):
             self.post_message(PromptSuggestion(str(path)))
 
 
-class PathSearchTree(SideMargin, ProjectDirectoryTree):
-    """The project tree as a path picker, inset under the popup's edge."""
+class LeftInsetPadding:
+    """Widget inset one cell on the left."""
 
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.padding = (0, 0, 0, 1)
+
+
+class PathSearchTree(LeftInsetPadding, SideMargin, ProjectDirectoryTree):
+    """The project tree as a path picker, inset under the popup's edge."""
 
 
 class PathSearchMessage(MutedText, SideMargin, SidePadding, widgets.Static):

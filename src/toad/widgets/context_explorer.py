@@ -36,7 +36,7 @@ from toad.widget_actions import Action, NativeMethodKeys
 from toad.widgets.acting_button import ActingButton
 from toad.widgets.comms_menu import ActionMenu
 from toad.widgets.process_text_area import ProcessTextArea
-from toad.widgets.side_bar import SideBar, SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar, SidebarVisibilityObserver, ThreeRowHeight
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.worker_group import WorkerGroup
 
@@ -245,10 +245,8 @@ class ContextStatus(MutedText, Static):
     """What the explorer is reading, or why it cannot."""
 
 
-class ContextControls(Horizontal):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.height = 3
+class ContextControls(ThreeRowHeight, Horizontal):
+    pass
 
 
 class ContextButton(FillWidth, ActingButton):

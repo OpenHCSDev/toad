@@ -41,10 +41,23 @@ from toad.widgets.selection import ChangingText, ViewLabel
 from textual import on
 
 
-class SessionLabel(TabElement, WidgetView, PrimaryActivation, ViewLabel, ChangingText, widgets.Label):
-    ALLOW_SELECT = False
+class SingleRowAutoWidth:
+    """Single-row auto-width tab strip element."""
+
     width = AUTO
     height = Scalar.from_number(1)
+
+
+class SessionLabel(
+    SingleRowAutoWidth,
+    TabElement,
+    WidgetView,
+    PrimaryActivation,
+    ViewLabel,
+    ChangingText,
+    widgets.Label,
+):
+    ALLOW_SELECT = False
     padding = Spacing(0, 1, 0, 1)
 
     @property
@@ -238,11 +251,8 @@ class Underline(EffectInContent, WidgetView, Animated[Amount]):
         self.post_message(self.Clicked(event.screen_offset))
 
 
-class SessionTitles(WidgetView, containers.HorizontalGroup):
+class SessionTitles(SingleRowAutoWidth, WidgetView, containers.HorizontalGroup):
     """The tab cells: each tab's label and close button."""
-
-    width = AUTO
-    height = Scalar.from_number(1)
 
 
 class TabCells(WidgetView, containers.VerticalGroup):

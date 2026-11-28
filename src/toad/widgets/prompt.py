@@ -98,7 +98,7 @@ from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.inline_message import span_content
 from toad.widgets.model_switcher import ModelSwitcher
-from toad.widgets.path_search import PathSearch
+from toad.widgets.path_search import LeftInsetPadding, PathSearch
 from toad.widgets.prompt_popup import CompletionPopup, InfoPopup, PaddedOptionRows, PromptPopup
 from toad.answer import Ask
 from toad.widgets.interactive_dialog import PromptDialog
@@ -270,16 +270,20 @@ class QueueHint(OpensQueue, SecondaryText, StartsHidden, SideMargin, AutoWidth, 
     opens the queue, as the summary does."""
 
 
-class DeliveryControls(TonePaint, QueueDeliveryControls, ComposedWhenShown, StartsHidden, OneRow, containers.HorizontalGroup):
+class DeliveryControls(
+    LeftInsetPadding,
+    TonePaint,
+    QueueDeliveryControls,
+    ComposedWhenShown,
+    StartsHidden,
+    OneRow,
+    containers.HorizontalGroup,
+):
     tone = PromptComposer.queue_tone
     """Shown while Enter queues behind a running turn; `QueueDeliveryControls` owns its text."""
 
     def shown_children(self) -> tuple[Widget, ...]:
         return Label(self.notice), SendNow(self.send_now_label)
-
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.padding = (0, 0, 0, 1)
 
 
 class EditingModeLabel(EditingModeBadge, AutoWidth, OneRow, SidePadding, NoWrap, Label):

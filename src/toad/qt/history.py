@@ -195,6 +195,36 @@ class HeldBackingFormatWidget(BackingFormatWidget):
         return QImage.Format.Format_ARGB32_Premultiplied
 
 
+class DirectPaintClip(ABC):
+    """Optional clip region intersecting a direct-painted history row rect."""
+
+    @abstractmethod
+    def shown_rect(self, rect: QRect):
+        ...
+
+    @classmethod
+    def from_optional(cls, value: QRegion | None) -> DirectPaintClip:
+        return AbsentDirectPaintClip() if value is None else HeldDirectPaintClip(value)
+
+
+@dataclass(frozen=True)
+class AbsentDirectPaintClip(DirectPaintClip):
+    """Absent `DirectPaintClip` carrying no value."""
+
+    def shown_rect(self, rect: QRect):
+        return rect
+
+
+@dataclass(frozen=True)
+class HeldDirectPaintClip(DirectPaintClip):
+    """Held `DirectPaintClip` carrying its present value."""
+
+    value: QRegion
+
+    def shown_rect(self, rect: QRect):
+        return self.value.boundingRect().intersected(rect)
+
+
 class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     """Each fragment's line blocks as Qt rich text, rendered on the worker pool at the row's
     width (dividers fill it); a row paints plain text until prepared, and cached `QImage` tiles
@@ -607,13 +637,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         painter: QPainter,
         document: QTextDocument,
         rect: QRect,
-        clip_region: QRegion | None,
+        clip_region: DirectPaintClip,
         arrival: ViewportArrivalState,
         highlight: TapHighlight,
     ) -> None:
         """Paint `document` directly into `painter` through `highlight.paint_document`,
         bypassing cached tiles so tile caches stay untouched."""
-        shown = clip_region.boundingRect().intersected(rect) if clip_region is not None else rect
+        shown = clip_region.shown_rect(rect)
         if shown.isEmpty():
             return
         _bg_hex, bg_color, fg_color = self._theme_colours()
@@ -649,7 +679,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         font = device.font() if device is not None else QFont()
         document = self.new_document(font, self.layout_width(rect.width()))
         document.setPlainText(self.row_text(fragment))
-        self._paint_document_direct(painter, document, rect, clip_region, arrival, NO_TAP_HIGHLIGHT)
+        self._paint_document_direct(painter, document, rect, DirectPaintClip.from_optional(clip_region), arrival, NO_TAP_HIGHLIGHT)
 
     def _resolve_frame_paint(
         self, painter: QPainter, viewport_width: int = 0,
@@ -723,7 +753,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             )
             document = self.final_document_for(fragment, font, self.layout_width(paint_rect.width()))
             if document is not None:
-                self._paint_document_direct(painter, document, paint_rect, row_clip, arrival, highlight)
+                self._paint_document_direct(painter, document, paint_rect, DirectPaintClip.from_optional(row_clip), arrival, highlight)
                 self.view.row_painted(fragment, paint_rect)
                 return
         if not self.paint_pictures(painter, fragment, paint_rect, row_clip, arrival, clip_to_shown=clip_to_slot):

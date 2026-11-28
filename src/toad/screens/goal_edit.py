@@ -22,6 +22,7 @@ from toad.native_style import (
     SpacedAround,
     SpacedBelow,
 )
+from toad.screens.keymap import ThreeRowMaxHeight
 from toad.screens.modal import (
     CenteredScreen,
     DismissibleScreen,
@@ -47,11 +48,9 @@ class GoalEditor(SpacedAround, DraftPrompt, AutoHeight):
         self.styles.max_height = 20
 
 
-class GoalEditProgress(SpacedBelow, MutedText, AutoHeight, Static):
+class GoalEditProgress(ThreeRowMaxHeight, SpacedBelow, MutedText, AutoHeight, Static):
 
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.max_height = 3
+    pass
 
 
 class GoalEditError(Static):

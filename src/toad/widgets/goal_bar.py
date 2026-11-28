@@ -6,6 +6,7 @@ from weakref import ref
 from rich.cells import cell_len
 from textual import events
 from textual.widget import Widget
+from toad.screens.team import HalfViewportMaxHeight
 from toad.widget_actions import VisibleActions, Activates
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.layouts.horizontal import HorizontalLayout
@@ -110,10 +111,8 @@ class GoalExecutionText(FillWidth, GoalText):
     """Its look is its bases."""
 
 
-class GoalDocument(StableGutter, OneRow, VerticalScroll):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.max_height = "50vh"
+class GoalDocument(HalfViewportMaxHeight, StableGutter, OneRow, VerticalScroll):
+    pass
 
 
 class GoalControls(OneRow, HorizontalGroup):
