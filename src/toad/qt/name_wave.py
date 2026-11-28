@@ -110,7 +110,10 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         # identity: pyqt-reactive hands the same prepared text back until the row's text,
         # font or width changes, and a changed one is another object.
         self.bold: dict[int, tuple[PreparedTextLayout, PreparedTextLayout, int]] = {}
-        self._banded_prepared: dict[tuple[int, int, int], tuple[PreparedTextLayout, PreparedTextLayout]] = {}
+        self._band_range = QTextLayout.FormatRange()
+        self._band_range.format = self.accent_format
+        self._band_inks = ((self._band_range,),)
+        self._text_origin = QPointF(self.TEXT_INSET_X, self.TEXT_INSET_Y)
         self._view = self.parent()
         self._viewport = self._view.viewport()
         self._row_images: dict[
@@ -125,7 +128,8 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
 
     def _set_wave_accent(self, accent: QColor) -> None:
         super()._set_wave_accent(accent)
-        self._banded_prepared.clear()
+        self._band_range.format = self.accent_format
+        self.bold.clear()
         self._row_images.clear()
         self._row_image_count = 0
 
@@ -153,19 +157,20 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         vp = self._viewport
         rect = option.rect
         item = view.itemFromIndex(index)
-        running = item is not None and item.wave_running()
+        running = item is not None and item.animation is not None
         span = item.painted_span if running else None
         dpr = painter.device().devicePixelRatioF()
         rid = id(row)
         wraps = row.wrap_mode.wrapped if row.wrap_mode is not None else view.wordWrap()
         vp_width = vp.width()
         hovered = view.underMouse() and rect.contains(vp.mapFromGlobal(QCursor.pos()))
+        selected = item is not None and item.isSelected()
         variant = (
             running,
             span,
             rect.width(),
             rect.height(),
-            item is not None and item.isSelected(),
+            selected,
             view.hasFocus(),
             view.isActiveWindow(),
             hovered,
@@ -204,12 +209,42 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         local_option = QStyleOptionViewItem(option)
         local_option.rect = QRect(0, 0, width, height)
         local_painter = QPainter(image)
-        self._active_wave = (running, span)
-        try:
-            super().paint(local_painter, local_option, index)
-        finally:
-            self._active_wave = None
-            local_painter.end()
+        # Fast path for already-prepared plain sidebar rows whose only change is the moving wave
+        # accent band: paint native item chrome and draw the already-shaped bold PreparedTextLayout
+        # with `inks` (zero re-layout, zero super().paint/initStyleOption/enum overhead).
+        text_width = max(1, vp_width - self.TEXT_INSET_X * 2) if wraps else None
+        prepared = (
+            row.texts.get((selected, text_width))
+            if (running and row.scheme is None and row.leading_marker is None and not row.disclosure)
+            else None
+        )
+        kept_bold = self.bold.get(id(prepared)) if prepared is not None else None
+        if kept_bold is not None and kept_bold[0] is prepared:
+            titled, length = kept_bold[1], kept_bold[2]
+            inks: tuple = ()
+            if span is not None:
+                start = min(length, max(0, span[0]))
+                end = min(length, max(0, span[1]))
+                if start < end:
+                    self._band_range.start = start
+                    self._band_range.length = end - start
+                    inks = self._band_inks
+            try:
+                local_option.text = ""
+                view.style().drawControl(
+                    QStyle.ControlElement.CE_ItemViewItem, local_option, local_painter, view
+                )
+                local_painter.setClipRect(local_option.rect)
+                titled.paint(local_painter, self._text_origin, inks)
+            finally:
+                local_painter.end()
+        else:
+            self._active_wave = (running, span)
+            try:
+                super().paint(local_painter, local_option, index)
+            finally:
+                self._active_wave = None
+                local_painter.end()
         if bucket is None or bucket[0] is not row:
             self._row_images[rid] = (row, {variant: (image, wraps)})
         else:
@@ -227,36 +262,35 @@ class QtNameWaveDelegate(QtWaveBandCache, MultilinePreviewItemDelegate):
         finally:
             self._active_wave = previous
 
+    def text_inks(self, index):  # type: ignore[override]
+        """Supply the moving accent-band FormatRange during cold `super().paint()` so the
+        bold title is shaped once and never re-laid out for a band move."""
+        if self._active_wave is None:
+            return ()
+        running, span = self._active_wave
+        if not running or span is None:
+            return ()
+        start, end = max(0, span[0]), max(0, span[1])
+        if start >= end:
+            return ()
+        self._band_range.start = start
+        self._band_range.length = end - start
+        return self._band_inks
+
     def _prepared_text(self, option, index) -> PreparedTextLayout:
         prepared = super()._prepared_text(option, index)
         if self._active_wave is not None:
-            running, span = self._active_wave
+            running, _span = self._active_wave
         else:
             item = self.parent().itemFromIndex(index)
-            running = item is not None and item.wave_running()
-            span = item.painted_span if running else None
+            running = item is not None and item.animation is not None
         if not running:
             return prepared
         pid = id(prepared)
         kept = self.bold.get(pid)
         if kept is None or kept[0] is not prepared:
             kept = self.bold_titled(prepared)
-        titled, length = kept[1], kept[2]
-        if span is None:
-            return titled
-        start, end = min(length, max(0, span[0])), min(length, max(0, span[1]))
-        if start >= end:
-            return titled
-        key = (pid, start, end)
-        hit = self._banded_prepared.get(key)
-        if hit is not None and hit[0] is prepared:
-            return hit[1]
-        if len(self._banded_prepared) >= self.BANDED_KEPT:
-            self._banded_prepared.clear()
-        baked = self.baked_band_layout(titled.paragraphs[0], (start, end))
-        built = PreparedTextLayout((baked, *titled.paragraphs[1:]), titled.size, titled.line_guides)
-        self._banded_prepared[key] = (prepared, built)
-        return built
+        return kept[1]
 
     def bold_titled(self, prepared: PreparedTextLayout) -> tuple[PreparedTextLayout, PreparedTextLayout, int]:
         """``prepared``, the same text with its title bold on the lines the title already

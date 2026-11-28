@@ -90,12 +90,8 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     class WavingItem(QTreeWidgetItem):
         def __init__(self) -> None:
             super().__init__()
+            self.animation: object | None = object()
             self.painted_span: tuple[int, int] | None = (0, 3)
-            self.checks = 0
-
-        def wave_running(self) -> bool:
-            self.checks += 1
-            return True
 
         def band_drawn(self) -> tuple[int, int] | None:
             return self.painted_span
@@ -121,14 +117,12 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
                 if any(image.pixelColor(x, y) == accent for y in range(option.rect.top(), option.rect.bottom()))]
 
     left = paint_accent_xs()
-    assert len(delegate._banded_prepared) == 1
-    first_baked = next(iter(delegate._banded_prepared.values()))[1]
-    assert first_baked.paragraphs[0].cacheEnabled() is True
-    assert all(titled.paragraphs[0].cacheEnabled() for _orig, titled, _len in delegate.bold.values())
-    item.checks = 0
+    assert len(delegate._row_images) == 1
+    assert len(delegate.bold) == 1
+    first_bold = next(iter(delegate.bold.values()))[1]
+    assert first_bold.paragraphs[0].cacheEnabled() is True
     paint_accent_xs()
-    assert item.checks == 1
-    assert next(iter(delegate._banded_prepared.values()))[1] is first_baked
+    assert next(iter(delegate.bold.values()))[1] is first_bold
     item.painted_span = (8, 11)
     right = paint_accent_xs()
     assert left and right and max(left) < min(right)
@@ -161,7 +155,7 @@ def test_qt_name_wave_delegate_caches_band_inks_and_queries_row_once_per_paint()
     delegate.paint(p2, option, tree.model().index(0, 0))
     p2.end()
     before_variants = len(delegate._row_images[id(kept_item_row)][1])
-    item.wave_running = lambda: False  # type: ignore[method-assign]
+    item.animation = None
     p3 = QPainter(img)
     delegate.paint(p3, option, tree.model().index(0, 0))
     p3.end()
