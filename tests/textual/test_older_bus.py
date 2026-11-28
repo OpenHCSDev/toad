@@ -82,7 +82,7 @@ def test_a_page_from_an_older_bus_draws_its_messages_and_asks_it_for_no_files(tm
     source = WireSource(comms.root, ChannelConversation(ChannelTarget("#team")), project,
                         comms.messaging.user_identity(project).name, IrcMessageStyle(),
                         access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                        core=core, fragments=WireFragment)
+                        fixed_core=core, fragments=WireFragment)
     through = source.observe(UnobservedConversation()).through
     prepared = source.read(PageRequest(OLDER_END, through), through)
     assert len(prepared.fragments) == 2

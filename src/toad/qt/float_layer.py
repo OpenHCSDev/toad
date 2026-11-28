@@ -10,7 +10,7 @@ or a wait never moves the content under it.
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QTimer, Qt
-from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFrame, QLabel, QSizePolicy, QVBoxLayout, QWidget
 from pyqt_reactive.protocols.widget_adapters import PyQtWidgetMeta
 from pyqt_reactive.theming import ColorScheme, StatusColorRole
 from pyqt_reactive.widgets.status_line import NoticeLine
@@ -79,6 +79,9 @@ class QtNoticeCard(QFrame):
         layout.setContentsMargins(UiGap.tight, UiGap.tight, UiGap.tight, UiGap.tight)
         line = NoticeLine(scheme)
         line.setParent(self)
+        policy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        policy.setHeightForWidth(True)
+        line.setSizePolicy(policy)
         line.show_status(text, role)
         layout.addWidget(line)
         self.expiry = QTimer(self)
@@ -91,7 +94,7 @@ class QtNoticeCard(QFrame):
         self.hide()
         self.deleteLater()
         if (layer := self.parentWidget()) is not None:
-            layer.adjustSize()
+            layer.follow_content()
 
     def mousePressEvent(self, event) -> None:  # noqa: N802 - Qt virtual method name
         self.dismiss()
@@ -175,7 +178,13 @@ class QtFloatLayer(ShowsPending, QWidget, metaclass=PyQtWidgetMeta):
     def place(self) -> None:
         window = self.parentWidget()
         margins = window.contentsMargins()
-        width = window.width() - margins.left() - margins.right()
-        self.setFixedWidth(max(1, width))
-        self.adjustSize()
+        width = max(1, window.width() - margins.left() - margins.right())
+        self.setFixedWidth(width)
+        layout = self.layout()
+        layout.activate()
+        height = layout.totalHeightForWidth(width)
+        if height <= 0:
+            height = self.sizeHint().height()
+        self.resize(width, max(1, height))
         self.move(margins.left(), margins.top())
+        layout.activate()

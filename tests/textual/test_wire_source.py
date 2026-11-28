@@ -36,7 +36,7 @@ def channel_source(comms, target, project):
     viewer = comms.messaging.user_identity(project).name
     return WireSource(comms, ChannelConversation(ChannelTarget(target)), project, viewer, IrcMessageStyle(),
                       access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                      core=LocalCoreAccess(comms), fragments=WireFragment)
+                      fixed_core=LocalCoreAccess(comms), fragments=WireFragment)
 
 
 def observed(source):

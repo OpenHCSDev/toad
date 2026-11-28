@@ -54,7 +54,7 @@ def test_a_page_draws_each_message_s_files_and_a_chip_fetches_the_sent_bytes(tmp
     source = WireSource(comms.root, ChannelConversation(ChannelTarget("#team")), project,
                         comms.messaging.user_identity(project).name, IrcMessageStyle(),
                         access=AppAgents.unrun(project.path, LaunchRoot.from_path(comms.root)).app.coordination_access,
-                        core=core, fragments=WireFragment)
+                        fixed_core=core, fragments=WireFragment)
     through = source.observe(UnobservedConversation()).through
     prepared = source.read(PageRequest(OLDER_END, through), through)
     assert core.called.count("comms_message_files") == 1
