@@ -685,6 +685,12 @@ class SidebarLayout:
         self._save(replace(self.terminal, splits=(*others, BandSplit(side, percent))))
         return True
 
+    def splits_before(self, identity: type[SidebarPlacement],
+                      collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
+        """Whether an earlier shown bar in this one's band sits beside it on the left."""
+        shown = tuple(key for key in self._slot(self.placements, identity) if key in collapsed)
+        return shown.index(identity) > 0
+
     def splits_after(self, identity: type[SidebarPlacement],
                      collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
         """Whether the next shown bar in this one's band sits beside it, so its splitter shows:
@@ -693,6 +699,14 @@ class SidebarLayout:
         shown = tuple(key for key in self._slot(self.placements, identity) if key in collapsed)
         index = shown.index(identity)
         return index + 1 < len(shown)
+
+    def next_in_band_folded(self, identity: type[SidebarPlacement],
+                            collapsed: Mapping[type[SidebarPlacement], bool]) -> bool:
+        """Whether the next shown bar in this band is folded (and therefore draws its own
+        full-height leading hairline beside this open pane)."""
+        shown = tuple(key for key in self._slot(self.placements, identity) if key in collapsed)
+        index = shown.index(identity)
+        return index + 1 < len(shown) and collapsed[shown[index + 1]]
 
     def _store(self, placements: dict[type[SidebarPlacement], SidebarPlacement]) -> None:
         self._save(replace(self.terminal, placements=tuple(placements.values())))

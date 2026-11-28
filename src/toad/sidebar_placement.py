@@ -112,6 +112,11 @@ class SidebarEdge(DeclaredFamily, affix="SidebarEdge"):
     def control_offset(cls, distance: int) -> Offset: ...
 
     @classmethod
+    @abstractmethod
+    def inner_hairline(cls, width: int, height: int) -> tuple[int, int, int, int]:
+        """Line endpoints (x1, y1, x2, y2) for the 1 px hairline on the conversation-facing edge."""
+
+    @classmethod
     def opposite(cls) -> type[SidebarEdge]:
         """The other concrete edge on the same axis (left<->right, top<->bottom).
 
@@ -219,6 +224,11 @@ class WidthSidebarEdge(SidebarEdge):
     def control_offset(cls, distance: int) -> Offset:
         return Offset(-cls.sign * distance, 0)
 
+    @classmethod
+    def inner_hairline(cls, width: int, height: int) -> tuple[int, int, int, int]:
+        x = width - 1 if cls.sign > 0 else 0
+        return (x, 0, x, height)
+
 
 class HeightSidebarEdge(SidebarEdge):
     minimum = 9
@@ -300,6 +310,11 @@ class HeightSidebarEdge(SidebarEdge):
     @classmethod
     def control_offset(cls, distance: int) -> Offset:
         return Offset(0, -cls.sign * distance)
+
+    @classmethod
+    def inner_hairline(cls, width: int, height: int) -> tuple[int, int, int, int]:
+        y = height - 1 if cls.sign > 0 else 0
+        return (0, y, width, y)
 
 
 class LeftSidebarEdge(LeadingSidebarEdge, WidthSidebarEdge):

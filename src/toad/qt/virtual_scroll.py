@@ -24,6 +24,7 @@ from functools import cached_property
 import math
 import time
 
+import shiboken6
 from PySide6.QtCore import QPoint, QRect, QRectF, QSize, Qt, QTimer
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
@@ -661,8 +662,10 @@ class RowDocumentStore(ABC):
         """Defer dropping laid-out documents and tiles across brief Android app switches so
         reopening within `SUSPEND_RELEASE_MS` paints from warm caches without a 100+ ms
         re-layout/re-rasterize stall, while prolonged backgrounding still returns memory."""
+        if self._stopped or not shiboken6.isValid(self._suspend_release_timer):
+            return
         if state is Qt.ApplicationState.ApplicationSuspended:
-            if not self._stopped and not self._suspend_release_timer.isActive():
+            if not self._suspend_release_timer.isActive():
                 self._suspend_release_timer.start()
         elif state is Qt.ApplicationState.ApplicationActive:
             self._suspend_release_timer.stop()
@@ -840,9 +843,15 @@ class RowDocumentStore(ABC):
             return
         self._stopped = True
         self.preparing = False
-        self._viewport_update_timer.stop()
-        self._measure_timer.stop()
-        self._suspend_release_timer.stop()
+        app = QGuiApplication.instance()
+        if app is not None:
+            try:
+                app.applicationStateChanged.disconnect(self._application_state_changed)
+            except (RuntimeError, TypeError):
+                pass
+        for timer in (self._viewport_update_timer, self._measure_timer, self._suspend_release_timer):
+            if shiboken6.isValid(timer):
+                timer.stop()
         self.preparer.clear()
         self.stop_preparation()
         self.preparer.stop()

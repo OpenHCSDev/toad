@@ -253,7 +253,6 @@ class NormalInputBox(TitledChoice, InputBox):
     """The classic prompt: a bordered, padded box above the info bar."""
 
     title = "Normal (bordered and padded)"
-    frame_margin = Spacing(0, 1, 0, 1)
     frame_padding = Spacing(0, 1, 0, 0)
     qt_border_pixels = 2
 
@@ -267,7 +266,7 @@ class NormalInputBox(TitledChoice, InputBox):
 
     @classmethod
     def info_bar_margin(cls, footer: bool) -> Spacing:
-        return Spacing(0, 2, 0, 2)
+        return Spacing(0, 1, 0, 1)
 
 
 class CompactInputBox(TitledChoice, InputBox):
@@ -316,6 +315,8 @@ class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
     yields_to_keyboard: ClassVar[bool] = False
     """Bottom-docked bars hide while a touch soft keyboard is open so the composer sits flush
     above the keyboard instead of floating over dead chrome."""
+    qt_separator_edge: ClassVar[str]
+    """Qt CSS border property separating the navigation bar from the adjacent workspace chrome."""
 
     @classmethod
     @abstractmethod
@@ -330,6 +331,8 @@ class NavigationBarPosition(DeclaredChoice, affix="NavigationBar"):
 
 
 class TopNavigationBar(NavigationBarPosition):
+    qt_separator_edge = "border-bottom"
+
     @classmethod
     def around[W](cls, navigation: W, body: W) -> tuple[W, W]:
         return navigation, body
@@ -337,6 +340,7 @@ class TopNavigationBar(NavigationBarPosition):
 
 class BottomNavigationBar(NavigationBarPosition):
     yields_to_keyboard = True
+    qt_separator_edge = "border-top"
 
     @classmethod
     def around[W](cls, navigation: W, body: W) -> tuple[W, W]:

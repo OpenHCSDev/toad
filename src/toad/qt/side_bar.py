@@ -202,11 +202,13 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._symbol = self._heading = ""
+        self._leading_splitter = False
         self._trailing_splitter = False
 
-    def set_trailing_splitter(self, shown: bool) -> None:
-        if self._trailing_splitter != shown:
-            self._trailing_splitter = shown
+    def set_band_splitters(self, leading: bool, trailing: bool) -> None:
+        if self._leading_splitter != leading or self._trailing_splitter != trailing:
+            self._leading_splitter = leading
+            self._trailing_splitter = trailing
             self.update()
 
     def show_toggle(self, text: str, tooltip: str) -> None:
@@ -219,21 +221,23 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         self._symbol, self._heading = symbol, heading
         self.update()
 
-    def _draw_trailing_splitter(self, painter: QPainter) -> None:
-        if not self._trailing_splitter:
-            return
+    def _draw_hairlines(self, painter: QPainter, *, vertical: bool) -> None:
         painter.save()
         painter.setPen(self.palette().color(QPalette.ColorRole.Mid))
-        x = self.width() - 1
-        painter.drawLine(x, 0, x, self.height())
+        w, h = self.width(), self.height()
+        x1, y1, x2, y2 = self._surface.placement.side.inner_hairline(w, h)
+        painter.drawLine(x1, y1, x2, y2)
+        if vertical and self._leading_splitter:
+            painter.drawLine(0, 0, 0, h)
+        if self._trailing_splitter:
+            painter.drawLine(w - 1, 0, w - 1, h)
         painter.restore()
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
         if self.height() <= self.width():
             super().paintEvent(event)
-            if self._trailing_splitter:
-                painter = QPainter(self)
-                self._draw_trailing_splitter(painter)
+            painter = QPainter(self)
+            self._draw_hairlines(painter, vertical=False)
             return
         painter = QPainter(self)
         option = QStyleOption()
@@ -253,7 +257,7 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         span = QRect(-reach, -self.width() // 2, 2 * reach, self.width())
         painter.drawText(span, Qt.AlignmentFlag.AlignCenter, shown)
         painter.restore()
-        self._draw_trailing_splitter(painter)
+        self._draw_hairlines(painter, vertical=True)
 
 
 class QtSidebarResizeHandle(QtGripPointer, SidebarResizeGrip, QWidget, metaclass=PyQtWidgetMeta):
@@ -482,10 +486,15 @@ class QtWorkspaceChrome(StoredSidebarLayout, SidebarChromeArrangement[QtSideBar]
             if region is None:
                 self._land(bar)
                 self.placed.pop(bar, None)
-                bar.toggle.set_trailing_splitter(False)
+                bar.toggle.set_band_splitters(False, False)
                 bar.hide()
                 continue
-            bar.toggle.set_trailing_splitter(self._layout.splits_after(bar.placement_identity, collapsed))
+            leading = self._layout.splits_before(bar.placement_identity, collapsed)
+            trailing = (
+                self._layout.splits_after(bar.placement_identity, collapsed)
+                and (bar.collapsed or not self._layout.next_in_band_folded(bar.placement_identity, collapsed))
+            )
+            bar.toggle.set_band_splitters(leading, trailing)
             now = PlacedSidebar(region, bar.collapsed)
             slide = self.slides.get(bar)
             if slide is not None and slide.target == now:
