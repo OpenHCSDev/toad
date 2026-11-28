@@ -52,6 +52,7 @@ from rich.cells import cell_len
 from rich.segment import Segment
 from textual.geometry import Region, Size
 from textual.strip import Strip
+from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 from ui_theme.wal import WalFile
 
 from tools import physical_ui_remote
@@ -355,7 +356,6 @@ class ObservedTerminalApp:
         Only presentation settings travel. Saved Toad databases/tabs never do.
         Existing installer acceptance and copied-history runs share this setup.
         """
-        from toad.preferences import INTERFACE, SETTINGS, SavedSettings, ToadSettings
 
         root = root.resolve(strict=True)
         runtime.require_available()

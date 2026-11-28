@@ -15,6 +15,7 @@ from textual.widgets.text_area import Selection
 from toad.client.line_blocks import Span
 from toad.core.input_events import HistoryMove
 from toad.slash_command import SlashCommand
+from toad.widgets.prompt_popup import CompletionPopup
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import PromptTextArea
@@ -134,7 +135,6 @@ class PromptCursor:
         self._editor = ref(editor)
 
     def changed(self, previous: Selection, current: Selection) -> None:
-        from toad.widgets.prompt_popup import CompletionPopup
 
         editor = self._editor()
         if editor is None:

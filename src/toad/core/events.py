@@ -6,7 +6,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated, ClassVar
 from weakref import WeakSet, WeakValueDictionary
 
 from formbridge.publications import (
@@ -33,10 +33,8 @@ from toad.live_output import OutputStream, ThoughtStream
 from toad.plan import PlanItem
 from toad.client.tab_identity import TabIdentity
 from formbridge.operations import ExclusiveKind, OperationKind
-
-if TYPE_CHECKING:
-    from toad.turn_presentation import TurnPresentation
-
+from toad.project_link import AcpLogLink
+from toad.turn_presentation import TurnPresentation
 
 class ThreadInterestUpdate(OperationKind, ExclusiveKind):
     """Tells Core which threads the open views are interested in; a newer update supersedes one running."""
@@ -398,7 +396,6 @@ class FailureLog:
     log_path: Path
 
     async def show_log(self, view: TurnPresentation) -> None:
-        from toad.project_link import AcpLogLink
 
         await view.present_log_link(AcpLogLink.markdown(self.log_path))
 

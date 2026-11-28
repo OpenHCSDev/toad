@@ -32,8 +32,15 @@ from toad.acp.status import StopReason
 from toad.acp.terminal_owner import OperationalTerminalOwner
 from toad.client.transcript_reader import CoordinationTranscriptReader
 from toad.core import events as core_events
-from toad.core.events import LogAgentFail
+from toad.core.events import (
+    AgentFail,
+    AvailableCommandsUpdate,
+    LogAgentFail,
+    McpClientStopped,
+    Plan,
+)
 from toad.plan import PlanDisplayState, PlanItem
+from toad.render_backend import Renderer, RenderTask
 from toad.surface_binding import DetachedSurfaceBinding, SurfaceBinding
 
 if TYPE_CHECKING:
@@ -44,8 +51,6 @@ if TYPE_CHECKING:
     from agent_comms.acp_extension import QueueScope, TranscriptSnapshotUpdate
 
     from toad.acp.agent import Agent
-    from toad.core.events import AgentFail
-    from toad.render_backend import Renderer, RenderTask
 
 
 class SourceIdentity:
@@ -137,7 +142,6 @@ class AgentController(OperationalTerminalOwner):
             self.terminals.detach()
 
     async def restore(self, binding: SurfaceBinding) -> None:
-        from toad.core.events import AvailableCommandsUpdate
 
         if self.surface is not binding:
             return
@@ -148,7 +152,6 @@ class AgentController(OperationalTerminalOwner):
         agent.update_status_line()
         agent.events.publish(AvailableCommandsUpdate())
         if self.plan_display.entries:
-            from toad.core.events import Plan
 
             agent.events.publish(Plan(self.plan_display.entries))
         agent._post_queue_view()
@@ -162,7 +165,6 @@ class AgentController(OperationalTerminalOwner):
         await binding.publish_transcript_snapshot(session, update, self)
 
     def connection_closed(self) -> None:
-        from toad.core.events import McpClientStopped
 
         agent = self.agent
         agent.session.closed()
@@ -182,13 +184,11 @@ class AgentController(OperationalTerminalOwner):
         replacing the entries, so any frontend can ask `plan_display.newly_complete(entry)`
         to drive the same completion-transition decision — one owner, both frontends
         agree on which rows just transitioned."""
-        from toad.core.events import Plan
 
         self.plan_display.update(entries)
         self.agent.events.publish(Plan(entries))
 
     def publish_commands(self, commands: list[AvailableCommand]) -> None:
-        from toad.core.events import AvailableCommandsUpdate
 
         self.commands = commands
         self.agent.events.publish(AvailableCommandsUpdate())
