@@ -8,16 +8,18 @@ while it runs. Nothing here keeps a period, a phase or a timer of its own.
 
 from __future__ import annotations
 
+from math import ceil
+
 from PySide6.QtCore import QEvent, QPointF, QRect, QSize, Qt
-from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
+from PySide6.QtGui import QColor, QFont, QFontMetrics, QImage, QPainter, QPixmap, QTextCharFormat, QTextLayout
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QScrollArea, QStyle, QStyleOptionTab, QStyleOptionViewItem, QStylePainter, QTabBar, QToolButton, QWidget
 from pyqt_reactive.widgets.shared.list_item_delegate import MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.list_item_text_rendering import PreparedTextLayout
 from pyqt_reactive.widgets.shared.tear_off_tab_widget import TearOffTabBar
 
 from ui_theme.effects import Band
 
-from toad.client.name_wave import BandCells, NameWave
+from toad.client.name_wave import BandCells, NameWave, TitleMarquee
 from toad.motion import TAB_CLOSE, TAB_OPEN, TransitionTarget
 from toad.qt.tap_flash import QtTextButton
 
@@ -380,32 +382,115 @@ class TabGhost(TabTransition):
         self.picture.deleteLater()
 
 
+class QtTabMarquee(TitleMarquee):
+    """One shared banner-scroll animation for all overflowing tabs on a `QtSessionTabBar`."""
+
+    def __init__(self, bar: QtSessionTabBar) -> None:
+        self.bar = bar
+        self.animation = None
+        self._painted_offsets: dict[str, int] = {}
+
+    @property
+    def animation_visible(self) -> bool:
+        return self.bar.isVisible()
+
+    def marquee_running(self) -> bool:
+        return self.animation is not None
+
+    def start_marquee(self) -> None:
+        self._painted_offsets.clear()
+        self.animation = self.bar.clock.start(self.marquee_effect, self)
+
+    def stop_marquee(self) -> None:
+        if self.animation is not None:
+            self.animation.stop()
+            self.animation = None
+        self._painted_offsets.clear()
+
+    def marquee_elapsed(self) -> float:
+        return 0.0 if self.animation is None else self.animation.frame().value
+
+    def repaint(self) -> None:
+        """Repaint only overflowing tabs whose integer scroll offset actually moved."""
+        self.bar._repaint_marquee_tabs(self._painted_offsets)
+
+
 class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
-    """The workspace's tab bar: a busy tab's title waves as Textual's `SessionLabel` does.
-    The title's line is the label with its one cell of padding each side, as the TUI's tab
-    draws it, so the band covers the same characters. A tab that opens grows in and one that
-    closes shrinks away, on the same clock."""
+    """The workspace's tab bar: compact tabs sized to their title up to a width cap so at least
+    three tabs fit across Android's tab strip, with overflowing titles scrolling like a banner
+    on the shared `AnimationClock` and busy tabs waving in the theme accent."""
 
     padding_cells = 1
-    TAB_GAP = 6
+    TAB_GAP = 4
     """Inter-tab right margin (px); read by both the tab stylesheet and `_make_close_button`
-    so the close button always sits inside the painted tab rather than the gap between tabs."""
+    so the close button sits cleanly inside the painted tab without dead padding."""
+    TAB_PAD_LEFT = 6
+    TAB_PAD_RIGHT = 2
+    TAB_TEXT_CLOSE_GAP = 2
+    MAX_TITLE_CHARS = 16
+    MIN_VISIBLE_TABS = 3
 
-    def __init__(self, clock, accent: QColor, ink: QColor) -> None:
+    def __init__(self, clock, accent: QColor, ink: QColor, inactive_ink: QColor | None = None) -> None:
         super().__init__()
         self.clock, self.ink = clock, ink
+        self.inactive_ink = ink if inactive_ink is None else inactive_ink
         self._init_wave_ink(accent)
-        self.lines: dict[tuple[str, int], QTextLayout] = {}
+        self.lines: dict[tuple[str, bool], QTextLayout] = {}
         self._shown_titles: dict[tuple[int, str, int], tuple[QRect, str]] = {}
         self._tab_chrome: dict[tuple, QImage] = {}
         self.waves: dict[str, QtTabWave] = {}
         self.growing: dict[str, TabGrowth] = {}
+        self.marquee = QtTabMarquee(self)
+        self._strip_width = 0
 
-    def set_colours(self, accent: QColor, ink: QColor) -> None:
+    def set_colours(self, accent: QColor, ink: QColor, inactive_ink: QColor | None = None) -> None:
         self.ink = ink
+        self.inactive_ink = ink if inactive_ink is None else inactive_ink
         self._set_wave_accent(accent)
         self._tab_chrome.clear()
         self.update()
+
+    def sync_strip_width(self, width: int) -> None:
+        """Keep the 3-tab width cap synced with the visible tab strip viewport width."""
+        width = max(0, int(width))
+        if width == self._strip_width:
+            return
+        self._strip_width = width
+        self._shown_titles.clear()
+        self._tab_chrome.clear()
+        self.relayout()
+        self._sync_marquee()
+
+    def _strip_viewport_width(self) -> int:
+        if self._strip_width > 0:
+            return self._strip_width
+        parent = self.parentWidget()
+        if parent is not None and isinstance(parent.parentWidget(), QScrollArea) and parent.width() > 0:
+            return parent.width()
+        return 0
+
+    def _close_slot_metrics(self) -> tuple[int, int]:
+        """(button_px, slot_width_px) for the right-side close button container."""
+        size = max(24, self.fontMetrics().height() + 2)
+        return size, size + self.TAB_GAP
+
+    def _tab_chrome_width(self) -> int:
+        """Horizontal non-text pixels per tab: left pad + text/close gap + close slot + right pad."""
+        _size, slot_w = self._close_slot_metrics()
+        return self.TAB_PAD_LEFT + self.TAB_TEXT_CLOSE_GAP + slot_w + self.TAB_PAD_RIGHT
+
+    def _max_tab_width(self) -> int:
+        """Maximum width (px) for one tab: bounded by `MAX_TITLE_CHARS` and by 1/3 of the
+        visible tab strip so narrow screens (Android) generally show at least three tabs."""
+        fm = self.fontMetrics()
+        avg_char = max(1, fm.averageCharWidth())
+        chrome = self._tab_chrome_width()
+        min_width = chrome + 4 * avg_char
+        char_cap = chrome + self.MAX_TITLE_CHARS * avg_char
+        strip_w = self._strip_viewport_width()
+        if strip_w > 0:
+            return max(min_width, min(char_cap, strip_w // self.MIN_VISIBLE_TABS))
+        return char_cap
 
     def show_tabs(self, entries: list[tuple[str, str]]) -> bool:
         """Draw ``entries`` (title, mode) as the bar's tabs; whether anything changed. The same
@@ -422,6 +507,7 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             for index, (title, _) in enumerate(entries):
                 if current[index][0] != title:
                     self.setTabText(index, title)
+            self._sync_marquee()
             return True
         shown = {self.tabData(index): self.tabRect(index) for index in range(self.count())}
         modes = {mode for _, mode in entries}
@@ -439,17 +525,18 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
                 self.growing[mode] = TabGrowth(self, mode)
         for rect, picture in leaving:
             TabGhost(self, rect, picture)
+        self._sync_marquee()
         return True
 
     def _make_close_button(self, mode: str) -> QWidget:
         """A comfortable, theme-tinted close button tucked inside the tab's right edge
-        instead of Fusion's tiny red cross clipped into the inter-tab gap."""
+        without dead horizontal padding next to the title."""
         container = QWidget(self)
         container.setObjectName("tab-close-slot")
         container.setStyleSheet("QWidget#tab-close-slot { background: transparent; }")
         layout = QHBoxLayout(container)
-        right_inset = self.TAB_GAP + 2
-        layout.setContentsMargins(2, 0, right_inset, 0)
+        size, slot_w = self._close_slot_metrics()
+        layout.setContentsMargins(0, 0, self.TAB_GAP, 0)
         layout.setSpacing(0)
         button = QtTextButton(container)
         button.setObjectName("tab-close-button")
@@ -457,11 +544,10 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         button.setToolTip("Close tab")
         button.setAutoRaise(True)
         button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        size = max(24, self.fontMetrics().height() + 4)
         button.setFixedSize(size, size)
         button.clicked.connect(lambda _checked=False, target=mode: self._request_close(target))
         layout.addWidget(button)
-        container.setFixedSize(size + 2 + right_inset, size)
+        container.setFixedSize(slot_w, size)
         return container
 
     def _request_close(self, mode: str) -> None:
@@ -479,11 +565,21 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             hint.setWidth(round(hint.width() * growth.share))
         return hint
 
+    def _compact_tab_size(self, index: int, base: QSize) -> QSize:
+        text = self.tabText(index)
+        bold_font = QFont(self.font())
+        bold_font.setBold(True)
+        text_w = ceil(QFontMetrics(bold_font).horizontalAdvance(text))
+        btn_size, _slot_w = self._close_slot_metrics()
+        width = min(self._max_tab_width(), self._tab_chrome_width() + max(8, text_w))
+        height = max(btn_size + 6, base.height())
+        return QSize(width, height)
+
     def tabSizeHint(self, index: int) -> QSize:  # type: ignore[override]
-        return self._grown(index, super().tabSizeHint(index))
+        return self._grown(index, self._compact_tab_size(index, super().tabSizeHint(index)))
 
     def minimumTabSizeHint(self, index: int) -> QSize:  # type: ignore[override]
-        return self._grown(index, super().minimumTabSizeHint(index))
+        return self._grown(index, self._compact_tab_size(index, super().minimumTabSizeHint(index)))
 
     def follow_tabs(self, tabs) -> None:
         """Each open tab's wave follows its busy state; a closed tab's stops."""
@@ -503,28 +599,65 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             self.update(self.tabRect(index))
 
     def _cached_title(self, index: int) -> tuple[QRect, str]:
-        """Cached text rectangle and elided title for ``index``; invalidated on tab/font/style/resize
-        changes so 60-120 Hz wave ticks do not rebuild QStyleOptionTab + elidedText every tick."""
+        """Cached text rectangle and full title for ``index``; derived directly from `tabRect`
+        and the close-button slot so Fusion's extra `SE_TabBarTabText` gap never clips early."""
         text = self.tabText(index)
         tab_rect = self.tabRect(index)
         key = (index, text, tab_rect.width())
         cached = self._shown_titles.get(key)
         if cached is not None:
             return cached
-        option = QStyleOptionTab()
-        self.initStyleOption(option, index)
-        rect = self.style().subElementRect(QStyle.SubElement.SE_TabBarTabText, option, self)
-        shown = self.fontMetrics().elidedText(option.text, Qt.TextElideMode.ElideRight, rect.width())
-        self._shown_titles[key] = (rect, shown)
-        return rect, shown
+        _size, slot_w = self._close_slot_metrics()
+        close_slot = self.tabButton(index, QTabBar.ButtonPosition.RightSide)
+        if close_slot is not None and close_slot.width() > 0:
+            slot_w = close_slot.width()
+        left = tab_rect.left() + self.TAB_PAD_LEFT
+        right = max(left, tab_rect.right() - slot_w - self.TAB_PAD_RIGHT - self.TAB_TEXT_CLOSE_GAP)
+        rect = QRect(left, tab_rect.top(), max(0, right - left + 1), tab_rect.height())
+        self._shown_titles[key] = (rect, text)
+        return rect, text
 
     def shown_title(self, index: int) -> tuple[QStyleOptionTab, QRect, str]:
-        """A tab's style option, the rectangle its title draws in, and the title as it fits
-        there: what the paint draws, and what a wave's band is measured over."""
+        """A tab's style option, the rectangle its title draws in, and its title."""
         option = QStyleOptionTab()
         self.initStyleOption(option, index)
-        rect, shown = self._cached_title(index)
-        return option, rect, shown
+        rect, text = self._cached_title(index)
+        return option, rect, text
+
+    def _tab_overflows(self, index: int) -> bool:
+        rect, text = self._cached_title(index)
+        if rect.width() <= 0 or not text:
+            return False
+        wave = self.waves.get(self.tabData(index))
+        bold = (index == self.currentIndex()) or (wave is not None and wave.wave_running())
+        return self.title_line(text, bold=bold).lineAt(0).naturalTextWidth() > rect.width() + 0.5
+
+    def _sync_marquee(self) -> None:
+        if not self.isVisible():
+            return
+        overflowing = any(self._tab_overflows(index) for index in range(self.count()))
+        self.marquee.follow_overflow(overflowing)
+
+    def _repaint_marquee_tabs(self, painted: dict[str, int]) -> None:
+        any_overflow = False
+        for index in range(self.count()):
+            rect, text = self._cached_title(index)
+            if rect.width() <= 0 or not text:
+                continue
+            mode = self.tabData(index)
+            wave = self.waves.get(mode)
+            bold = (index == self.currentIndex()) or (wave is not None and wave.wave_running())
+            full_w = self.title_line(text, bold=bold).lineAt(0).naturalTextWidth()
+            if full_w <= rect.width() + 0.5:
+                continue
+            any_overflow = True
+            px = round(self.marquee.marquee_offset(full_w, rect.width()))
+            key = str(mode) if mode is not None else str(index)
+            if painted.get(key) != px:
+                painted[key] = px
+                self.update(self.tabRect(index))
+        if not any_overflow:
+            self.marquee.follow_overflow(False)
 
     def wave_span(self, wave: QtTabWave) -> tuple[int, int] | None:
         """The band's cells over the title of the tab ``wave`` runs in, padding included."""
@@ -535,8 +668,8 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
         return self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
 
     def _tab_chrome_image(self, index: int, tab_rect: QRect, option: QStyleOptionTab, dpr: float) -> QImage:
-        """Cache each busy tab's empty-text QSS background chrome so 60-120 Hz wave ticks
-        blit one image instead of running Fusion's QSS `drawControl(CE_TabBarTab)` every tick."""
+        """Cache each tab's empty-text QSS background chrome so wave and marquee ticks blit one
+        image instead of running Fusion's QSS `drawControl(CE_TabBarTab)` every tick."""
         key = (
             tab_rect.width(),
             tab_rect.height(),
@@ -569,52 +702,79 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
     def paintEvent(self, event) -> None:  # type: ignore[override]
         painter = QStylePainter(self)
         dpr = self.devicePixelRatioF()
+        any_overflow = False
         for index in range(self.count()):
             tab_rect = self.tabRect(index)
             if not tab_rect.intersects(event.rect()):
-                # A wave repaints its own tab: the other tabs' titles were being measured
-                # and elided again for each of its frames (the paint's largest Python cost
-                # on a phone, 8% of the GUI thread's samples with a few tabs open).
+                # A wave or marquee repaints its own tab: untouched tabs skip all layout work.
                 continue
             option, rect, shown = self.shown_title(index)
-            wave = self.waves.get(self.tabData(index))
-            if wave is None or not wave.wave_running():
-                painter.drawControl(QStyle.ControlElement.CE_TabBarTab, option)
-                continue
             chrome = self._tab_chrome_image(index, tab_rect, option, dpr)
             painter.drawImage(tab_rect.topLeft(), chrome)
-            span = wave.band_drawn() or self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
-            start, end = span
-            layout = self.bold_line(shown, rect.width())
-            line = layout.lineAt(0)
+            if rect.width() <= 0 or not shown:
+                continue
+            wave = self.waves.get(self.tabData(index))
+            waving = wave is not None and wave.wave_running()
+            selected = bool(option.state & QStyle.StateFlag.State_Selected)
+            hovered = bool(option.state & QStyle.StateFlag.State_MouseOver)
+            layout = self.title_line(shown, bold=waving or selected)
+            if waving:
+                span = wave.band_drawn() or self.band_cells(wave.wave_frame(), len(shown) + 2 * self.padding_cells)
+                start, end = span
+                drawn = self.baked_band_layout(
+                    layout,
+                    (max(0, start - self.padding_cells), max(0, end - self.padding_cells)),
+                )
+            else:
+                drawn = layout
+            line = drawn.lineAt(0)
+            full_w = line.naturalTextWidth()
             top = rect.top() + (rect.height() - line.height()) / 2
-            painter.setPen(self.ink)
-            baked = self.baked_band_layout(
-                layout,
-                (max(0, start - self.padding_cells), max(0, end - self.padding_cells)),
-            )
-            baked.draw(painter, QPointF(rect.left() + (rect.width() - line.naturalTextWidth()) / 2, top))
+            painter.setPen(self.ink if (waving or selected or hovered) else self.inactive_ink)
+            painter.save()
+            painter.setClipRect(rect)
+            if full_w > rect.width() + 0.5:
+                any_overflow = True
+                offset = self.marquee.marquee_offset(full_w, rect.width())
+                x = rect.left() - offset
+                drawn.draw(painter, QPointF(x, top))
+                second_x = x + full_w + self.marquee.marquee_effect.gap
+                if second_x < rect.right():
+                    drawn.draw(painter, QPointF(second_x, top))
+            else:
+                drawn.draw(painter, QPointF(rect.left() + max(0.0, (rect.width() - full_w) / 2), top))
+            painter.restore()
+        if any_overflow and not self.marquee.marquee_running():
+            self.marquee.follow_overflow(True)
 
-    def bold_line(self, shown: str, width: int) -> QTextLayout:
-        """A working tab's title, bold, on one line ``width`` wide: laid out once for the
-        title and width, since a frame of its wave moves the band's ink and not the text."""
-        kept = self.lines.get((shown, width))
+    def title_line(self, shown: str, *, bold: bool) -> QTextLayout:
+        """One tab title laid out on a single unwrapped line so naturalTextWidth is exact."""
+        kept = self.lines.get((shown, bold))
         if kept is None:
             if len(self.lines) >= self.KEPT:
                 self.lines.clear()
             font = QFont(self.font())
-            font.setBold(True)
-            kept = self.lines[(shown, width)] = QTextLayout(shown, font)
+            font.setBold(bold)
+            kept = self.lines[(shown, bold)] = QTextLayout(shown, font)
             kept.setCacheEnabled(True)
             kept.beginLayout()
-            kept.createLine().setLineWidth(width)
+            kept.createLine().setLineWidth(1_000_000)
             kept.endLayout()
         return kept
+
+    def bold_line(self, shown: str, _width: int = 0) -> QTextLayout:
+        """A working tab's title, bold, on one line."""
+        return self.title_line(shown, bold=True)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        self._sync_marquee()
 
     def resizeEvent(self, event) -> None:  # type: ignore[override]
         self._shown_titles.clear()
         self._tab_chrome.clear()
         super().resizeEvent(event)
+        self._sync_marquee()
 
     def changeEvent(self, event) -> None:  # type: ignore[override]
         if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange, QEvent.Type.PaletteChange):
@@ -623,3 +783,5 @@ class QtSessionTabBar(QtWaveBandCache, TearOffTabBar):
             self._shown_titles.clear()
             self._tab_chrome.clear()
         super().changeEvent(event)
+        if event.type() in (QEvent.Type.FontChange, QEvent.Type.StyleChange):
+            self._sync_marquee()

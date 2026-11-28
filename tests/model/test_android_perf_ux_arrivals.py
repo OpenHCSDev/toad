@@ -2919,3 +2919,225 @@ def test_sidebar_tone_batching_scroll_cover_cache_and_cached_notification_refere
     assert [group.child(i).key for i in range(10)] == [f"c-{i}" for i in range(9, -1, -1)]
     assert inserts == 1 and removes == 1, f"expected 1 bulk remove+insert, got {removes}/{inserts}"
     tree2.close()
+
+
+def test_invalidate_row_height_and_arrival_clip_and_link_noop_and_apply_measured_rows(monkeypatch):
+    """Regression suite for Android glitchy rendering and parallel-path overdraw:
+    1. `VirtualRowCanvas.invalidate_row_height` keeps valid `_heights[row]` until `do_layout()`,
+       so a `paintEvent` firing before `_viewport_update_timer` never collapses a row to 0 px.
+    2. `HistoryRowDelegate.paint_row` clips a non-final arriving row (`offset_y > 0`) to its
+       own layout slot so it never draws pixels over the sibling row underneath it.
+    3. `HistoryRowDelegate.link` is a no-op when `LinkContext` is unchanged (preventing parallel
+       `acquire_links` from flashing an already-loaded conversation), while `restyle()` still updates.
+    4. `VirtualRowCanvas.apply_measured_rows` updates heights inside `holding_position()` so a
+       growing row above the viewport compensates scroll_y with zero visual jump.
+    """
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    QApplication.instance() or QApplication([])
+    from dataclasses import dataclass
+    from PySide6.QtCore import QRect, QSize
+    from PySide6.QtGui import QColor, QFont, QImage, QPainter, QRegion
+    from toad.arrivals import ViewportArrivalState
+    from toad.client.line_blocks import Body
+    from toad.markdown_links import LinkContext
+    from toad.qt.history import HistoryRowDelegate, RenderedRow, RowPictures
+    from toad.qt.lines import DiffSettings, QtLineRenderer
+    from toad.qt.virtual_scroll import VirtualRowCanvas
+    from agent_comms.messaging.display_references import ProjectReferences
+
+    @dataclass(frozen=True)
+    class _Frag:
+        key: tuple
+        shown: int = 0
+        revision: int = 0
+        has_blocks: bool = True
+        clipboard_text: str = "hello world"
+        line_blocks: tuple = (Body("hello world"),)
+        header_blocks: int = 0
+        pinned_dividers: tuple = ()
+
+    renderer = QtLineRenderer(
+        current_scheme(os.environ),
+        LinkContext(Path("."), ProjectReferences()),
+        DiffSettings(),
+    )
+    delegate = HistoryRowDelegate(renderer, RowPictures(1024 * 1024), object())
+    delegate.preparing = False
+    canvas = VirtualRowCanvas(delegate)
+    canvas.resize(412, 600)
+    frags = (_Frag(("m", 0)), _Frag(("m", 1)), _Frag(("m", 2)))
+    canvas.model_rows.show(frags)
+    canvas.execute_layout()
+    before_heights = list(canvas._heights)
+    before_offsets = list(canvas._offsets)
+    assert all(h > 0 for h in before_heights)
+
+    # 1. Invalidating row 0 defers re-measurement until do_layout(); mid-frame offsets stay intact.
+    canvas.invalidate_row_height(0)
+    assert canvas._heights == before_heights
+    canvas._ensure_offsets()
+    assert canvas._offsets == before_offsets
+    assert 0 in canvas._dirty_heights
+    canvas.execute_layout()
+    assert not canvas._dirty_heights
+    assert canvas._heights[0] > 0
+
+    # 2. Arriving non-final row with offset_y=+20 is clipped strictly inside its own rect.
+    font = canvas.font()
+    width = canvas.viewport_width() or 412
+    key0 = delegate.fragment_key(frags[0], font, width)
+    delegate._prepared[key0] = RenderedRow(
+        "<div style='background:#ff0000;color:#ffffff;'>LINE1<br>LINE2<br>LINE3</div>", (), (),
+    )
+    canvas.has_active_arrivals = True
+    canvas.arrival_state = lambda k, _h=0.0: (
+        ViewportArrivalState(opacity=0.8, offset_y=20.0, active=True) if k == frags[0].key
+        else ViewportArrivalState(opacity=1.0, offset_y=0.0, active=False)
+    )
+    img = QImage(412, 120, QImage.Format.Format_ARGB32_Premultiplied)
+    sentinel = QColor("#010203")
+    img.fill(sentinel)
+    painter = QPainter(img)
+    slot = QRect(0, 0, 412, 40)
+    delegate.begin_paint(painter, img.rect(), animating=True)
+    delegate.paint_row(painter, 0, frags[0], slot, QRegion(img.rect()))
+    delegate.end_paint()
+    painter.end()
+    # Every pixel below slot.bottom() (y >= 40) must remain untouched sentinel.
+    assert img.pixelColor(10, 45) == sentinel
+    assert img.pixelColor(10, 55) == sentinel
+
+    # 3. link() with equal LinkContext is a no-op; restyle() still updates.
+    rev_before = delegate.links_revision
+    assert delegate.link(LinkContext(Path("."), ProjectReferences())) is False
+    assert delegate.links_revision == rev_before
+    delegate.restyle()
+    assert delegate.links_revision == rev_before + 1
+
+    # 4. apply_measured_rows keeps holding_position() anchor intact when scrolled away from end.
+    many = tuple(_Frag(("m", i)) for i in range(12))
+    canvas.model_rows.show(many)
+    canvas.resize(412, 24)
+    canvas.viewport().resize(412, 24)
+    canvas.do_layout()
+    many_offsets = list(canvas._offsets)
+    many_heights = list(canvas._heights)
+    canvas.verticalScrollBar().setValue(many_offsets[1])
+    assert not canvas.at_end
+    old_scroll = canvas.verticalScrollBar().value()
+    assert old_scroll == many_offsets[1]
+    canvas.apply_measured_rows([(0, many_heights[0] + 50, width)])
+    assert canvas.verticalScrollBar().value() == old_scroll + 50
+    canvas.close()
+
+
+def test_compact_marquee_tabs_and_multifile_pickers(monkeypatch, tmp_path) -> None:
+    """Compact tab widths fit 3 tabs on narrow Android strips, long titles marquee smoothly on
+    the shared AnimationClock, and both Qt file pickers support multi-file selection."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    from PySide6.QtCore import QUrl
+    from PySide6.QtGui import QColor
+    from PySide6.QtWidgets import QFileDialog, QListWidget, QScrollArea, QWidget
+    from toad.qt.file_pickers import QtPathSearch, open_file_dialog
+
+    # 1. Compact tabs: short tabs stay tight; 3 long tabs fit inside a 300 px Android strip;
+    #    marquee runs ONLY while overflowing and advances offset after the pause.
+    now = [0.0]
+    clock = AnimationClock(lambda _dt: None, now=lambda: now[0])
+    strip = QScrollArea()
+    bar = QtSessionTabBar(clock, QColor("#ff00ff"), QColor("#ffffff"), QColor("#aaaaaa"))
+    bar.setTabsClosable(True)
+    bar.setExpanding(False)
+    bar.setStyleSheet(
+        f"QTabBar::tab {{ padding: 4px 2px 4px 6px; margin-right: {bar.TAB_GAP}px; }}"
+    )
+    strip.setWidget(bar)
+    strip.setWidgetResizable(True)
+    strip.resize(300, 44)
+    strip.show()
+    bar.sync_strip_width(300)
+    try:
+        # Short tabs do not overflow and do not start marquee.
+        bar.show_tabs([("#comms", "m1"), ("toad-qt", "m2"), ("#nra", "m3")])
+        app.processEvents()
+        short_total = sum(bar.tabRect(i).width() for i in range(3))
+        assert short_total <= 300
+        assert not bar.marquee.marquee_running()
+
+        # Three long tabs cap to ~100 px each (<= 300 px total) and start marquee.
+        long_tabs = [
+            ("very-long-session-alpha-thread", "a"),
+            ("another-really-long-thread-beta", "b"),
+            ("third-super-long-thread-gamma", "c"),
+        ]
+        bar.show_tabs(long_tabs)
+        app.processEvents()
+        for i in range(3):
+            assert bar.tabRect(i).width() <= 100
+        assert bar.marquee.marquee_running()
+
+        rect0, text0 = bar._cached_title(0)
+        full_w = bar.title_line(text0, bold=True).lineAt(0).naturalTextWidth()
+        assert full_w > rect0.width()
+        # During the 1.0 s pause, offset stays at 0.0; past it, offset scrolls cleanly.
+        now[0] = 0.5
+        clock.tick()
+        assert bar.marquee.marquee_offset(full_w, rect0.width()) == 0.0
+        now[0] = 2.0
+        clock.tick()
+        scrolled = bar.marquee.marquee_offset(full_w, rect0.width())
+        assert scrolled > 20.0
+        bar.grab()
+
+        # Returning to short tabs stops marquee cleanly.
+        bar.show_tabs([("#comms", "m1")])
+        app.processEvents()
+        assert not bar.marquee.marquee_running()
+    finally:
+        bar.marquee.stop_marquee()
+        strip.close()
+
+    # 2. open_file_dialog enables ExistingFiles and attaches every selected URL.
+    f1 = tmp_path / "one.txt"
+    f2 = tmp_path / "two.txt"
+    f1.write_bytes(b"hello")
+    f2.write_bytes(b"world")
+    attached: list[tuple[str, bytes]] = []
+
+    class _Composer:
+        read_limit = 1024
+
+        def file_picked(self, name: str, data: bytes) -> None:
+            attached.append((name, data))
+
+        def show_failure(self, msg: str) -> None:
+            raise AssertionError(msg)
+
+    host = QWidget()
+    dialog = open_file_dialog(host, _Composer())
+    try:
+        assert dialog.fileMode() == QFileDialog.FileMode.ExistingFiles
+        monkeypatch.setattr(
+            dialog,
+            "selectedUrls",
+            lambda: [QUrl.fromLocalFile(str(f1)), QUrl.fromLocalFile(str(f2))],
+        )
+        dialog.accepted.emit()
+        assert attached == [("one.txt", b"hello"), ("two.txt", b"world")]
+    finally:
+        dialog.close()
+
+    # 3. QtPathSearch enables ExtendedSelection and attaches all selected paths.
+    chosen_paths: list[Path] = []
+    search = QtPathSearch(host, tmp_path, chosen_paths.append, lambda _op, _fn: None)
+    try:
+        assert search.results.selectionMode() == QListWidget.SelectionMode.ExtendedSelection
+        search.show_paths(["one.txt", "two.txt"])
+        search.results.item(0).setSelected(True)
+        search.results.item(1).setSelected(True)
+        search.choose_current()
+        assert chosen_paths == [tmp_path / "one.txt", tmp_path / "two.txt"]
+    finally:
+        search.close()
+        host.close()

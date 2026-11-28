@@ -15,6 +15,8 @@ from typing import ClassVar
 
 from ui_theme.effects import NAME_WAVE, Band, Effect
 
+from toad.motion import TAB_MARQUEE, MarqueeSweep
+
 
 class BandCells:
     """How a `Band` (fractions of a line) covers a line of `width` cells: each edge rounds
@@ -94,3 +96,34 @@ class NameWave(BandCells):
     def name_bold(self) -> bool:
         """The whole name is bold while the wave runs."""
         return self.wave_running()
+
+
+class TitleMarquee:
+    """Shared banner-scroll state for overflowing tab titles. Runs on the frontend's
+    `AnimationClock` only while at least one title exceeds its visible rect."""
+
+    marquee_effect: ClassVar[MarqueeSweep] = TAB_MARQUEE
+
+    def marquee_running(self) -> bool:
+        raise NotImplementedError
+
+    def start_marquee(self) -> None:
+        raise NotImplementedError
+
+    def stop_marquee(self) -> None:
+        raise NotImplementedError
+
+    def marquee_elapsed(self) -> float:
+        raise NotImplementedError
+
+    def follow_overflow(self, overflowing: bool) -> None:
+        if overflowing:
+            if not self.marquee_running():
+                self.start_marquee()
+        elif self.marquee_running():
+            self.stop_marquee()
+
+    def marquee_offset(self, content_width: float, viewport_width: float) -> float:
+        if not self.marquee_running():
+            return 0.0
+        return self.marquee_effect.offset(self.marquee_elapsed(), content_width, viewport_width)

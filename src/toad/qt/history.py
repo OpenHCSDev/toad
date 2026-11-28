@@ -181,7 +181,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         self._colour_cache: tuple[ColourScheme, str, QColor, QColor] | None = None
         self._font_metrics_cache: tuple[QFont, float, int] | None = None
         self._font_spec_cache: tuple[QFont, str, float] | None = None
-        self._frame_paint: tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor, str, float, int] | None = None
+        self._backing_format_cache: tuple[int, int, QImage.Format] | None = None
+        self._frame_paint: tuple[QWidget | None, QFont, float, QImage.Format, str, QColor, QColor, str, float, int] | None = None
         self._frame_source_mode = False
 
     @staticmethod
@@ -233,17 +234,24 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
     def foreground_qcolor(self) -> QColor:
         return self._theme_colours()[2]
 
-    def link(self, links: LinkContext) -> None:
-        """Rows draw with these names from now on; rows prepared before are stale."""
+    def link(self, links: LinkContext) -> bool:
+        """Rows draw with these names from now on; rows prepared before are stale.
+        Returns True when `links` actually changed so a parallel `acquire_links` with
+        unchanged links never wipes prepared rows and flashes an already-loaded view."""
+        if links == self.renderer.links:
+            return False
         self.renderer = self.app_renderer.with_links(links)
         self.links_revision += 1
         # Every row's key names the links it was drawn with: none keeps its height.
         self.forget_row_sizes()
+        return True
 
     def restyle(self) -> None:
         """The app's renderer took a new scheme or diff marks: rows draw by it from now on,
         with the names they had; rows prepared before are stale."""
-        self.link(self.renderer.links)
+        self.renderer = self.app_renderer.with_links(self.renderer.links)
+        self.links_revision += 1
+        self.forget_row_sizes()
 
     def row_key(self, fragment: HistoryFragment):
         return fragment.key
@@ -532,6 +540,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         suspending the app, a new width)."""
         super().release_documents()
         self.pictures.clear()
+        self._backing_format_cache = None
 
     def _paint_tile_document(
         self, drawing: QPainter, palette: QPalette, document: QTextDocument,
@@ -600,17 +609,24 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
 
     def _resolve_frame_paint(
         self, painter: QPainter, viewport_width: int = 0,
-    ) -> tuple[QWidget | None, QFont, QPalette, float, QImage.Format, str, QColor, QColor, str, float, int]:
+    ) -> tuple[QWidget | None, QFont, float, QImage.Format, str, QColor, QColor, str, float, int]:
         device = self.view.backing_device()
         font = device.font() if device is not None else QFont()
-        palette = device.palette() if device is not None else QPalette()
-        ratio = painter.device().devicePixelRatioF()
-        img_format = self._backing_image_format(device, painter)
+        paint_device = painter.device()
+        ratio = paint_device.devicePixelRatioF()
+        cached_fmt = self._backing_format_cache
+        dev_id = id(paint_device)
+        wid_id = id(device)
+        if cached_fmt is not None and cached_fmt[0] == dev_id and cached_fmt[1] == wid_id:
+            img_format = cached_fmt[2]
+        else:
+            img_format = self._backing_image_format(device, painter)
+            self._backing_format_cache = (dev_id, wid_id, img_format)
         bg_hex, bg_color, fg_color = self._theme_colours()
         font_family, font_size = self._font_spec(font)
         layout_w = self.layout_width(viewport_width) if viewport_width else 0
         return (
-            device, font, palette, ratio, img_format, bg_hex, bg_color, fg_color,
+            device, font, ratio, img_format, bg_hex, bg_color, fg_color,
             font_family, font_size, layout_w,
         )
 
@@ -634,6 +650,13 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             return
         arrival = self.view.arrival_state(fragment.key, rect.height()) if self.view.has_active_arrivals else SETTLED_ARRIVAL
         paint_rect = rect.translated(0, round(arrival.offset_y)) if arrival.offset_y else rect
+        # Clip an arriving non-final row to its own layout slot so its downward slide offset
+        # never draws over the sibling row underneath it while the arrival animation is running.
+        clip_to_slot = bool(arrival.offset_y and row + 1 < self.view.model_rows.rowCount())
+        row_clip = (
+            (QRegion(rect) if clip_region is None else clip_region.intersected(QRegion(rect)))
+            if clip_to_slot else clip_region
+        )
         highlight = self.view.tap_highlight
         if highlight.matches_row(fragment.key):
             frame = self._frame_paint
@@ -642,11 +665,11 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             )
             document = self.final_document_for(fragment, font, self.layout_width(paint_rect.width()))
             if document is not None:
-                self._paint_document_direct(painter, document, paint_rect, clip_region, arrival, highlight)
+                self._paint_document_direct(painter, document, paint_rect, row_clip, arrival, highlight)
                 self.view.row_painted(fragment, paint_rect)
                 return
-        if not self.paint_pictures(painter, fragment, paint_rect, clip_region, arrival):
-            self._paint_plain_row(painter, fragment, paint_rect, clip_region, arrival)
+        if not self.paint_pictures(painter, fragment, paint_rect, row_clip, arrival, clip_to_shown=clip_to_slot):
+            self._paint_plain_row(painter, fragment, paint_rect, row_clip, arrival)
         self.view.row_painted(fragment, paint_rect)
 
     def paint_pictures(
@@ -656,6 +679,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         rect: QRect,
         clip_region: QRegion | None,
         arrival: ViewportArrivalState = SETTLED_ARRIVAL,
+        *,
+        clip_to_shown: bool = False,
     ) -> bool:
         """The tiles of the row that this paint shows, each drawn once into a backing-store-matched
         `QImage` and blitted with `CompositionMode_Source` on subsequent frames."""
@@ -663,9 +688,10 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         if frame is None:
             frame = self._resolve_frame_paint(painter)
         (
-            _device, font, palette, ratio, img_format, bg_hex, bg_color, _fg_color,
+            device, font, ratio, img_format, bg_hex, bg_color, _fg_color,
             font_family, font_size, layout_w,
         ) = frame
+        palette: QPalette | None = None
         width = layout_w or self.layout_width(rect.width())
         cache_key = (((fragment.key, fragment.shown, fragment.revision), self.links_revision, font_family, font_size, width), width)
         document = self._documents.get(cache_key)
@@ -693,12 +719,14 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         rect_h = rect.height()
         look = (rect_w, rect_h, ratio, bg_hex, img_format)
         row_id = id(document) if document is not None else (id(self), fragment.key)
-        needs_state = arrival.active or not self._frame_source_mode
+        needs_state = arrival.active or clip_to_shown or not self._frame_source_mode
         if needs_state:
             painter.save()
+            if clip_to_shown:
+                painter.setClipRect(shown)
             if arrival.active:
                 painter.setOpacity(arrival.opacity)
-            else:
+            elif not self._frame_source_mode:
                 painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
         plain_doc: QTextDocument | None = None
         tile_h = self.TILE
@@ -723,6 +751,8 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
                 tile_key = (row_id, tile_y, tile_x)
                 picture = pictures_kept(tile_key, look, document)
                 if picture is None:
+                    if palette is None:
+                        palette = device.palette() if device is not None else QPalette()
                     picture = QImage(
                         max(1, round(width * ratio)),
                         max(1, round(height * ratio)),
@@ -1318,7 +1348,7 @@ class QtStickyHeader(HeaderPin, QWidget):
         in `laid_out` and `_pixmap_cache` so scrolling back and forth across message
         boundaries avoids re-running `setHtml` / layout / rasterization or no-op geometry calls."""
         window = self.history_window
-        context = (width, window.font().key(), window.rows.links_revision, id(window.rows.renderer))
+        context = (width, window.rows._font_spec(window.font()), window.rows.links_revision, id(window.rows.renderer))
         drawn = (headers, x, context)
         if drawn == self.drawn:
             return
@@ -1637,9 +1667,12 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
         self.stop_arrival_motion()
 
     async def acquire_links(self, app) -> None:
-        """The names this conversation's bodies link through; the rows draw again with them."""
-        self.rows.link(await LinkContext.observed(app.renderer.links.root, app.coordination_access))
-        self.show_pages()
+        """The names this conversation's bodies link through; redraw rows only if links changed."""
+        links = await LinkContext.observed(app.renderer.links.root, app.coordination_access)
+        changed = self.rows.link(links)
+        app.renderer.links = links
+        if changed:
+            self.show_pages()
 
     def action_page_down(self) -> None:
         """Move the reader one page toward the latest message (Textual's `ReaderAction`
@@ -2182,6 +2215,16 @@ class QtHistoryWindow(AnimatesArrivals, ReaderPlacement, ShowsLatestJumpBar, Fol
     def keep_tail_after_resize(self, was: int, now: int) -> None:
         if was != now and self.follows_tail and not self.widget_gone:
             self.follow_latest()
+
+    def apply_measured_rows(self, updates: list[tuple[int, int, int]]) -> None:
+        """Commit background height measurements after flushing pending reader scroll so
+        `request_reader_layout()` anchors against pre-update geometry."""
+        if not updates or self.widget_gone:
+            return
+        self._flush_reader_scroll()
+        for row, height, extent in updates:
+            self._set_row_geometry(row, height, extent, False)
+        self.rows_changed()
 
     def rows_changed(self) -> None:
         """Prepared rows changed height: lay them out again; the layout keeps the reader's
