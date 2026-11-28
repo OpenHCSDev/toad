@@ -389,6 +389,7 @@ class Divider(SharedStandaloneBlock):
     spans: tuple[Span, ...]
     role: type[LineRole]
     timestamp: EventTime = UnrecordedEventTime()
+    rule_link: LineLink = NO_LINK
 
     @classmethod
     def titled(cls, title: str, role: type[LineRole], timestamp: EventTime = UnrecordedEventTime()) -> Divider:

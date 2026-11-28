@@ -466,23 +466,24 @@ class RichLineRenderer(LineBlockPainter[None]):
     def divider(self, block: Divider) -> None:
         groups = DIVIDER_TIME.project_value(block.timestamp, block.spans, CellRoom(self.width))
         rule, bold = self.theme.style(block.role), Style(bold=True)
+        rule_clickable = rule + LINK_STYLE.project_value(block.rule_link)
         # Fit actual content, not a guessed phone width. Each semantic span and
         # the complete recorded time survive wrapping, including long names.
         inset = min(1, (self.width - 1) // 2)
         for spans in groups:
             content = Text.assemble(*(
                 (span.text, self.theme.style(span.link.heading_role(span.role, block.role))
-                 + bold + LINK_STYLE.project_value(span.link))
+                 + bold + LINK_STYLE.project_value(span.link.otherwise(lambda: block.rule_link)))
                 for span in spans
             ))
             for row in self.console.render_lines(
                 content, self.console.options.update(width=self.width - 2 * inset), pad=False
             ):
-                title = (Segment(" " * inset, rule), *row, Segment(" " * inset, rule))
+                title = (Segment(" " * inset, rule_clickable), *row, Segment(" " * inset, rule_clickable))
                 length = sum(segment.cell_length for segment in title)
                 left = max(0, (self.width - length) // 2)
-                self.output.append((Segment("─" * left, rule), *title,
-                                    Segment("─" * max(0, self.width - left - length), rule)))
+                self.output.append((Segment("─" * left, rule_clickable), *title,
+                                    Segment("─" * max(0, self.width - left - length), rule_clickable)))
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:

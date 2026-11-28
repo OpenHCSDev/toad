@@ -70,6 +70,7 @@ from toad.sidebar_navigation import SidebarNavigation
 
 from toad.widgets.sidebar_tree import CommsRow, ListedRow
 from toad.sidebar_changes import SidebarChange
+from toad.client.line_blocks import MutedRole
 from toad.client.sidebar_models import UnpaintedChannel
 
 
@@ -77,14 +78,20 @@ class ChannelUnreadSegment(HeaderSegment):
     """The channel's unread count, beside its title; a click opens the channel like the title."""
 
     def content(self, group: ChannelGroup) -> Content:
-        return Content.styled(group.row.badge_stretch(group.row.line_text.badge), "$text-muted")
+        return Content.styled(
+            group.row.badge_stretch(group.row.line_text.badge),
+            group.row.app.colours.style(MutedRole),
+        )
 
 
 class ChannelSortSegment(ActiveSegment):
     """The channel's member order; a click opens its menu under this stretch."""
 
     def content(self, group: ChannelGroup) -> Content:
-        return Content.styled(group.row.control_stretch(group.sort_choice.sort_label), "$text-muted")
+        return Content.styled(
+            group.row.control_stretch(group.sort_choice.sort_label),
+            group.row.app.colours.style(MutedRole),
+        )
 
     async def activate(self, row: GroupHeaderLine) -> None:
         await row.header_group.sort_choice.open_sort()
@@ -198,13 +205,12 @@ class ChannelHeaderRow(ChannelRowFace, DetailedRow, GroupHeaderLine, ListedRow):
 
 class ThreadStatusRow(
     ThreadRowFace,
-    MutedText,
     DetailedRow,
     NoPadding,
     PointerCursor,
     ListedRow,
 ):
-    """Thread rows show activity through their glyph and summary, not held ink."""
+    """Thread rows draw the thread name in primary foreground and the state summary muted."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

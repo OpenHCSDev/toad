@@ -64,6 +64,7 @@ from toad.sidebar_model_view import SidebarModelView
 from toad.widgets.comms_menu import ActionMenu
 from toad.tone_paint import AlternatingTone
 from toad.widget_actions import OpenSelectedAction, OpensSelected
+from toad.client.line_blocks import MutedRole
 from toad.client.sidebar_lines import DetailedLine, HeaderLine, LineMenuTree, MemberGroupLine, RowTree, TargetLine
 
 
@@ -154,7 +155,7 @@ class DetailedRow(DetailedLine, TwoRows, NoWrap, EllipsisOverflow):
 
     def with_detail(self, title: Content) -> Content:
         return Content.assemble(title, Content.styled(
-            f"\n{self.detail_text(self.detail())}", "$text-muted"))
+            f"\n{self.detail_text(self.detail())}", self.app.colours.style(MutedRole)))
 
 
 class GroupHeaderLine(HeaderLine, PointerCursor, Static):

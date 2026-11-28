@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from agent_comms.ui_model.message_category import MessageCategory
+from metaclass_registry.mro_dispatch import handles
 from rich.style import Style
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual._paint_state import PaintState
@@ -36,6 +37,7 @@ from toad.widgets.transcript_lines import (
     RowAcquisition,
     RichLineRenderer,
 )
+from toad.client.fragments import FragmentToggle
 from toad.client.history_changes import HeaderPin, PinsMessageHeader
 from toad.client.agent_activity import AgentActivityPresentation
 from textual.events import Click, Mount
@@ -126,6 +128,17 @@ class StickyHeader(HeaderPin, StartsHidden, ScreenOverlay, LineBlockRow):
             self.styles.width = width
         if self.styles.offset.x.value != x:
             self.styles.offset = (x, 0)
+
+    @handles(FragmentToggle)
+    def toggle_pinned_fragment(self, link: FragmentToggle) -> None:
+        """Clicking ▼, the route arrow, or the outside rules on the top row's own pinned header
+        toggles its fragment in the owning page view; stacked burst headers open instead."""
+        if link.key in self.stacked.keys:
+            return
+        for page in self.window.page_views:
+            if any(fragment.key == link.key for fragment in page.toggleable_fragments()):
+                page.toggle_fragment(link)
+                return
 
     @on(Click)
     def open_header(self, event: Click) -> None:

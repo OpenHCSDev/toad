@@ -10,7 +10,7 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.css.native import NativeDeclaration, Variable
 from textual.css.styles import Styles
-from textual.events import Hide, Mount, Show, Unmount
+from textual.events import Click, Hide, Mount, Show, Unmount
 from textual.widgets import Collapsible
 from textual.widgets._collapsible import CollapsibleTitle
 from textual.worker import Worker
@@ -89,6 +89,12 @@ class MessageNotifications(
                 self.mount(self.Contents(self._details))
         self._details.update((self.status.disclosure,))
         return self._details
+
+    @on(Click)
+    def _stop_receipt_click(self, event: Click) -> None:
+        """Clicking inside the read-receipt widget toggles or reads it; never bubble up to
+        scroll its parent message back to the top."""
+        event.stop()
 
     @on(Collapsible.Expanded)
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
