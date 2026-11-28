@@ -111,3 +111,8 @@ extend-select = ["TID252"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
+
+[tool.nominal-refactor-advisor]
+forbidden-imports = [
+    { from = "toad.qt", to = ["textual.app", "textual.widgets", "textual.screen", "textual.containers", "toad.widgets", "toad.screens", "toad.app"] },
+]

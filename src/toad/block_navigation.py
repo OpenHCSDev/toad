@@ -129,7 +129,14 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
         """Only a cursor resting on one drawn block has something to export."""
 
 
-class NoBlockCursor(BlockCursor):
+class FixedBlockCursor(BlockCursor, declared_name=None):
+    """Block cursors that never move across internal block lines."""
+
+    def move(self, direction: CursorDirection) -> bool:
+        return False
+
+
+class NoBlockCursor(FixedBlockCursor):
     """An empty selection keeps the reader anchored and returns focus to its prompt."""
 
     def __init__(self) -> None:
@@ -147,9 +154,6 @@ class NoBlockCursor(BlockCursor):
     def enter(self, direction: CursorDirection) -> bool:
         return False
 
-    def move(self, direction: CursorDirection) -> bool:
-        return False
-
     def select(self, widget: Widget) -> bool:
         return False
 
@@ -158,7 +162,7 @@ class NoBlockCursor(BlockCursor):
         conversation.prompt.focus()
 
 
-class AtomicBlockCursor(BlockCursor):
+class AtomicBlockCursor(FixedBlockCursor):
     @property
     def selected_widgets(self) -> tuple[Widget, ...]:
         return (self.block,)
@@ -168,9 +172,6 @@ class AtomicBlockCursor(BlockCursor):
 
     def enter(self, direction: CursorDirection):
         return True
-
-    def move(self, direction: CursorDirection):
-        return False
 
     def select(self, widget: Widget):
         return widget is self.block or self.block in widget.ancestors

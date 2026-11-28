@@ -16,7 +16,7 @@ from agent_comms.nominal.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
-from toad.client.line_blocks import NO_LINK, LineLink
+from toad.client.line_blocks import NO_LINK, LineLink, PlainInlineLink
 from toad.file_position import FilePosition
 from toad.project_path_owner import ProjectPathOwner
 
@@ -64,7 +64,7 @@ class EncodedProjectLink(ABC):
         return f"{cls.declared_name}:{quote(str(value))}"
 
 
-class ProjectLink(LineLink):
+class ProjectLink(PlainInlineLink, LineLink):
     runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
 
     @classmethod
@@ -152,9 +152,6 @@ class ProjectLink(LineLink):
     @property
     @abstractmethod
     def href(self) -> str: ...
-
-    def inline_tokens(self, content: Token) -> tuple[Token, ...]:
-        return ()
 
     @abstractmethod
     async def preview(self, widget) -> None: ...

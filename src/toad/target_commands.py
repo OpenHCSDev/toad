@@ -82,16 +82,20 @@ class ContextualCommand(SharedContextualCommand, CommandPresentation, ABC):
         return self
 
 
+class AlwaysAvailableContextualCommand(SharedContextualCommand):
+    """Contextual commands that are always available on their target."""
+
+    def available(self, ctx: TargetContext) -> bool:
+        return True
+
+
 @dataclass(frozen=True)
-class ThreadCommand(ContextualCommand):
+class ThreadCommand(AlwaysAvailableContextualCommand, ContextualCommand):
     definition: TargetAction
 
     @property
     def command(self):
         return '/' + self.definition.declaration.declared_name
-
-    def available(self, ctx):
-        return True  # Membership is the backend query; execution rechecks there.
 
     def label(self, ctx):
         return self.definition.label
@@ -147,11 +151,8 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
         ctx.app.open_direct_messages(ctx.selected_targets[0])
 
 
-class CopyCommand(ViewCommand, declared_name="copy"):
+class CopyCommand(AlwaysAvailableContextualCommand, ViewCommand, declared_name="copy"):
     help = "Copy name"
-
-    def available(self, ctx: TargetContext) -> bool:
-        return True
 
     def execute(self, ctx: TargetContext) -> None:
         ctx.app.copy_to_clipboard("\n".join(ctx.selected_targets))

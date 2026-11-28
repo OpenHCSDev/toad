@@ -250,6 +250,13 @@ class LineLink(DeclaredFamily, affix="Link"):
         return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix(cls.href_scheme))))
 
 
+class PlainInlineLink(LineLink, declared_name=None):
+    """Line links that emit no inline Markdown link tokens."""
+
+    def inline_tokens(self, content: Token) -> tuple[Token, ...]:
+        return ()
+
+
 class UnunderlinedLink(LineLink, declared_name=None):
     """A link (or plain text) drawn without underline decoration."""
 
@@ -258,7 +265,7 @@ class UnunderlinedLink(LineLink, declared_name=None):
 
 
 @dataclass(frozen=True)
-class NoLink(UnunderlinedLink):
+class NoLink(PlainInlineLink, UnunderlinedLink):
     """Text that leads nowhere: a frontend draws it plain and gives it no action.
 
     Two of them mean the same thing, including copies a render worker sends back.
@@ -273,10 +280,6 @@ class NoLink(UnunderlinedLink):
 
     def otherwise(self, fallback: Callable[[], LineLink]) -> LineLink:
         return fallback()
-
-    def inline_tokens(self, content):
-        """Text that leads nowhere contributes no Markdown link."""
-        return ()
 
 
 NO_LINK = NoLink()
