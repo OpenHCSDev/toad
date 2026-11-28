@@ -23,10 +23,16 @@ from textual.events import Mount
 from textual import on
 
 
-class GoalDetailsPanel(ModalPanel):
+class OneCellPadding:
+    """Widget padded by one cell on every side."""
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.padding = 1
+
+
+class GoalDetailsPanel(OneCellPadding, ModalPanel):
+    pass
 
 
 class GoalDocument(StableGutter, VerticalScroll):

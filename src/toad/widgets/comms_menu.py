@@ -28,12 +28,25 @@ class ContextMenuItem[Choice](Option):
         self.action = action
 
 
-class ContextMenuOptions[Choice](WidgetView, OptionList):
+class ScreenOverlayBox:
+    """Absolute screen-overlay widget with standard border and foreground paint."""
+
+    position = "absolute"
+    overlay = "screen"
+
+    @property
+    def border(self):
+        return Edges(*(("solid", self.app.colours.colour(PrimaryColour)),) * 4)
+
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(ForegroundColour)
+
+
+class ContextMenuOptions[Choice](ScreenOverlayBox, WidgetView, OptionList):
     """The native list owns the anchored rows and their theme paint."""
 
     width = height = AUTO
-    position = "absolute"
-    overlay = "screen"
     constrain_x = "inside"
     constrain_y = "inflect"
     vertical_scrollbar_size = horizontal_scrollbar_size = 0
@@ -49,16 +62,8 @@ class ContextMenuOptions[Choice](WidgetView, OptionList):
         self.highlighted = 0 if self.option_count else None
 
     @property
-    def border(self):
-        return Edges(*(("solid", self.app.colours.colour(PrimaryColour)),) * 4)
-
-    @property
     def paint_background(self):
         return self.app.colours.colour(BackgroundColour)
-
-    @property
-    def paint_foreground(self):
-        return self.app.colours.colour(ForegroundColour)
 
 
 class ContextMenu[Choice](HiddenActions, WidgetView, DismissibleScreen[Choice]):

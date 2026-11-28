@@ -9,6 +9,8 @@ from agent_comms.cli_verbs.target_fields import TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.execution.login import run_login
 from agent_comms.transport.request import CoreAccess
+from toad.screens.keymap import ThreeRowMaxHeight
+
 from formbridge.key_declarations import TextEntryMode
 from toad.client.command_draft import CommandFormCore, CommandText, PreparedChoices
 from toad.client.host import CommandOrigin
@@ -140,10 +142,8 @@ class CommandFormScroll(FillHeight, VerticalScroll):
     """The form scrolls within the space left above its fixed command footer."""
 
 
-class CommandTitle(EllipsisOverflow, Static):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.max_height = 3
+class CommandTitle(ThreeRowMaxHeight, EllipsisOverflow, Static):
+    pass
 
 
 class CommandButtons(DockedBottom, Horizontal):

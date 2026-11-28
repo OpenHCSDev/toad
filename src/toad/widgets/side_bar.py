@@ -438,7 +438,16 @@ class MainMenuButton(HeaderButton):
             await invoke(action.apply, self.app)
 
 
+class ThreeRowHeight:
+    """Three-row control strip height."""
+
+    def apply_native_layout(self) -> None:
+        super().apply_native_layout()
+        self.styles.height = 3
+
+
 class TabHistoryControls(
+    ThreeRowHeight,
     AutoWidth,
     NoMargin,
     CoreEventReceiver,
@@ -446,10 +455,6 @@ class TabHistoryControls(
     ToadNode,
 ):
     """Left-sidebar controls shared by native thread and channel screens."""
-
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.height = 3
 
     def compose(self) -> ComposeResult:
         yield MainMenuButton()

@@ -16,7 +16,6 @@ from textual import on
 from textual.app import ComposeResult
 from textual.color import Color
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
-from textual.css._style_properties import Edges
 from textual.css.native import Keyword, NativeDeclaration, Percent, Variable
 from textual.css.scalar import Scalar, Unit
 from textual.css.styles import Styles
@@ -26,10 +25,10 @@ from textual.message import Message
 from textual.view import FILL, WidgetView
 from textual.widgets import Input, Select, Static
 from toad.comms_host import CommsHost
+from toad.widgets.comms_menu import ScreenOverlayBox
 from ui_theme.scheme import (
     BackgroundColour,
     ErrorColour,
-    ForegroundColour,
     PrimaryColour,
     SurfaceColour,
 )
@@ -245,27 +244,23 @@ class CancelExportButton(ActingButton):
         self.query_ancestor(WireExportProgressView).cancel_export()
 
 
-class WireExportProgressView(CancellableExportProgress, WidgetView, ToadNode, Vertical):
+class WireExportProgressView(
+    ScreenOverlayBox,
+    CancellableExportProgress,
+    WidgetView,
+    ToadNode,
+    Vertical,
+):
     """The export's cancellation capability and a view of its own byte/message counters."""
 
     layer_name = "wire-export-progress"
-    position = "absolute"
-    overlay = "screen"
     width = Scalar.from_number(64)
     max_width = Scalar(95, Unit.PERCENT, Unit.WIDTH)
     padding = Spacing(1, 2, 1, 2)
 
     @property
-    def border(self) -> Edges:
-        return Edges(*(("solid", self.app.colours.colour(PrimaryColour)),) * 4)
-
-    @property
     def paint_background(self) -> Color:
         return self.app.colours.colour(SurfaceColour)
-
-    @property
-    def paint_foreground(self) -> Color:
-        return self.app.colours.colour(ForegroundColour)
 
     @dataclass
     class Updated(Message):

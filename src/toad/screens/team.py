@@ -124,11 +124,15 @@ class UnitTone(MroDispatch):
         return ErrorColour
 
 
-class TeamTable(DeclaredTable[HudRecord], AutoHeight):
+class HalfViewportMaxHeight:
+    """Widget capped at half the viewport height."""
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.max_height = "50vh"
 
+
+class TeamTable(HalfViewportMaxHeight, DeclaredTable[HudRecord], AutoHeight):
     class Selected(Message):
         def __init__(self, selection: TableSelection[HudRecord]) -> None:
             self.selection = selection

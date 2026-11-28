@@ -20,6 +20,7 @@ from toad.client.connection import Observing
 from toad.core_event_carrier import CoreEventReceiver
 from toad.messages import HoldsNoQueue
 from toad.project_path_owner import ProjectPathOwner
+from toad.screens.goal_details import OneCellPadding
 from toad.screens.modal import DismissibleScreen, ModalPanel
 from toad.screens.workspace import WorkspaceFrame
 from toad.client.history_state import LiveTranscript
@@ -40,12 +41,8 @@ class RecordedContents(Contents):
         super().__init__(**kwargs)
 
 
-class SourceLabel(Static):
+class SourceLabel(OneCellPadding, Static):
     """Which saved identity the window shows, and where it came from."""
-
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.padding = 1
 
 
 class HistoricalSessions(HoldsNoQueue, CenteredView, CoreEventReceiver, ProjectPathOwner, WorkspaceFrame, DismissibleScreen):

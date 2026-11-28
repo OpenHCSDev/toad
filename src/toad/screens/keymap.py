@@ -11,6 +11,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import DataTable, Input, Static
+from toad.screens.goal_details import OneCellPadding
 from toad.widgets.acting_button import ActingButton, DismissButton
 from toad.widgets.checkbox import Checkbox
 
@@ -22,10 +23,8 @@ from textual.events import Mount
 
 
 
-class KeymapPanel(ScrollsVertically, ModalPanel):
-    def apply_native_layout(self) -> None:
-        super().apply_native_layout()
-        self.styles.padding = 1
+class KeymapPanel(OneCellPadding, ScrollsVertically, ModalPanel):
+    pass
 
 
 class KeymapTable(FillHeight, DataTable):
@@ -34,10 +33,16 @@ class KeymapTable(FillHeight, DataTable):
         self.styles.min_height = 3
 
 
-class KeymapNote(AutoHeight, Static):
+class ThreeRowMaxHeight:
+    """Widget capped at three rows of height."""
+
     def apply_native_layout(self) -> None:
         super().apply_native_layout()
         self.styles.max_height = 3
+
+
+class KeymapNote(ThreeRowMaxHeight, AutoHeight, Static):
+    pass
 
 
 class KeymapSummary(KeymapNote):
