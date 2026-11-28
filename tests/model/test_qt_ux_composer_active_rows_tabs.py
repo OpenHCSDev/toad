@@ -13,11 +13,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from types import SimpleNamespace
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+import pytest
 import shiboken6
 from PySide6.QtCore import QEvent, QMimeData, QRect, Qt
 from PySide6.QtGui import QBrush, QColor, QImage, QKeyEvent, QPainter, QPalette
@@ -33,11 +35,11 @@ from toad.client.theme_tones import InputPlaceholderToneColour, ScrollbarTones, 
 from toad.key_modes import Standard, VimInsert, VimNormal
 from toad.markdown_links import LinkContext
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
+from toad.neovim_editing import HostsNeovim
 from toad.patch import DiffSettings
 from toad.prompt_actions import PasteClipboardAction
 from toad.qt.action_shortcuts import _qt_sequences
-from toad.qt.composer import Composer, ComposerEditor, QtMessageComposer
-from toad.qt.composer_vim import ComposerVimMode, apply_normal_key
+from toad.qt.composer import Composer, ComposerEditor, QtMessageComposer, _qt_key_to_input
 from toad.qt.history import HistoryRowDelegate
 from toad.qt.lines import QtLineRenderer
 from toad.qt.name_wave import PaintedRowTone, QtNameWaveDelegate, QtSessionTabBar
@@ -69,42 +71,34 @@ def test_qt_sequences_expand_enter_to_return_and_enter() -> None:
     assert [s.toString() for s in _qt_sequences("escape")] == ["Esc"]
 
 
-def test_qt_composer_dismiss_control_preserves_draft_on_escape() -> None:
-    cleared: list[bool] = []
-    focused_messages: list[bool] = []
+def test_qt_composer_dismiss_control_dispatches_to_editing_mode() -> None:
+    dismissed: list[object] = []
     hidden_offers: list[tuple] = []
-    refreshed: list[bool] = []
-
-    vim = ComposerVimMode(VimInsert)
-    assert vim.accepts_text is True
 
     composer = Composer.__new__(Composer)
     composer.offers = SimpleNamespace(
         isVisible=lambda: False,
         show_offers=lambda title, offers: hidden_offers.append((title, offers)),
     )
-    composer.editor = SimpleNamespace(
-        vim_enabled=True,
-        vim=vim,
-        clear=lambda: cleared.append(True),
-        clearFocus=lambda: None,
+    editor = SimpleNamespace(
+        editing_mode=SimpleNamespace(dismiss_input=lambda ed: dismissed.append(ed)),
+        toPlainText=lambda: "draft",
     )
-    composer.host = SimpleNamespace(
-        messages=SimpleNamespace(setFocus=lambda: focused_messages.append(True)),
+    composer.editor = editor
+
+    # With offers hidden, Escape dispatches polymorphically to `editing_mode.dismiss_input(editor)`
+    # (in real Neovim that queues `<Esc>`, exiting Insert/Visual -> Normal and idle Normal -> history).
+    composer.dismiss_control()
+    assert dismissed == [editor]
+    assert hidden_offers == []
+
+    # With offers visible, Escape hides offers without touching the editing engine.
+    composer.offers = SimpleNamespace(
+        isVisible=lambda: True,
+        show_offers=lambda title, offers: hidden_offers.append((title, offers)),
     )
-    composer.refresh_editing_mode = lambda: refreshed.append(True)
-
-    # First Escape in Vim INSERT -> switches to NORMAL, draft untouched.
     composer.dismiss_control()
-    assert vim.accepts_text is False
-    assert cleared == []
-    assert refreshed == [True]
-    assert focused_messages == []
-
-    # Second Escape in Vim NORMAL -> focuses conversation messages, draft STILL untouched!
-    composer.dismiss_control()
-    assert cleared == []
-    assert focused_messages == [True]
+    assert dismissed == [editor]
     assert hidden_offers == [("", ())]
 
 
@@ -179,18 +173,13 @@ def test_qt_editing_mode_badge_shows_standard_after_leaving_vim_normal() -> None
     info_bar = SimpleNamespace(sync_visibility=lambda: synced.append(True))
     badge = QtEditingModeBadge(renderer, info_bar)
 
-    vim = ComposerVimMode(VimInsert)
-    badge.present_editing_mode(vim, focused=True)
-    assert badge.text() == "INSERT"
-    assert not badge.isHidden()
-
-    vim.enter_normal()
-    badge.present_editing_mode(vim, focused=True)
-    assert badge.text() == "NORMAL"
+    vim_normal = VimNormal()
+    badge.present_editing_mode(vim_normal, focused=True)
+    assert badge.text() == vim_normal.label
     assert not badge.isHidden()
 
     # Escaping out of Vim NORMAL unfocuses the editor: badge must show STANDARD, not hide!
-    badge.present_editing_mode(vim, focused=False)
+    badge.present_editing_mode(vim_normal, focused=False)
     assert badge.text() == "STANDARD"
     assert not badge.isHidden()
 
@@ -301,17 +290,16 @@ def test_qt_vim_ctrl_v_pastes_clipboard_image_in_normal_and_insert_modes() -> No
     assert len(pasted_pngs) == 1
     assert pasted_pngs[0].startswith(b"\x89PNG\r\n\x1a\n")
 
-    # Vim NORMAL mode must NOT swallow Ctrl+V.
-    called: list[bool] = []
-    vim = ComposerVimMode(VimInsert)
-    vim.enter_normal()
-    fake_editor = SimpleNamespace(
-        textCursor=lambda: None,
-        composer=SimpleNamespace(paste_clipboard=lambda: called.append(True)),
+    # Clipboard text fallback dispatches through `editing_mode.insert_text`.
+    inserted: list[str] = []
+    composer.editor = SimpleNamespace(
+        isReadOnly=lambda: False,
+        editing_mode=SimpleNamespace(insert_text=lambda _ed, text: inserted.append(text)),
     )
-    ctrl_v = QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_V, Qt.KeyboardModifier.ControlModifier)
-    assert apply_normal_key(fake_editor, vim, ctrl_v) is True
-    assert called == [True]
+    text_mime = QMimeData()
+    text_mime.setText("pasted text")
+    assert composer.paste_mime_data(text_mime) is True
+    assert inserted == ["pasted text"]
 
 
 def test_qt_ui_zoom_scales_tab_chrome_and_scrollbars() -> None:
@@ -346,14 +334,14 @@ def test_qt_composer_placeholder_qss_vim_cursor_shape_and_toggle_hover_fg() -> N
     # Vim Normal: block cursor + overwriteMode True.
     assert editor.overwriteMode() is True
     assert editor.cursorWidth() >= max(6, editor.fontMetrics().averageCharWidth())
-    # Entering Insert switches immediately to a thin beam cursor + overwriteMode False.
-    editor.vim.enter_insert()
-    editor.sync_cursor_shape()
+    # Standard mode switches immediately to a thin beam cursor + overwriteMode False.
+    fake_composer.settings.ui.key_mode = Standard
+    editor.follow_key_mode()
     assert editor.overwriteMode() is False
     assert editor.cursorWidth() < editor.fontMetrics().averageCharWidth()
-    # Escaping back to Normal restores the block cursor.
-    editor.vim.enter_normal()
-    editor.sync_cursor_shape()
+    # Switching back to Vim Normal restores the block cursor.
+    fake_composer.settings.ui.key_mode = VimNormal
+    editor.follow_key_mode()
     assert editor.overwriteMode() is True
     assert editor.cursorWidth() >= max(6, editor.fontMetrics().averageCharWidth())
 
@@ -389,3 +377,113 @@ def test_qt_composer_placeholder_qss_vim_cursor_shape_and_toggle_hover_fg() -> N
     marquee = tabs.marquee
     shiboken6.delete(tabs)
     assert marquee.animation_visible is False
+
+
+def test_qt_composer_embeds_real_neovim_normal_insert_visual_command_and_escape_boundary() -> None:
+    """Real embedded Neovim (`nvim`) drives Qt `ComposerEditor`: text objects (`diw`),
+    Visual selection highlights (`vbb`), Command mode (`:`), block/beam cursor, and
+    `<Esc>` engine boundary leaving idle Normal to focus conversation history."""
+    from pyqt_reactive.theming import ColorScheme
+    from qasync import QEventLoop
+
+    app = _app()
+
+    class _NeovimHost(HostsNeovim):
+        def __init__(self) -> None:
+            self.theme = SimpleNamespace(color_scheme=ColorScheme())
+            self.notices: list[tuple[str, str, str]] = []
+
+        def start_neovim_task(self, coro):
+            return asyncio.get_running_loop().create_task(coro)
+
+        def notify(self, message: str, *, title: str = "", severity: str = "information") -> None:
+            self.notices.append((title, severity, message))
+
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+
+    async def _exercise() -> None:
+        nv_host = _NeovimHost()
+        focused_messages: list[bool] = []
+        refreshed_labels: list[str] = []
+        fake_composer = SimpleNamespace(
+            settings=SimpleNamespace(ui=SimpleNamespace(key_mode=VimNormal)),
+            offers=SimpleNamespace(isVisible=lambda: False, show_offers=lambda _t, _o: None),
+            host=SimpleNamespace(
+                app=nv_host,
+                messages=SimpleNamespace(setFocus=lambda: focused_messages.append(True)),
+            ),
+            refresh_editing_mode=lambda: refreshed_labels.append(editor.editing_mode.label),
+        )
+        editor = ComposerEditor(fake_composer)
+        try:
+            async def _wait_for(predicate, *, timeout: float = 5.0) -> None:
+                deadline = asyncio.get_running_loop().time() + timeout
+                while not predicate():
+                    if asyncio.get_running_loop().time() >= deadline:
+                        raise AssertionError(
+                            f"timed out waiting: text={editor.toPlainText()!r} "
+                            f"label={editor.editing_mode.label!r} "
+                            f"regions={len(editor.extraSelections())} "
+                            f"focused_messages={focused_messages}"
+                        )
+                    await asyncio.sleep(0.02)
+
+            def _press(key: Qt.Key, text: str = "", mods: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> None:
+                ev = QKeyEvent(QEvent.Type.KeyPress, key, mods, text)
+                editor.keyPressEvent(ev)
+
+            # Real Neovim starts in NORMAL with block cursor.
+            await _wait_for(lambda: editor.editing_mode.label == "NORMAL" and editor.editing_mode.completed)
+            assert editor.overwriteMode() is True
+
+            # Enter INSERT, type "hello world", check beam cursor.
+            _press(Qt.Key.Key_I, "i")
+            for ch in "hello world":
+                key = Qt.Key.Key_Space if ch == " " else getattr(Qt.Key, f"Key_{ch.upper()}")
+                _press(key, ch)
+            await _wait_for(lambda: editor.toPlainText() == "hello world" and editor.editing_mode.label == "INSERT")
+            assert editor.overwriteMode() is False
+
+            # Real Vim text object: <Esc> -> NORMAL, `b` -> "world", `diw` -> deletes "world"!
+            _press(Qt.Key.Key_Escape)
+            await _wait_for(lambda: editor.editing_mode.label == "NORMAL")
+            assert editor.overwriteMode() is True
+            for ch in "bdiw":
+                _press(getattr(Qt.Key, f"Key_{ch.upper()}"), ch)
+            await _wait_for(lambda: editor.toPlainText() == "hello ")
+
+            # Real Visual selection: `vhhh` paints Qt ExtraSelections!
+            for ch in "vhhh":
+                _press(getattr(Qt.Key, f"Key_{ch.upper()}"), ch)
+            await _wait_for(
+                lambda: editor.editing_mode.label == "VISUAL" and len(editor.extraSelections()) > 0
+            )
+
+            # <Esc> exits Visual -> Normal and clears ExtraSelections.
+            _press(Qt.Key.Key_Escape)
+            await _wait_for(
+                lambda: editor.editing_mode.label == "NORMAL" and len(editor.extraSelections()) == 0
+            )
+
+            # `:` enters real Neovim COMMAND mode (live command line shown in badge), `<Esc>` exits back to NORMAL.
+            _press(Qt.Key.Key_Colon, ":")
+            await _wait_for(lambda: editor.editing_mode.label == "COMMAND :")
+            _press(Qt.Key.Key_Escape)
+            await _wait_for(lambda: editor.editing_mode.label == "NORMAL")
+
+            # `<Esc>` in idle NORMAL crosses `StandardEditingAction` engine boundary -> focuses messages, keeping draft!
+            assert focused_messages == []
+            _press(Qt.Key.Key_Escape)
+            await _wait_for(lambda: focused_messages == [True])
+            assert editor.toPlainText() == "hello "
+            assert nv_host.notices == []
+        finally:
+            await editor.editing_mode.close()
+            await nv_host.close_neovim()
+
+    try:
+        loop.run_until_complete(_exercise())
+    finally:
+        loop.close()
+        asyncio.set_event_loop(None)

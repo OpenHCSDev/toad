@@ -3706,7 +3706,7 @@ class SettingsSurface:
             "ui.info_bar": lambda: composer.info_bar.isVisible(),
             "ui.status_line": status,
             "ui.wheel_scroll_rows": lambda: QApplication.wheelScrollLines(),
-            "ui.key_mode": lambda: (composer.editor.vim_enabled, type(composer.editor.editing_mode).__name__),
+            "ui.key_mode": lambda: (composer.editor.editing_mode.modal, type(composer.editor.editing_mode).__name__),
             "ui.sessions_bar": lambda: app.tabs.isVisible(),
             "sidebar.show_stopped": lambda: app.coordination_access.sidebar_interest.show_stopped,
             "sidebar.show_archived": lambda: app.coordination_access.sidebar_interest.show_archived,

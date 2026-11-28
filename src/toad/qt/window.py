@@ -54,6 +54,7 @@ from pyqt_reactive.widgets.fitted_text import ElidedLine
 from pyqt_reactive.widgets.shared.list_item_delegate import LAYOUT_ROLE, MultilinePreviewItemDelegate
 from pyqt_reactive.widgets.shared.styled_text_layout import Segment, StyledTextLayout
 from toad.keymap import KeyInvocationId
+from toad.neovim_editing import HostsNeovim
 from toad.qt.finger_press import FingerPress
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
@@ -1784,7 +1785,7 @@ PRESENCE_TRANSITIONS: dict[Qt.ApplicationState, Callable[[ApplicationPresence, Q
 }
 
 
-class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
+class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, QtWorkspaceFrame, QtCommsHost, ScreenWideWindow, QWidget, metaclass=PyQtWidgetMeta):
     """The shared client application on Qt, over the Core its connection selects: the threads,
     and a tab per open conversation; the bar under them is Toad's: the menu button, back
     and forward through the visit history, and the tabs."""
@@ -2576,10 +2577,15 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.navigation.show()
         self.bus_switcher.show_switcher()
 
+    def start_neovim_task(self, coro):
+        """Run the shared embedded Neovim child loop on Qt's qasync event loop."""
+        return asyncio.create_task(coro, name="Neovim")
+
     async def close_native_views(self) -> None:
         self.sidebar.retire_all()
         self.input_attention.close()
         await self.session_navigation.close_views()
+        await self.close_neovim()
 
     async def open_keymap_browser(self) -> None:
         """Qt override of `ClientApplication.open_keymap_browser`. Opens the

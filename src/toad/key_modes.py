@@ -5,15 +5,40 @@ from typing import ClassVar
 
 from agent_comms.nominal.declared_choice import DeclaredChoice
 from formbridge.key_declarations import ModalInputMode, NavigationKey
+from textual.document._document import Selection
 from textual.document._editing import EditingMode
 
-from toad.neovim_editing import InsertState, NeovimEditing, NeovimState, NormalState
+from toad.neovim_editing import NeovimEditing
 
 
 class KeyMode(EditingMode, DeclaredChoice, affix=""):
     """The saved preference selects native editing or a real Neovim initial state."""
 
     shows_badge: ClassVar[bool] = True
+
+    def send_key(self, editor, key: str, character: str = "") -> bool:
+        """Native standard editing lets the toolkit's own text widget consume keystrokes."""
+        return False
+
+    def dismiss_input(self, editor) -> None:
+        """Escape with no popup open leaves the editor for its conversation window."""
+        editor.leave_modal_editor()
+
+    def set_text(self, editor, text: str) -> None:
+        editor.set_native_text(text)
+
+    def insert_text(self, editor, text: str) -> None:
+        editor.insert_native_text(text)
+
+    def clear_text(self, editor) -> None:
+        editor.clear_native_text()
+
+    def replace_span(self, editor, row: int, start: int, end: int, text: str) -> None:
+        editor.replace_native_span(row, start, end, text)
+
+    def engine_regions(self) -> tuple[Selection, ...]:
+        """Visual selection regions reported by an attached modal engine (none in Standard)."""
+        return ()
 
 
 class Standard(KeyMode):
@@ -46,27 +71,3 @@ class VimVisual(NeovimEditing, KeyMode):
 
     initial_keys = "v"
     map_modes = ("x",)
-
-
-class ModalEditingState(ModalInputMode):
-    """Stateful modal input mode backed by the shared `NeovimState` family."""
-
-    shows_badge: ClassVar[bool] = True
-
-    def __init__(self, key_mode: type[KeyMode]) -> None:
-        self.state: NeovimState = NeovimState.for_mode(key_mode.map_modes[0])(blocking=False)
-
-    @property
-    def label(self) -> str:
-        return self.state.label
-
-    @property
-    def accepts_text(self) -> bool:
-        """The shared `EditingMode.accepts_text`, answered by the current Neovim state."""
-        return self.state.accepts_text
-
-    def enter_insert(self) -> None:
-        self.state = InsertState(blocking=False)
-
-    def enter_normal(self) -> None:
-        self.state = NormalState(blocking=False)

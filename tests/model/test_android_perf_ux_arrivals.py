@@ -3189,8 +3189,9 @@ def test_android_tab_switch_does_not_autofocus_composer_or_raise_ime(monkeypatch
 
     ime_shown: list[bool] = []
     monkeypatch.setattr(ComposerEditor, "_show_ime_if_hidden", staticmethod(lambda: ime_shown.append(True)))
+    from toad.key_modes import Standard
     fake_composer = SimpleNamespace(
-        settings=SimpleNamespace(ui=SimpleNamespace(key_mode=SimpleNamespace(modal=False))),
+        settings=SimpleNamespace(ui=SimpleNamespace(key_mode=Standard)),
         focus_changed=lambda _focused: None,
     )
     editor = ComposerEditor(fake_composer)

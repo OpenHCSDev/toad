@@ -370,23 +370,101 @@ class BlockVisualState(VisualState):
     mode_name = "VISUAL BLOCK"
 
 
+class NeovimEditorSurface:
+    """Toolkit-neutral editor surface `NeovimEditing` drives on both Textual and Qt.
+
+    Defaults delegate to Textual's `TextArea` surface so `PromptTextArea` inherits this
+    unchanged; Qt's `ComposerEditor` overrides these hooks over `QPlainTextEdit`.
+    """
+
+    @property
+    def neovim_document(self) -> DocumentBase:
+        return self.document  # type: ignore[attr-defined]
+
+    def set_neovim_document(self, document: DocumentBase) -> None:
+        self.set_document(document)  # type: ignore[attr-defined]
+
+    @property
+    def neovim_selection(self) -> Selection:
+        return self.selection  # type: ignore[attr-defined]
+
+    @property
+    def neovim_cursor_location(self) -> Location:
+        return self.cursor_location  # type: ignore[attr-defined]
+
+    @property
+    def neovim_indent_width(self) -> int:
+        return self.indent_width  # type: ignore[attr-defined]
+
+    @property
+    def neovim_wrap_width(self) -> int:
+        return self.wrap_width  # type: ignore[attr-defined]
+
+    @property
+    def neovim_content_height(self) -> int:
+        return self.content_size.height  # type: ignore[attr-defined]
+
+    @property
+    def neovim_attached(self) -> bool:
+        return self.is_attached  # type: ignore[attr-defined]
+
+    def neovim_bindings(self, profile: type[TextEntryMode]):
+        return self.binding_map(profile)  # type: ignore[attr-defined]
+
+    def neovim_clear_history(self) -> None:
+        self.history.clear()  # type: ignore[attr-defined]
+
+    def neovim_schedule_paint(self, owner: NeovimEditing) -> bool:
+        return self.post_message(NeovimUpdated(owner))  # type: ignore[attr-defined]
+
+    def neovim_call_later(self, callback: Callable[[], object]) -> bool:
+        return bool(self.call_later(callback))  # type: ignore[attr-defined]
+
+    def neovim_paint_selection(self, selection: Selection) -> None:
+        self.paint_selection(selection)  # type: ignore[attr-defined]
+
+    def neovim_record_cursor_width(self) -> None:
+        self.record_cursor_width()  # type: ignore[attr-defined]
+
+    def neovim_project_edit(self, result: RangedEditResult) -> None:
+        self.project_engine_edit(result)  # type: ignore[attr-defined]
+
+    def neovim_finish_changes(self) -> None:
+        self.finish_engine_changes()  # type: ignore[attr-defined]
+
+    def neovim_invalidate_regions(self, regions: tuple[Selection, ...]) -> None:
+        self.invalidate_engine_regions(regions)  # type: ignore[attr-defined]
+
+    def neovim_show_mode(self, mode: NeovimEditing) -> None:
+        self.show_editing_mode(mode)  # type: ignore[attr-defined]
+
+    def neovim_refresh_bindings(self) -> None:
+        self.refresh_bindings()  # type: ignore[attr-defined]
+
+    def neovim_notify(self, message: str, *, title: str, severity: str, timeout: float | None = None) -> None:
+        if timeout is None:
+            self.notify(message, title=title, severity=severity)  # type: ignore[attr-defined]
+        else:
+            self.notify(message, title=title, severity=severity, timeout=timeout)  # type: ignore[attr-defined]
+
+
 class DetachedReceiver:
     """An engine may outlive its widget; detachment is not child failure."""
 
-    def attach(self, editor: TextArea) -> AttachedReceiver:
+    def attach(self, editor: NeovimEditorSurface) -> AttachedReceiver:
         self.prepare_editor(editor)
         return AttachedReceiver(editor)
 
-    def prepare_editor(self, editor: TextArea) -> None:
+    def prepare_editor(self, editor: NeovimEditorSurface) -> None:
         pass
 
-    def require(self) -> TextArea:
+    def require(self) -> NeovimEditorSurface:
         raise EditingFailure("Neovim requires an attached editor")
 
-    def owns(self, editor: TextArea) -> bool:
+    def owns(self, editor: NeovimEditorSurface) -> bool:
         return False
 
-    def visit(self, action: Callable[[TextArea], object]) -> None:
+    def visit(self, action: Callable[[NeovimEditorSurface], object]) -> None:
         pass
 
     def boundary(self, binding: Binding) -> bool:
@@ -409,9 +487,9 @@ class RetainedReceiver(DetachedReceiver):
     def document(self) -> DocumentBase:
         return self._document
 
-    def prepare_editor(self, editor: TextArea) -> None:
-        if editor.document is not self.document:
-            editor.set_document(self.document)
+    def prepare_editor(self, editor: NeovimEditorSurface) -> None:
+        if editor.neovim_document is not self.document:
+            editor.set_neovim_document(self.document)
 
     def project(self, changes: Sequence[NeovimChange], cursor: Location) -> None:
         for change in changes:
@@ -422,38 +500,38 @@ class RetainedReceiver(DetachedReceiver):
 
 
 class AttachedReceiver(RetainedReceiver):
-    def __init__(self, editor: TextArea) -> None:
+    def __init__(self, editor: NeovimEditorSurface) -> None:
         self._editor = editor
 
     @property
     def document(self) -> DocumentBase:
-        return self._editor.document
+        return self._editor.neovim_document
 
     def project(self, changes: Sequence[NeovimChange], cursor: Location) -> None:
         """Publish the document and its cursor before size-dependent effects."""
         super().project(changes, cursor)
-        if self._editor.cursor_location != cursor:
-            self._editor.paint_selection(Selection.cursor(cursor))
-            self._editor.record_cursor_width()
+        if self._editor.neovim_cursor_location != cursor:
+            self._editor.neovim_paint_selection(Selection.cursor(cursor))
+            self._editor.neovim_record_cursor_width()
 
     def project_edit(self, result: RangedEditResult) -> None:
-        self._editor.project_engine_edit(result)
+        self._editor.neovim_project_edit(result)
 
     def finish_projection(self) -> None:
-        self._editor.finish_engine_changes()
+        self._editor.neovim_finish_changes()
 
-    def require(self) -> TextArea:
+    def require(self) -> NeovimEditorSurface:
         return self._editor
 
-    def owns(self, editor: TextArea) -> bool:
+    def owns(self, editor: NeovimEditorSurface) -> bool:
         return self._editor is editor
 
-    def visit(self, action: Callable[[TextArea], object]) -> None:
-        if self._editor.is_attached:
+    def visit(self, action: Callable[[NeovimEditorSurface], object]) -> None:
+        if self._editor.neovim_attached:
             action(self._editor)
 
     def boundary(self, binding: Binding) -> bool:
-        return self._editor.is_attached and binding.engine_boundary(self._editor)
+        return self._editor.neovim_attached and binding.engine_boundary(self._editor)
 
 
 class NeovimRequest(ABC):
@@ -921,7 +999,7 @@ class NeovimHost(NeovimRequester, MroDispatch):
     @cached_property
     def ready(self) -> asyncio.Task[None]:
         self._child_ready: asyncio.Future[AttachedChild] = asyncio.get_running_loop().create_future()
-        self._lifetime = self._application.run_worker(self._run(), name="Neovim", exit_on_error=True)
+        self._lifetime = self._application.start_neovim_task(self._run())
         return asyncio.create_task(self._start())
 
     def session(self, buffer: int) -> NeovimSession:
@@ -1149,9 +1227,25 @@ class HostsNeovim:
     def neovim(self) -> NeovimHost:
         return NeovimHost(self)
 
+    def start_neovim_task(self, coro):
+        """Start the long-lived Neovim engine task under this application's lifetime."""
+        return self.run_worker(coro, name="Neovim", exit_on_error=True)  # type: ignore[attr-defined]
+
+    async def close_neovim(self) -> None:
+        """Stop the shared embedded Neovim child cleanly during application shutdown."""
+        host = self.__dict__.get("neovim")
+        if host is None or "ready" not in host.__dict__:
+            return
+        host.ready.cancel()
+        lifetime = getattr(host, "_lifetime", None)
+        if lifetime is not None:
+            lifetime.cancel()
+            if isinstance(lifetime, asyncio.Task):
+                await asyncio.gather(lifetime, return_exceptions=True)
+
     def forget_neovim(self) -> None:
         """A failed engine is never reused; the next editor that starts gets a new one."""
-        self.__dict__.pop("neovim")
+        self.__dict__.pop("neovim", None)
 
 
 class ServesNeovim(MroDispatch):
@@ -1234,8 +1328,8 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     def _started(self) -> asyncio.Task[None]:
         editor = self._receiver.require()
         self._host = ServesNeovim().host(editor)
-        self._initial_lines = tuple(editor.document.lines)
-        self._initial_selection = editor.selection
+        self._initial_lines = tuple(editor.neovim_document.lines)
+        self._initial_selection = editor.neovim_selection
         task = asyncio.create_task(self._start())
         task.add_done_callback(self._observe_failure)
         # The writer is handed the start it waits for. Under Textual's eager task factory a
@@ -1245,12 +1339,12 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self._lifetime = asyncio.create_task(self._write_queued(task), name="Neovim session")
         return task
 
-    def attach(self, editor: TextArea) -> None:
+    def attach(self, editor: NeovimEditorSurface) -> None:
         changed_receiver = not self._receiver.owns(editor)
         self._receiver = self._receiver.attach(editor)
         if changed_receiver:
             self._update_queued = False
-            editor.history.clear()
+            editor.neovim_clear_history()
         # Even the same receiver may have rebuilt its width-dependent view.
         self._rendered = self._rendered.unpainted()
         started = self._started
@@ -1258,21 +1352,24 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
             self._receiver.project((), self.snapshot.state.cursor)
             self.paint(editor)
 
-    def resume(self, editor: TextArea) -> None:
+    def resume(self, editor: NeovimEditorSurface) -> None:
         pass
 
-    def suspend(self, editor: TextArea) -> None:
+    def suspend(self, editor: NeovimEditorSurface) -> None:
         pass
 
-    def capture(self, editor: TextArea) -> NeovimEditing:
-        self._receiver = RetainedReceiver(editor.document)
+    def capture(self, editor: NeovimEditorSurface) -> NeovimEditing:
+        self._receiver = RetainedReceiver(editor.neovim_document)
         return self
 
-    async def unmount(self, editor: TextArea) -> None:
+    async def unmount(self, editor: NeovimEditorSurface) -> None:
         if self._receiver.owns(editor):
             await self.close()
 
     async def close(self) -> None:
+        if "_started" not in self.__dict__:
+            self._receiver = DetachedReceiver()
+            return
         started = self._started
         self._receiver = DetachedReceiver()
         started.cancel()
@@ -1352,7 +1449,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self._boundaries = []
         # One buffer crosses every Neovim mode, so each mode takes its own profile's keys.
         for profile in NeovimEditing.__subclasses__():
-            for key, binding in editor.binding_map(profile):
+            for key, binding in editor.neovim_bindings(profile):
                 for spelling, native in binding.declared_key.input_bindings(key):
                     index = len(self._boundaries)
                     self._boundaries.append(binding)
@@ -1360,7 +1457,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
                                      list(profile.map_modes)])
         self._lease = OpenBuffer(host, FieldCodec.decode(int, await host.bootstrap(self, NeovimCall(
             "nvim_exec_lua", ["return ToadEditor.open(...)",
-                              [list(initial_lines), list(initial_cursor), editor.indent_width, mappings]]))))
+                              [list(initial_lines), list(initial_cursor), editor.neovim_indent_width, mappings]]))))
         host.adopt(self.buffer, self)
         self._viewport = self.viewport(editor)
         # The opening requests go ahead of anything queued while the buffer was being made.
@@ -1412,10 +1509,13 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         # default before the reopened buffer reads where the cursor really is.
         self.snapshot = StartingState().snapshot()
         self.request_paint()
-        def reopen(editor: TextArea) -> None:
-            editor.notify(f"{error}. Neovim restarted from the text on screen; "
-                          "input it had not finished was not replayed.",
-                          title="Neovim restarted", severity="warning")
+        def reopen(editor: NeovimEditorSurface) -> None:
+            editor.neovim_notify(
+                f"{error}. Neovim restarted from the text on screen; "
+                "input it had not finished was not replayed.",
+                title="Neovim restarted",
+                severity="warning",
+            )
             self.attach(editor)
         self._receiver.visit(reopen)
 
@@ -1431,11 +1531,11 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
     def request_paint(self) -> None:
         """One coalesced paint slot for display and RPC completion changes."""
         if not self._update_queued:
-            def post(editor: TextArea) -> None:
-                self._update_queued = editor.post_message(NeovimUpdated(self))
+            def post(editor: NeovimEditorSurface) -> None:
+                self._update_queued = editor.neovim_schedule_paint(self)
             self._receiver.visit(post)
 
-    def paint(self, editor: TextArea) -> None:
+    def paint(self, editor: NeovimEditorSurface) -> None:
         if not self._receiver.owns(editor):
             return
         self._update_queued = False
@@ -1443,7 +1543,7 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         if not self._changes:
             self.render(editor)
 
-    def render(self, editor: TextArea) -> None:
+    def render(self, editor: NeovimEditorSurface) -> None:
         if editor.editing_mode is not self or not self._receiver.owns(editor):
             return
         if self._changes:
@@ -1452,11 +1552,11 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
             return
         previous, current = self._rendered, self.snapshot.state
         if not previous.matches(current, lambda state: state.regions):
-            editor.invalidate_engine_regions((*previous.state.regions, *current.regions))
+            editor.neovim_invalidate_regions((*previous.state.regions, *current.regions))
         if not previous.matches(current, lambda state: (state.label, state.command_line)):
-            editor.show_editing_mode(self)
+            editor.neovim_show_mode(self)
         if not previous.matches(current, lambda state: state.binding_answers):
-            editor.refresh_bindings()
+            editor.neovim_refresh_bindings()
         self._rendered = self.snapshot
 
     def _observe_failure[Result](self, result: asyncio.Future[Result]) -> None:
@@ -1473,15 +1573,19 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
             return
         log.error("Neovim editing failed:", error)
         self.publish(failed)
-        def notify(editor: TextArea) -> None:
-            editor.notify(f"{error}. The displayed draft is preserved. Input was not replayed.",
-                          title="Neovim editing failed", severity="error", timeout=0)
+        def notify(editor: NeovimEditorSurface) -> None:
+            editor.neovim_notify(
+                f"{error}. The displayed draft is preserved. Input was not replayed.",
+                title="Neovim editing failed",
+                severity="error",
+                timeout=0,
+            )
         self._receiver.visit(notify)
 
-    async def finish(self, editor: TextArea) -> bool:
+    async def finish(self, editor: NeovimEditorSurface) -> bool:
         return await self.flush(editor)
 
-    async def flush(self, editor: TextArea) -> bool:
+    async def flush(self, editor: NeovimEditorSurface) -> bool:
         """Never wait for deferred RPC in App dispatch. Missing completion refuses."""
         self.snapshot.state.raise_failure()
         if not self.completed:
@@ -1489,20 +1593,45 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         self.render(editor)
         return self.snapshot.state.transferable
 
-    async def prepare_input(self, editor: TextArea) -> bool:
+    async def prepare_input(self, editor: NeovimEditorSurface) -> bool:
         # Only fence the widget queue, never the Neovim event loop. Escape must
         # remain admissible while a deferred operation is waiting for an operand.
         finished: asyncio.Future[bool] = asyncio.get_running_loop().create_future()
         def ready() -> None:
             finished.set_result(True)
-        if not editor.call_later(ready):
+        if not editor.neovim_call_later(ready):
             return False
         return await finished
 
-    async def handle_key(self, editor: TextArea, event: Key) -> bool:
+    async def handle_key(self, editor: NeovimEditorSurface, event: Key) -> bool:
         """Queue input; the existing request owner observes its reply and failure."""
         self._input(self.input_code(event.key, event.character or ""))
         return True
+
+    def send_key(self, editor: NeovimEditorSurface, key: str, character: str = "") -> bool:
+        """Queue a toolkit-neutral key spelling directly into this Neovim buffer."""
+        self._input(self.input_code(key, character))
+        return True
+
+    def dismiss_input(self, editor: NeovimEditorSurface) -> None:
+        """Send Escape through Neovim so Insert/Visual returns to Normal and idle Normal
+        fires the engine boundary (`StandardEditingAction`)."""
+        self._input("<Esc>")
+
+    def set_text(self, editor: NeovimEditorSurface, text: str) -> None:
+        self.load_text(editor, text)
+
+    def insert_text(self, editor: NeovimEditorSurface, text: str) -> None:
+        self.paste(editor, text)
+
+    def clear_text(self, editor: NeovimEditorSurface) -> None:
+        self.clear(editor)
+
+    def replace_span(self, editor: NeovimEditorSurface, row: int, start: int, end: int, text: str) -> None:
+        self.edit(editor, Edit(text, (row, start), (row, end), False))
+
+    def engine_regions(self) -> tuple[Selection, ...]:
+        return self.snapshot.state.regions
 
     @staticmethod
     def input_code(key: str, character: str = "") -> str:
@@ -1517,51 +1646,51 @@ class NeovimEditing(VimMode, NeovimSession, HoldsBuffer):
         return "<" + "-".join([*(NeovimKey.member_named(part).notation for part in modifiers), base]) + ">"
 
     @staticmethod
-    def viewport(editor: TextArea) -> list[int]:
-        return [max(1, editor.wrap_width), max(3, editor.content_size.height + 2)]
+    def viewport(editor: NeovimEditorSurface) -> list[int]:
+        return [max(1, editor.neovim_wrap_width), max(3, editor.neovim_content_height + 2)]
 
-    def resize(self, editor: TextArea) -> None:
+    def resize(self, editor: NeovimEditorSurface) -> None:
         # This UI API is RPC-only, like nvim_ui_attach during startup. A
         # viewport resize is not a buffer edit and must not advance its generation.
         self._viewport = self.viewport(editor)
         self._enqueue(NeovimCall("nvim_ui_try_resize", self._viewport))
 
-    def enter_text(self, editor: TextArea) -> None:
+    def enter_text(self, editor: NeovimEditorSurface) -> None:
         self._input(self.to_normal + "i")
 
-    def load_text(self, editor: TextArea, text: str) -> None:
+    def load_text(self, editor: NeovimEditorSurface, text: str) -> None:
         self._lua("return ToadEditor.load(...)", [text])
 
-    def edit(self, editor: TextArea, edit: Edit) -> None:
+    def edit(self, editor: NeovimEditorSurface, edit: Edit) -> None:
         self._lua("return ToadEditor.replace(...)",
             [edit.top, edit.bottom, edit.text.split("\n"), edit.maintain_selection_offset])
 
-    def insert(self, editor: TextArea, text: str, point: InsertionPoint, maintain_selection_offset: bool) -> None:
+    def insert(self, editor: NeovimEditorSurface, text: str, point: InsertionPoint, maintain_selection_offset: bool) -> None:
         self._lua("return ToadEditor.insert(...)",
             [text.split("\n"), point.engine_location(), maintain_selection_offset])
 
-    def clear(self, editor: TextArea) -> None:
+    def clear(self, editor: NeovimEditorSurface) -> None:
         self.load_text(editor, "")
 
-    def move_to_end(self, editor: TextArea) -> None:
+    def move_to_end(self, editor: NeovimEditorSurface) -> None:
         self._lua("return ToadEditor.cursor_end()", [])
 
-    def paste(self, editor: TextArea, text: str) -> None:
+    def paste(self, editor: NeovimEditorSurface, text: str) -> None:
         self._call("nvim_paste", [text, True, -1])
 
-    def undo(self, editor: TextArea) -> None:
+    def undo(self, editor: NeovimEditorSurface) -> None:
         self._call("nvim_command", ["undo"])
 
-    def redo(self, editor: TextArea) -> None:
+    def redo(self, editor: NeovimEditorSurface) -> None:
         self._call("nvim_command", ["redo"])
 
-    def request_selection(self, editor: TextArea, selection: Selection) -> Selection:
+    def request_selection(self, editor: NeovimEditorSurface, selection: Selection) -> Selection:
         if not selection.is_empty:
             self._input(self.to_normal)
             self._lua("return ToadEditor.select(...)", sorted(selection))
         elif selection.end != self.snapshot.state.cursor:
             self._lua("return ToadEditor.cursor(...)", [selection.end])
-        return editor.selection
+        return editor.neovim_selection
 
     def selection_range(self, editor: TextArea) -> Selection:
         return self.snapshot.state.selection()
