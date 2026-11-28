@@ -397,6 +397,9 @@ class DetachedCanvas(ViewportCanvas):
     def invalidate_row_height(self, row: int) -> None:
         pass
 
+    def apply_measured_rows(self, updates: list[tuple[int, int, int]]) -> None:
+        pass
+
     def measure_slice_rows(self) -> tuple[tuple, int, QFont, int] | None:
         return None
 
@@ -812,18 +815,18 @@ class RowDocumentStore(ABC):
                          key=lambda row: abs(row - reader))
         self._unmeasured.clear()
         self.ensure_row_sizes(font, width, count)
-        started, measured = time.monotonic(), False
+        started = time.monotonic()
+        updates: list[tuple[int, int, int]] = []
         while waiting and time.monotonic() - started < self.MEASURE_SLICE_SECONDS:
             row = waiting.pop(0)
             if self.kept_size(row, measured=True) is None:
                 h, ext, est = self.measure_row(row, fragments[row], font, width, allow_estimate=False)
                 if not est:
-                    self.view._set_row_geometry(row, h, ext, False)
-                    measured = True
+                    updates.append((row, h, ext))
         for row in waiting:
             self._unmeasured.add(row)
-        if measured:
-            self.view.rows_changed()
+        if updates:
+            self.view.apply_measured_rows(updates)
         if self._unmeasured and not self._scroll_paused:
             self._measure_timer.start()
 
@@ -914,6 +917,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         self._estimated: list[bool] = []
         self._offsets: list[int] = [0]
         self._dirty_offset_from = 0
+        self._dirty_heights: set[int] = set()
         self._max_extent = 0
         self._layout_width_measured = 0
         self._layout_font_key = ""
@@ -935,11 +939,20 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         return self._estimating
 
     def invalidate_row_height(self, row: int) -> None:
+        """Mark `row` for re-measurement on the next `do_layout()` without overwriting its
+        current positive height mid-frame; setting `_heights[row] = -1` before layout runs
+        would collapse the row to 0 px in any `paintEvent` firing before the update timer."""
         if 0 <= row < len(self._heights):
-            self._heights[row] = -1
-            self._estimated[row] = False
-            if row < self._dirty_offset_from:
-                self._dirty_offset_from = row
+            self._dirty_heights.add(row)
+
+    def apply_measured_rows(self, updates: list[tuple[int, int, int]]) -> None:
+        if not updates:
+            return
+        with self.keeping_end() if self.at_end else self.holding_position():
+            for row, height, extent in updates:
+                self._set_row_geometry(row, height, extent, False)
+            self.schedule_layout()
+        self.viewport().update()
 
     def measure_slice_rows(self) -> tuple[tuple, int, QFont, int] | None:
         fragments = self.model_rows.fragments
@@ -1002,6 +1015,13 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
             self._heights[row] = -1
             self._extents[row] = 0
             self._estimated[row] = False
+        if self._dirty_heights:
+            delta = added - removed
+            self._dirty_heights = {
+                r if r < head else r + delta
+                for r in self._dirty_heights
+                if r < head or r >= head + removed
+            }
         if head < self._dirty_offset_from:
             self._dirty_offset_from = head
         self._geometry_revision += 1
@@ -1011,6 +1031,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         self.rows.mark_rows_changed(iter(indices))
         for row in indices:
             if 0 <= row < len(self._heights):
+                self._dirty_heights.discard(row)
                 self._heights[row] = -1
                 self._extents[row] = 0
                 self._estimated[row] = False
@@ -1083,7 +1104,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
         self._layout_pending = True
 
     def execute_layout(self) -> None:
-        if self._layout_pending or self._dirty_offset_from <= len(self._heights):
+        if self._layout_pending or self._dirty_heights or self._dirty_offset_from <= len(self._heights):
             self.do_layout()
 
     @property
@@ -1143,6 +1164,7 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
             self._heights.clear()
             self._extents.clear()
             self._estimated.clear()
+            self._dirty_heights.clear()
             self._offsets = [0]
             self._dirty_offset_from = 1
             self._max_extent = 0
@@ -1156,10 +1178,20 @@ class VirtualRowCanvas(QAbstractScrollArea, ViewportCanvas):
             self._heights = [-1] * count
             self._extents = [0] * count
             self._estimated = [False] * count
+            self._dirty_heights.clear()
             self._dirty_offset_from = 0
             self._max_extent = width
             self._layout_width_measured = width
             self._layout_font_key = font_key
+        elif self._dirty_heights:
+            dirty = self._dirty_heights
+            self._dirty_heights = set()
+            for row in dirty:
+                if 0 <= row < count:
+                    self._heights[row] = -1
+                    self._estimated[row] = False
+                    if row < self._dirty_offset_from:
+                        self._dirty_offset_from = row
         self.rows.ensure_row_sizes(font, width, count)
         reader = min(count - 1, max(0, self.reader_row()))
         reach = self.MEASURED_VIEWPORTS * max(1, self.viewport().height())

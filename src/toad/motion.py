@@ -99,6 +99,38 @@ class Cascade(TextFade):
 ARRIVAL = Cascade(NEW_TEXT, span=0.4)
 
 
+@dataclass(frozen=True)
+class MarqueeSweep(Effect[Amount]):
+    """Continuous banner scroll for an overflowing label: pauses at the start, then scrolls at
+    `speed` units/s with `gap` units before wrapping back to zero."""
+
+    speed: float
+    pause: float
+    gap: float
+    frames_per_second: float = 30.0
+    duration: float | None = None
+
+    def frame(self, elapsed: float) -> Amount:
+        return Amount(elapsed)
+
+    @property
+    def final(self) -> Amount:
+        return Amount(0.0)
+
+    def offset(self, elapsed: float, content_width: float, viewport_width: float) -> float:
+        """Horizontal scroll offset for `content_width` inside `viewport_width` at `elapsed` s."""
+        if content_width <= viewport_width + 0.5 or viewport_width <= 0 or self.speed <= 0:
+            return 0.0
+        distance = content_width + self.gap
+        period = self.pause + distance / self.speed
+        t = elapsed % period
+        return 0.0 if t <= self.pause else (t - self.pause) * self.speed
+
+
+# Overflowing tab titles banner-scroll on the shared clock after a 1 s readable pause.
+TAB_MARQUEE = MarqueeSweep(speed=28.0, pause=1.0, gap=24.0, frames_per_second=30.0)
+
+
 def animations_enabled() -> bool:
     """Whether this process animates: Textual's own animation level, which the TUI's clock
     already follows, so one environment setting turns motion off in both frontends."""

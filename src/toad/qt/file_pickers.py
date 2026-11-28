@@ -39,11 +39,11 @@ def read_picked(url: QUrl, composer: MessagePromptComposer) -> None:
 
 
 def open_file_dialog(parent: QWidget, composer: MessagePromptComposer) -> QFileDialog:
-    """Qt's file dialog over ``parent``, attaching the file it returns."""
+    """Qt's file dialog over ``parent``, attaching all files it returns."""
     dialog = QFileDialog(parent, AttachFileAction.title)
-    dialog.setFileMode(QFileDialog.FileMode.ExistingFile)
-    # An accepted dialog holds its one choice: Qt's own dialog emits no urlSelected, and
-    # Android's document picker answers with a content:// URL, so both are read from here.
+    dialog.setFileMode(QFileDialog.FileMode.ExistingFiles)
+    # An accepted dialog holds its chosen URLs: Qt's own dialog emits no urlSelected, and
+    # Android's document picker returns one or more content:// URLs via ClipData/getData.
     dialog.accepted.connect(lambda: [read_picked(url, composer) for url in dialog.selectedUrls()])
     dialog.finished.connect(dialog.deleteLater)
     dialog.open()
@@ -51,7 +51,7 @@ def open_file_dialog(parent: QWidget, composer: MessagePromptComposer) -> QFileD
 
 
 class QtPathSearch(PresentedWindow, ProjectPathSearch, QDialog):
-    """The project's paths, ranked as you type; choosing one attaches that file."""
+    """The project's paths, ranked as you type; choosing one or more attaches those files."""
 
     shown_limit = 100
 
@@ -65,6 +65,7 @@ class QtPathSearch(PresentedWindow, ProjectPathSearch, QDialog):
         self.query = QLineEdit(self)
         self.query.setPlaceholderText(f"Search {root}")
         self.results = QListWidget(self)
+        self.results.setSelectionMode(QListWidget.SelectionMode.ExtendedSelection)
         layout = QVBoxLayout(self)
         layout.addWidget(self.query)
         layout.addWidget(self.results, 1)
@@ -91,12 +92,19 @@ class QtPathSearch(PresentedWindow, ProjectPathSearch, QDialog):
         self.results.setCurrentRow(0)
 
     def choose_current(self) -> None:
-        if (item := self.results.currentItem()) is not None:
+        selected = [item.text() for item in self.results.selectedItems()]
+        if selected:
+            self.choose_many(selected)
+        elif (item := self.results.currentItem()) is not None:
             self.choose(item.text())
 
-    def choose(self, spelling: str) -> None:
+    def choose_many(self, spellings: list[str]) -> None:
         self.accept()
-        self.chosen(self.root / spelling)
+        for spelling in spellings:
+            self.chosen(self.root / spelling)
+
+    def choose(self, spelling: str) -> None:
+        self.choose_many([spelling])
 
 
 def open_path_search(parent: QWidget, composer: MessagePromptComposer, root: Path, run: Callable) -> QtPathSearch:

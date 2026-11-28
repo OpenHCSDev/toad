@@ -1828,6 +1828,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             self.animation_clock,
             QColor(self.renderer.theme(WorkspaceTabTones.underline_colour)),
             QColor(self.renderer.theme(WorkspaceTabTones.active_text_colour)),
+            QColor(self.renderer.theme(WorkspaceTabTones.inactive_text_colour)),
         )
         self.tabs.setTabsClosable(True)
         self.tabs.setExpanding(False)
@@ -2128,6 +2129,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         QTimer.singleShot(0, partial(self.show_current_tab, scroll_to_current=selection_changed))
 
     def show_current_tab(self, *, scroll_to_current: bool = True) -> None:
+        self.tabs.sync_strip_width(self.tab_strip.viewport().width())
         self.tab_strip.setFixedHeight(self.tabs.sizeHint().height())
         scroller = QScroller.scroller(self.tab_strip.viewport())
         if scroll_to_current and scroller.state() == QScroller.State.Inactive and (index := self.tabs.currentIndex()) >= 0:
@@ -2163,7 +2165,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self.tabs.setStyleSheet(
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
-            f" padding: 6px 10px 6px 12px; margin-right: {self.tabs.TAB_GAP}px;"
+            f" padding: 4px 2px 4px 6px; margin-right: {self.tabs.TAB_GAP}px;"
             " border-top-left-radius: 4px; border-top-right-radius: 4px; }"
             f"QTabBar::tab:hover {{ background-color: {hover_bg}; color: {active_ink}; }}"
             f"QTabBar::tab:selected {{ background-color: {selected_bg}; color: {active_ink};"
@@ -2174,7 +2176,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
             f" background: {hover_bg}; color: {close_hover}; }}"
         )
-        self.tabs.set_colours(QColor(underline_hex), QColor(active_ink))
+        self.tabs.set_colours(QColor(underline_hex), QColor(active_ink), QColor(inactive_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         self.navigation.setStyleSheet(
             scheme.styles.generate_frame_style()
@@ -2299,6 +2301,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
     def present_panes(self) -> None:
         """Draw both sidebars from the one layout and place them; the thread's sidebar is
         presented only while a conversation is open."""
+        self.tabs.sync_strip_width(self.tab_strip.viewport().width())
         self._bind_thread_pane()
         self.present_alone()
         for side in self.chrome.sidebars:
