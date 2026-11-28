@@ -28,7 +28,6 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
-    QScroller,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
@@ -918,10 +917,6 @@ class QtMessageComposer(MessagePromptComposer, Composer):
         self.attached_chips.setSpacing(UiGap.tight)
         self.attached_chips.setAlignment(Qt.AlignmentFlag.AlignLeft)
         self.attached_scroll.setWidget(self.attached_chips_host)
-        QScroller.grabGesture(
-            self.attached_scroll.viewport(),
-            QScroller.ScrollerGestureType.LeftMouseButtonGesture,
-        )
         self.compress_button: QtCompressImagesButton | None = None
         row_layout.addWidget(self.attached_scroll, 1)
         layout = self.layout()

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QProxyStyle, QScroller, QWidget
 
@@ -45,7 +45,11 @@ class TouchAsMouse(FingerScrollGesture):
     drag, then delivers it, so a tap still presses the row or button under the finger."""
 
     def grab(self, viewport: QWidget) -> None:
-        QScroller.grabGesture(viewport, QScroller.ScrollerGestureType.LeftMouseButtonGesture)
+        """Grab once per viewport: calling `QScroller.grabGesture` again unregisters and
+        deletes the live `QFlickGestureRecognizer`, leaving `QGestureManager::getState`
+        with a dangling recognizer pointer when a widget repolishes during gesture delivery."""
+        if QScroller.grabbedGesture(viewport).value <= Qt.GestureType.CustomGesture.value:
+            QScroller.grabGesture(viewport, QScroller.ScrollerGestureType.LeftMouseButtonGesture)
 
 
 class MouseAndWheel(FingerScrollGesture):
