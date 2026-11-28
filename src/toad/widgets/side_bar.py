@@ -1414,6 +1414,9 @@ class ThreadSidebar(ThreadSidebarContents[SideBar.Panel], SideBar):
     def action_entries(self, view):
         return view.action_panels
 
+    def agent_settings_entries(self, view):
+        return view.agent_settings_panels
+
     def setting_entries(self, view):
         return view.configuration_panels
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import ClassVar
 
 from agent_comms.messaging.channel_targets import ChannelSelection, CommandTarget
@@ -11,6 +12,13 @@ from agent_comms.messaging.channel_targets import ChannelTarget as CoreChannelTa
 from agent_comms.messaging.channel_targets import ThreadTarget as CoreThreadTarget
 from agent_comms.messaging.display_references import ThreadNames
 from agent_comms.nominal.declared_family import DeclaredFamily
+from agent_comms.registry.agent_settings_wire import (
+    AgentOnlySettingsScope,
+    AgentSettingsScope,
+    ChannelSettingsScope,
+    GlobalSettingsScope,
+    ThreadSettingsScope,
+)
 from agent_comms.registry.thread_identity import ThreadIncarnation
 
 from toad.client.connection import Observing
@@ -56,6 +64,10 @@ class NavigationTarget(DeclaredFamily, NavigationDestination, affix="Target"):
     def configuration_contexts(self, view):
         """A destination without a configurable subject supplies no command context."""
         return ()
+
+    def agent_settings_target(self, view) -> tuple[AgentSettingsScope, str]:
+        """The Core agent-settings scope for this destination (Global by default)."""
+        return (GlobalSettingsScope(), "")
 
     def matches(self, target: NavigationTarget) -> bool:
         """Different opening behaviors may display the same sidebar address."""
@@ -112,7 +124,22 @@ class ConfigurationTarget:
                      for subject in targets)
 
 
-class ThreadTarget(ConfigurationTarget, NavigationTarget):
+class ThreadScopedSettings:
+    """Thread and DM destinations resolve Core agent settings at their thread scope."""
+
+    name: str
+
+    def agent_settings_target(self, view) -> tuple[AgentSettingsScope, str]:
+        project = Path(view.navigation_context.project_path).name
+        scope: AgentSettingsScope = (
+            ThreadSettingsScope(project, self.name)
+            if project
+            else AgentOnlySettingsScope(self.name)
+        )
+        return (scope, "")
+
+
+class ThreadTarget(ThreadScopedSettings, ConfigurationTarget, NavigationTarget):
 
     def configuration_subjects(self, view):
         return view.thread_identity.configuration_targets()
@@ -207,8 +234,14 @@ class FeedTarget(ChannelLike, HistoryRouted):
 class ChannelTarget(ChannelLike, HistoryRouted):
     history_kind = ChannelConversation
 
+    def agent_settings_target(self, view) -> tuple[AgentSettingsScope, str]:
+        project = Path(view.navigation_context.project_path).name
+        if not project:
+            return (GlobalSettingsScope(), "")
+        return (ChannelSettingsScope(project, self.name), "")
 
-class DirectTarget(HistoryRouted):
+
+class DirectTarget(ThreadScopedSettings, HistoryRouted):
     history_kind = DmConversation
 
     def selected(self, owner: NavigationOwner) -> None:
