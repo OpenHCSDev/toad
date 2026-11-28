@@ -16,7 +16,12 @@ from toad.rich_preparation import (
     RichSource,
 )
 
-from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey
+from toad.work_preparation import (
+    PreparationRuntime,
+    RenderPreparation,
+    RetainedBytesStorage,
+    WorkKey,
+)
 from ui_theme.effects import PlayedText
 from ui_theme.scheme import ColourScheme
 from ui_theme.splash import TextEffect
@@ -38,12 +43,9 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
 
 
 @dataclass(frozen=True)
-class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
+class RichRenderTask(RetainedBytesStorage, ReusableRenderTask[PreparedRichContent]):
     source: RichSource
     presentation: RichPresentation
-
-    def result_size(self, result: PreparedRichContent) -> int:
-        return result.retained_bytes
 
     def execute(self) -> PreparedRichContent:
         return self.source.prepare(self.presentation)
