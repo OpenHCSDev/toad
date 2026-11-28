@@ -28,6 +28,8 @@ from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 from toad import atomic, paths
 from toad import setting_effects as effects
 from formbridge.forms.declared_fields import DeclaredField, FieldPath, FormPage, Multiline
+from toad.core.events import CoreEventStream
+from toad.core.preference_events import PreferenceChanged
 from toad.hint_labels import HintLabels, NextLetterHintLabels
 from toad.key_modes import KeyMode, Standard
 from toad.keymap import Keymap
@@ -459,7 +461,6 @@ class SavedSettings(ExternalStore):
         applied: Callable[[DeclaredField], None] = no_effect,
         report_error: Callable[[atomic.AtomicWriteError], None] = raise_save_error,
     ) -> None:
-        from toad.core.events import CoreEventStream
 
         raw = {} if raw is None else raw
         self.root = FieldPath(root)
@@ -507,7 +508,6 @@ class SavedSettings(ExternalStore):
                 self.applied(setting)
 
     def changed(self, changed: builtins.set[str]) -> None:
-        from toad.core.preference_events import PreferenceChanged
 
         matched = [
             DeclaredField(self.state, path)

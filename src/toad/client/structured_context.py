@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import re
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import ClassVar
 
@@ -452,36 +453,58 @@ def _split_context_sections(text: str) -> tuple[ContextSectionPart, ...]:
     return ()
 
 
+class DecodedStructuredBlock(ABC):
+    """Present or absent structured part decoded from an inline tag block."""
+
+    def __iter__(self) -> Iterator[StructuredPart]:
+        return iter(())
+
+
+@dataclass(frozen=True)
+class AbsentDecodedStructuredBlock(DecodedStructuredBlock):
+    """Absent `DecodedStructuredBlock` carrying no value."""
+
+
+@dataclass(frozen=True)
+class HeldDecodedStructuredBlock(DecodedStructuredBlock):
+    """Held `DecodedStructuredBlock` carrying its present value."""
+
+    value: StructuredPart
+
+    def __iter__(self) -> Iterator[StructuredPart]:
+        yield self.value
+
+
 class StructuredTag(DeclaredFamily, affix="Tag"):
     """Inline XML-style tag emitted by reasoning/context models; decoded once at the tag boundary."""
 
     @classmethod
     @abstractmethod
-    def decode_block(cls, inner: str, *, streaming: bool) -> tuple[StructuredPart, ...]: ...
+    def decode_block(cls, inner: str, *, streaming: bool) -> DecodedStructuredBlock: ...
 
 
 class ThinkTag(StructuredTag):
     @classmethod
-    def decode_block(cls, inner: str, *, streaming: bool) -> tuple[StructuredPart, ...]:
+    def decode_block(cls, inner: str, *, streaming: bool) -> DecodedStructuredBlock:
         if not inner.strip() and not streaming:
-            return ()
-        return (ThinkingPart.from_text(inner, streaming=streaming),)
+            return AbsentDecodedStructuredBlock()
+        return HeldDecodedStructuredBlock(ThinkingPart.from_text(inner, streaming=streaming))
 
 
 class CtxTag(StructuredTag):
     @classmethod
-    def decode_block(cls, inner: str, *, streaming: bool) -> tuple[StructuredPart, ...]:
+    def decode_block(cls, inner: str, *, streaming: bool) -> DecodedStructuredBlock:
         if not inner.strip() and not streaming:
-            return ()
-        return (LiveContextPart.from_text(inner, title="Context (<ctx>)", streaming=streaming),)
+            return AbsentDecodedStructuredBlock()
+        return HeldDecodedStructuredBlock(LiveContextPart.from_text(inner, title="Context (<ctx>)", streaming=streaming))
 
 
 class ToolCallTag(StructuredTag):
     @classmethod
-    def decode_block(cls, inner: str, *, streaming: bool) -> tuple[StructuredPart, ...]:
+    def decode_block(cls, inner: str, *, streaming: bool) -> DecodedStructuredBlock:
         if not inner.strip():
-            return ()
-        return (ToolCallPart.from_tag(inner),)
+            return AbsentDecodedStructuredBlock()
+        return HeldDecodedStructuredBlock(ToolCallPart.from_tag(inner))
 
 
 _TAG_OPEN = re.compile(

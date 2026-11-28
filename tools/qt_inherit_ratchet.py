@@ -37,6 +37,9 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import cache
 from pathlib import Path
 
+from PySide6.QtWidgets import QDialog
+from toad.qt.presented_window import PresentedWindow
+
 KNOWN_COPIES = {
 }
 
@@ -326,8 +329,6 @@ def unpresented() -> frozenset[str]:
     """Qt windows opened over the app that do not inherit its one presentation owner. Every Qt
     dialog is presented by `toad.qt.presented_window.PresentedWindow` (a phone fills the app
     window, a desktop floats), so one that lays itself out has no ratchet baseline: zero."""
-    from PySide6.QtWidgets import QDialog
-    from toad.qt.presented_window import PresentedWindow
     return frozenset(path for path, cls in classes_under("toad").items()
                      if path.startswith("toad.qt.") and issubclass(cls, QDialog)
                      and not issubclass(cls, PresentedWindow))

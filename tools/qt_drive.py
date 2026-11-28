@@ -21,7 +21,7 @@ import json
 import os
 import sys
 import traceback
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from pathlib import Path
 from collections.abc import Callable
 from typing import ClassVar
@@ -97,7 +97,7 @@ from toad.qt.opening_view import QtOpeningSessionView
 from toad.thread_sidebar_declarations import ThreadSidebarPanel
 from toad.client.bus_submission import ConversationSubmission
 from toad.setting_choices import CenterColumnAlignment, HiddenScrollbar, TransientScrollbar
-from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
+from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle, Divider
 from toad.client.input_modality import KeyboardInput, TouchInput
 from toad.qt.float_layer import QtFloatLayer, QtNoticeCard
 from toad.client.menu_entry import strip_menu_markup
@@ -155,7 +155,7 @@ class StrayWindows(QObject):
             raise AssertionError(f"{step}: widgets shown as their own top-level windows: {sorted(set(cls.seen))}")
 
 
-class Scenario(DeclaredFamily, ABC, affix="Scenario"):
+class Scenario(DeclaredFamily, affix="Scenario"):
     """One walk through the client; its declared name is the command-line word."""
 
     summary: ClassVar[str]
@@ -771,7 +771,7 @@ class TranscriptScenario(Scenario):
         # The newest message whose header names TOAD_DRIVE_HEADER (any header by default).
         named = os.environ.get("TOAD_DRIVE_HEADER", "")
         headed = max(row for row, fragment in enumerate(fragments)
-                     if any(type(block).__name__ == "Divider" and named in block.label for block in fragment.line_blocks))
+                     if any(type(block).__name__ == Divider.__name__ and named in block.label for block in fragment.line_blocks))
         window.scroll_to_row(headed)
         await asyncio.sleep(1.5)
         self.report("3-newest-header", rows=len(fragments))
