@@ -412,6 +412,7 @@ class RowDocumentStore(ABC):
     MAX_DOCUMENTS = 500
     ROW_PADDING = 0
     MEASURE_SLICE_SECONDS = 0.008
+    SUSPEND_RELEASE_MS = 60_000
 
     def __init__(self) -> None:
         self.view: DetachedCanvas | VirtualRowCanvas = DetachedCanvas()
@@ -436,6 +437,10 @@ class RowDocumentStore(ABC):
         self._measure_timer.setSingleShot(True)
         self._measure_timer.setInterval(0)
         self._measure_timer.timeout.connect(self._measure_slice)
+        self._suspend_release_timer = QTimer()
+        self._suspend_release_timer.setSingleShot(True)
+        self._suspend_release_timer.setInterval(self.SUSPEND_RELEASE_MS)
+        self._suspend_release_timer.timeout.connect(self.release_documents)
         self._arrivals_moved_rows = False
         app = QGuiApplication.instance()
         if app is not None:
@@ -445,6 +450,7 @@ class RowDocumentStore(ABC):
         self.view = view
         self._viewport_update_timer.setParent(view)
         self._measure_timer.setParent(view)
+        self._suspend_release_timer.setParent(view)
 
     def set_scroll_paused(self, paused: bool) -> None:
         """Pause background off-screen row measurement during active finger drag or fling."""
@@ -649,8 +655,14 @@ class RowDocumentStore(ABC):
             self.view.rows_repainted()
 
     def _application_state_changed(self, state: Qt.ApplicationState) -> None:
+        """Defer dropping laid-out documents and tiles across brief Android app switches so
+        reopening within `SUSPEND_RELEASE_MS` paints from warm caches without a 100+ ms
+        re-layout/re-rasterize stall, while prolonged backgrounding still returns memory."""
         if state is Qt.ApplicationState.ApplicationSuspended:
-            self.release_documents()
+            if not self._stopped and not self._suspend_release_timer.isActive():
+                self._suspend_release_timer.start()
+        elif state is Qt.ApplicationState.ApplicationActive:
+            self._suspend_release_timer.stop()
 
     def release_documents(self) -> None:
         self._documents.clear()
@@ -827,6 +839,7 @@ class RowDocumentStore(ABC):
         self.preparing = False
         self._viewport_update_timer.stop()
         self._measure_timer.stop()
+        self._suspend_release_timer.stop()
         self.preparer.clear()
         self.stop_preparation()
         self.preparer.stop()

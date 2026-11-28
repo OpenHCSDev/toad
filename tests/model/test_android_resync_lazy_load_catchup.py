@@ -17,9 +17,19 @@ from agent_comms.execution.transcript_sources import LatestPage, Through, Unread
 from agent_comms.presentation import NoRevision
 from agent_comms.transcript.transcript_drafts import NoDraft
 from agent_comms.transcript.transcripts import TranscriptPage
+from agent_comms.transport.remote_core import (
+    ConnectorClosed,
+    ConnectorObserverClosed,
+    ServiceFailed,
+)
 from agent_comms.transport.request import ConnectionDropped
 from agent_comms.ui_model.observation import NotPublished, ObserverUnattached, Published
 from agent_comms.ui_model.observation_wire import ObserverDied
+from agent_comms.ui_model.sidebar import SidebarModel
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QApplication
+from yarl import URL
 
 from toad.client.application import ACTIVE_PRESENCE
 from toad.client.committed_presentation import (
@@ -30,6 +40,7 @@ from toad.client.committed_presentation import (
     RetainViewportCommit,
 )
 from toad.client.connection import (
+    OBSERVATION_FAILURE_REPORT,
     ClosedObservation,
     CoordinationAccess,
     FailedObservation,
@@ -37,6 +48,11 @@ from toad.client.connection import (
     RemoteObserving,
     UnselectedRoute,
 )
+from toad.client.sidebar_state import SidebarStateMachine
+from toad.qt.history import HistoryRowDelegate, RowPictures
+from toad.qt.lines import QtLineRenderer
+from toad.qt.transcript_history import QtTranscriptHistory
+from toad.qt.window import PRESENCE_TRANSITIONS
 from toad.client.history_pager import (
     NEWER_END,
     OLDER_END,
@@ -87,6 +103,18 @@ async def test_remote_resume_resets_backoff_recycles_sockets_and_replaces_observ
             access.observation = fresh
             return fresh
 
+        def resume_observe(self, access: CoordinationAccess, served_root: Path):
+            calls.append(f"resume_observe:{served_root}")
+            fresh = RemoteObserving(
+                sidebar=SimpleNamespace(),
+                process=SimpleNamespace(),
+                connection=self,
+                served_root=served_root,
+                access=access,
+            )
+            access.observation = fresh
+            return fresh
+
     class FakePreparation:
         async def run_thread(self, fn, *args, **kwargs):
             return fn(*args, **kwargs)
@@ -116,7 +144,7 @@ async def test_remote_resume_resets_backoff_recycles_sockets_and_replaces_observ
     assert not access.retry.waiting(time.monotonic())
     await access.route_task
 
-    assert calls == ["reset_connections", "observe"]
+    assert calls == ["reset_connections", "resume_observe:/bus"]
     assert access.observation is not old_obs
     assert len(events_published) == 1 and isinstance(events_published[0], CoordinationObserved)
 
@@ -140,10 +168,6 @@ def test_focus_returned_clears_failed_backoff_and_ignores_closed():
 
 
 def test_application_presence_distinguishes_suspend_from_focus_loss():
-    from PySide6.QtCore import Qt
-
-    from toad.qt.window import PRESENCE_TRANSITIONS
-
     actions: list[str] = []
     app = SimpleNamespace(
         application=SimpleNamespace(backgrounded=lambda: actions.append("backgrounded")),
@@ -162,12 +186,13 @@ def test_application_presence_distinguishes_suspend_from_focus_loss():
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationActive](presence, app)
     assert actions == ["backgrounded", "focus_returned", "reload"]
 
-    # Android suspend + transient inactive -> full resume (recycles sockets + fresh observation)
+    # Android suspend + transient inactive -> full resume (recycles sockets + fresh observation;
+    # reload runs via CoordinationObserved once the new observer attaches, not racing the old one)
     actions.clear()
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationSuspended](presence, app)
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationInactive](presence, app)
     presence = PRESENCE_TRANSITIONS[Qt.ApplicationState.ApplicationActive](presence, app)
-    assert actions == ["backgrounded", "resume", "reload"]
+    assert actions == ["backgrounded", "resume"]
 
 
 @pytest.mark.asyncio
@@ -653,3 +678,138 @@ async def test_working_and_commit_transcript_publish_keeps_operation_active_unti
     assert op.coverage.summary == "Saved history available"
     assert published_calls == ["publish_committed"]
     assert painted_calls == ["cursor-1"]
+
+
+# --- Bug 5: Quiet transient disconnects, same-root reconnect caching, and phone log crashes ---
+
+
+def test_observation_failure_report_quiets_transient_disconnects_and_surfaces_real_crashes():
+    logged: list[str] = []
+    fatals: list[Exception] = []
+    shown: list[tuple[Exception, str]] = []
+    app = SimpleNamespace(
+        log_error=logged.append,
+        report_fatal=fatals.append,
+        show_error=lambda err, title: shown.append((err, title)),
+    )
+    url = URL("https://ts-gaming.tail553874.ts.net/observe")
+
+    # Transient remote socket close / EOF -> log quietly, zero popup toasts.
+    OBSERVATION_FAILURE_REPORT.dispatch_sync(
+        ConnectorObserverClosed(url, ConnectorClosed()), app, None
+    )
+    OBSERVATION_FAILURE_REPORT.dispatch_sync(
+        OSError("got end of file during message"), app, "Thread status unavailable"
+    )
+    assert len(logged) == 2
+    assert fatals == []
+    assert shown == []
+
+    # Real remote service traceback and local observer death -> still surfaced.
+    svc_err = ConnectorObserverClosed(url, ServiceFailed("Traceback: boom"))
+    local_err = ObserverDied("killed")
+    OBSERVATION_FAILURE_REPORT.dispatch_sync(svc_err, app, None)
+    OBSERVATION_FAILURE_REPORT.dispatch_sync(local_err, app, "Thread status unavailable")
+    assert fatals == [svc_err]
+    assert shown == [(local_err, "Thread status unavailable")]
+
+
+def test_same_root_reconnect_retains_notification_cache_and_sidebar_rows():
+    replaced: list[str] = []
+
+    class FakeSidebar(SidebarStateMachine):
+        def accepts_observation(self) -> bool:
+            return True
+
+        def sync(self, *, change, reorder: bool = False) -> None:
+            pass
+
+        def show_status(self, text: str) -> None:
+            pass
+
+        def hide_status(self) -> None:
+            pass
+
+        def coordination_access(self):
+            return SimpleNamespace(update_sidebar_interest=lambda: None)
+
+        def model_replaced(self) -> None:
+            replaced.append("replaced")
+
+    sidebar_view = FakeSidebar()
+    root_a = Path("/bus-a")
+    root_b = Path("/bus-b")
+    obs_a1 = RemoteObserving(
+        sidebar=SidebarModel(lambda cb: None),
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_a,
+        access=SimpleNamespace(),
+    )
+    obs_a2 = RemoteObserving(
+        sidebar=obs_a1.sidebar,
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_a,
+        access=SimpleNamespace(),
+    )
+    obs_b = RemoteObserving(
+        sidebar=SidebarModel(lambda cb: None),
+        process=SimpleNamespace(),
+        connection=SimpleNamespace(),
+        served_root=root_b,
+        access=SimpleNamespace(),
+    )
+
+    sidebar_view.bind_observation(obs_a1)
+    assert replaced == ["replaced"]
+    assert obs_a2.retains_root_cache(root_a) is True
+    assert obs_b.retains_root_cache(root_a) is False
+
+    # Same-root reconnect keeps rows in place without wiping the tree.
+    sidebar_view.bind_observation(obs_a2)
+    assert replaced == ["replaced"]
+
+    # Switching to a different bus root clears old rows.
+    sidebar_view.bind_observation(obs_b)
+    assert replaced == ["replaced", "replaced"]
+
+
+def test_qt_transcript_history_undrawn_and_stopped_prepare_inline_do_not_crash():
+    _app = QApplication.instance() or QApplication([])
+
+    # QtTranscriptHistory.undrawn uses draws_rows, never wire-only page.after.requires_read().
+    hist = object.__new__(QtTranscriptHistory)
+    hist.pages = (SimpleNamespace(shown_fragments=()),)
+    assert hist.undrawn is True
+    hist.pages = (SimpleNamespace(shown_fragments=(SimpleNamespace(has_blocks=True),)),)
+    assert hist.undrawn is False
+
+    # Stopped delegate: prepare_inline returns False instead of letting final_document_for KeyError.
+    delegate = HistoryRowDelegate(
+        QtLineRenderer.__new__(QtLineRenderer),
+        RowPictures(1024),
+        SimpleNamespace(),
+    )
+    delegate._stopped = True
+    frag = SimpleNamespace(
+        key="k",
+        shown=None,
+        revision=0,
+        has_blocks=True,
+        line_blocks=(SimpleNamespace(renders_inline=True),),
+        header_blocks=0,
+        pinned_dividers=(),
+    )
+    assert delegate.prepare_inline(frag, QFont(), 320) is False
+
+    # Brief Android suspend defers release_documents instead of wiping warm caches immediately.
+    released: list[str] = []
+    delegate._stopped = False
+    delegate.release_documents = lambda: released.append("released")  # type: ignore[method-assign]
+    delegate._application_state_changed(Qt.ApplicationState.ApplicationSuspended)
+    assert released == []
+    assert delegate._suspend_release_timer.isActive()
+    delegate._application_state_changed(Qt.ApplicationState.ApplicationActive)
+    assert not delegate._suspend_release_timer.isActive()
+    assert released == []

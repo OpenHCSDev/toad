@@ -2287,6 +2287,7 @@ def test_observation_attach_rebinds_notification_views_across_resume_and_reconne
 
     access = SimpleNamespace(
         observation=None,
+        _last_observed_root=None,
         sidebar_waiters=[],
         sidebar_views=(),
         revision=None,

@@ -495,7 +495,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
         1-line summary or collapsed tool call) immediately using the already-warm
         `self.renderer` so it lays out in one frame (< 1 ms) without a RenderProcessPool
         round-trip."""
-        if width <= 0 or not fragment.has_blocks:
+        if self._stopped or width <= 0 or not fragment.has_blocks:
             return False
         blocks = tuple(fragment.line_blocks)
         if not blocks or not all(block.renders_inline for block in blocks):
@@ -514,7 +514,7 @@ class HistoryRowDelegate(HoldsRows, RowDocumentStore):
             tuple((header, html((header,))) for header in pinned),
         )
         self._row_prepared(key, rendered)
-        return True
+        return key in self._prepared
 
     TILE = 256
     """Pixels of a row's height one picture holds. A row is as tall as its message, and a

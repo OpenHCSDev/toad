@@ -26,10 +26,12 @@ from agent_comms.messaging.message_files import FileUpload
 from agent_comms.errors import RouteChangedError
 from agent_comms.execution.child_process import (
     Platform,
+    RelayEnding,
     WorkerStart,
     join_retirement,
 )
 from agent_comms.execution.remote_core_process import ProcessRemoteCoreAccess
+from agent_comms.transport.remote_core import ConnectorObserverClosed, ServiceFailed
 from agent_comms.team.team_board_selection import NamedTeamBoards, TeamBoardSelection
 from agent_comms.execution.transcript_sources import TranscriptCursor
 from agent_comms.installer.active_route import CommsRoute
@@ -348,6 +350,58 @@ class RemoteCoreConnection(ProfileArgument, ProcessRemoteCoreAccess, CoreConnect
             return access.observation.failed(error, UnselectedRoute())
         return access.observe_remote(self, Path(served.root))
 
+    def resume_observe(self, access: CoordinationAccess, served_root: Path) -> Observing | FailedObservation:
+        """Re-open observation on the already-known served root after suspension without
+        paying a cold `CommsServedRootTool` HTTPS round-trip first."""
+        return access.observe_remote(self, served_root)
+
+
+class ObservationFailureReport(MroDispatch):
+    """Route observation disconnects by failure kind: expected remote socket drops log
+    quietly and auto-retry without popping an error toast; real Core service crashes
+    (`ServiceFailed`) and unexpected observer deaths still surface through the host."""
+
+    @handles(ConnectorObserverClosed)
+    def connector_closed(
+        self, error: ConnectorObserverClosed, app: CommsHost, title: str | None,
+    ) -> object:
+        self.dispatch_sync(error.ending, error, app, title)
+        return self.DISCARD
+
+    @handles(ServiceFailed)
+    def service_failed(
+        self, ending: ServiceFailed, error: Exception, app: CommsHost, title: str | None,
+    ) -> object:
+        self._surface(error, app, title)
+        return self.DISCARD
+
+    @handles(RelayEnding)
+    def transient_relay(
+        self, ending: RelayEnding, error: Exception, app: CommsHost, title: str | None,
+    ) -> object:
+        app.log_error(str(error))
+        return self.DISCARD
+
+    @handles(OSError)
+    def transient_io(self, error: OSError, app: CommsHost, title: str | None) -> object:
+        app.log_error(str(error))
+        return self.DISCARD
+
+    @handles(Exception)
+    def unexpected(self, error: Exception, app: CommsHost, title: str | None) -> object:
+        self._surface(error, app, title)
+        return self.DISCARD
+
+    @staticmethod
+    def _surface(error: Exception, app: CommsHost, title: str | None) -> None:
+        if title is None:
+            app.report_fatal(error)
+        else:
+            app.show_error(error, title)
+
+
+OBSERVATION_FAILURE_REPORT = ObservationFailureReport()
+
 
 @dataclass(frozen=True)
 class UnselectedRoute:
@@ -501,6 +555,15 @@ class Observation(ABC):
         for view in tuple(access.sidebar_views):
             self.show_sidebar(view)
 
+    def retains_root_cache(self, previous_root: Path | None) -> bool:
+        """Whether attaching this observation preserves cached per-root read receipts and
+        thread status (transient failures keep the last root's cache until a different root
+        attaches)."""
+        return True
+
+    def record_observed_root(self, access: CoordinationAccess) -> None:
+        """Record the active bus root when an `Observing` attaches."""
+
     def attach(self, access, previous):
         previous.subscriptions.close()
         if not self.is_current():
@@ -513,13 +576,15 @@ class Observation(ABC):
         subscribers = tuple(dict.fromkeys((
             *access.notification_views, *previous.pending_notification_views(),
         )))
+        if not self.retains_root_cache(access._last_observed_root):
+            access.thread_status.clear()
+            access.notification_known.clear()
+        self.record_observed_root(access)
         access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
         access.team_interest = StopTeamHud()
-        access.thread_status.clear()
         access.views_interest = None
         access.notification_views.clear()
-        access.notification_known.clear()
         access.notification_interest = ObserveNotifications(frozenset())
         self.activate(access)
         self.rebind_notifications(subscribers)
@@ -684,7 +749,9 @@ class FailedObservation(Observation):
 
     def thread_interest(self, access: CoordinationAccess):
         if access.retry.began():
-            access.app.show_error(self.error, "Thread status unavailable")
+            OBSERVATION_FAILURE_REPORT.dispatch_sync(
+                self.error, access.app, "Thread status unavailable"
+            )
 
     def observe_team(self, wanted: ObserveTeamHud | StopTeamHud):
         self.access.events.publish(TeamHudFailed(self.error))
@@ -905,14 +972,20 @@ class Observing(Observation, ReferencedCore, RegistryReferenceSource, Relationsh
         except ObservationEnded:
             pass
 
+    def retains_root_cache(self, previous_root: Path | None) -> bool:
+        return previous_root is None or self.root == previous_root
+
+    def record_observed_root(self, access: CoordinationAccess) -> None:
+        access._last_observed_root = self.root
+
     def receive_failed(self, error: Exception):
-        """The observation closed: the failure becomes current and retries; the reader is
-        told once per outage, not once per reopen that closes again."""
+        """The observation closed: the failure becomes current and retries; expected remote
+        socket drops log quietly while real service crashes surface once per outage."""
         if self.is_current():
             self.failed(error, self.opened_selection())
             if self.access.retry.began():
                 error.add_note(self.access.retry.quiet_note(time.monotonic()))
-                self.access.app.report_fatal(error)
+                OBSERVATION_FAILURE_REPORT.dispatch_sync(error, self.access.app, None)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.root)
@@ -992,7 +1065,10 @@ class RemoteObserving(Observing):
 
     def resumed_through(self, connection: RemoteCoreConnection, access: CoordinationAccess):
         """After Android suspension or a network switch, the existing WebSocket may be
-        half-open; open a fresh observation instead of waiting on heartbeat timeout."""
+        half-open; open a fresh observation on the known served root instead of waiting
+        on heartbeat timeout or paying a cold `CommsServedRootTool` round-trip."""
+        if self.connection is connection:
+            return connection.resume_observe(access, self.served_root)
         return connection.observe(access)
 
     def user_identity(self, project: Checkout) -> Thread:
@@ -1022,6 +1098,8 @@ class CoordinationAccess(MroDispatch):
 
         self.transcripts = CoordinationTranscriptReader(self)
         self.observation: Observation = NotObserving(access=self)
+        self._last_observed_root: Path | None = None
+        self._retained_remote: dict[Path, tuple[SidebarModel, RegistryReads]] = {}
         self.retry = ObservationRetry()
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
@@ -1091,10 +1169,18 @@ class CoordinationAccess(MroDispatch):
 
     def observe_remote(self, connection: RemoteCoreConnection, root: Path) -> RemoteObserving:
         """Observe the Core behind the connector: its peer carries the observation, and the
-        root it serves keys every root-scoped request."""
+        root it serves keys every root-scoped request. Reconnecting to the same root reuses
+        its retained sidebar model and registry cache so the UI never flashes blank or
+        re-downloads the whole registry while the fresh WebSocket syncs."""
         with self.opening:
+            retained = self._retained_remote.get(root)
+            if retained is None:
+                retained = (SidebarModel(self.app.schedule_ui), RegistryReads())
+                self._retained_remote[root] = retained
+            sidebar, registry_reads = retained
             return self.observation.adopt(RemoteObserving(
-                SidebarModel(self.app.schedule_ui), ObservationProcess(connection),
+                sidebar, ObservationProcess(connection),
+                registry_reads=registry_reads,
                 connection=connection, served_root=root, access=self))
 
     @handles(RevisionObserved)
@@ -1415,10 +1501,8 @@ class CoordinationAccess(MroDispatch):
         self.route_task = asyncio.create_task(self.resume_route())
 
     async def resume_route(self) -> None:
-        previous = self.observation
         await self.preparation.run_thread(self.reopen_current)
-        if not previous.is_current():
-            self.events.publish(CoordinationObserved(self.revision))
+        self.events.publish(CoordinationObserved(self.revision))
 
     async def observe_route(self) -> None:
         """A changed route selection opens (and observes) the newly selected service."""

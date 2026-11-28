@@ -116,8 +116,10 @@ class InactivePresence(ApplicationPresence):
 
 class SuspendedPresence(ApplicationPresence):
     def activate(self, app: ClientApplication) -> ApplicationPresence:
+        # `resume()` publishes `CoordinationObserved` once the fresh observation attaches,
+        # which triggers `stores_changed` -> `selected.reload()` on the new observer instead
+        # of racing a synchronous reload against the retiring one (`ObserverRetired`).
         app.coordination_access.resume()
-        app.workspace_sessions.selected.reload()
         return ACTIVE_PRESENCE
 
     def deactivate(self, app: ClientApplication) -> ApplicationPresence:
