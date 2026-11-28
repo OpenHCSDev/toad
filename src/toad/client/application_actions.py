@@ -392,6 +392,16 @@ class TeamAction(OpensWindow, ApplicationAction, declared_name="team"):
         await app.open_team_board()
 
 
+class CommsServersAction(OpensWindow, ApplicationAction, declared_name="comms_servers"):
+    """Open the live ZMQ comms server browser showing server status and connected CLIs."""
+
+    title = "Comms ZMQ servers"
+    show = True
+
+    async def apply(self, app: ClientApplication) -> None:
+        await app.open_comms_servers()
+
+
 class KeymapAction(OpensWindow, ApplicationAction):
     """Browse keyboard shortcuts and change their keys for each editing mode."""
 

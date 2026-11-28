@@ -2698,6 +2698,16 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, Hin
         dialog = QtTeamBoardScreen(self)
         dialog.show()
 
+    async def open_comms_servers(self) -> None:
+        """Qt override of `ClientApplication.open_comms_servers`. Opens the
+        `ZMQServerBrowserWidgetABC`-backed live comms server browser for the active bus root."""
+        from toad.qt.comms_server_browser import QtCommsServerWindow
+
+        observed = self.coordination_access.observation.observed()
+        bus_root = Path(observed.root) if observed.root else Path.home() / ".agent-comms"
+        dialog = QtCommsServerWindow(bus_root, parent=self)
+        dialog.show()
+
     def open_transfer(self, kind) -> None:
         """Qt override of `ClientApplication.open_transfer`: the Qt member of the shared
         transfer-form family that composes `kind`; its submit calls

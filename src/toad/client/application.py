@@ -518,6 +518,11 @@ class ClientApplication(BusPickerHost, ApplicationSettings, NavigationHost):
         self.show_info("Team board is not yet available on this frontend.",
                        "Team")
 
+    async def open_comms_servers(self) -> None:
+        """Open the live ZMQ comms server browser. Qt opens `QtCommsServerWindow`."""
+        self.show_info("Comms ZMQ server browser is not yet available on this frontend.",
+                       "Comms ZMQ servers")
+
     async def open_keymap_browser(self) -> None:
         """Browse and change keybindings. Textual pushes `KeymapScreen`; Qt stub notice."""
         self.show_info("Keymap browser is not yet available on this frontend.",
