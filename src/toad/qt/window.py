@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import shiboken6
 from contextlib import contextmanager
@@ -64,7 +64,7 @@ from toad.client.hints import (
 )
 from toad.keymap import KeyInvocationId
 from toad.neovim_editing import HostsNeovim
-from toad.qt.finger_press import FingerPress
+from toad.qt.finger_press import FingerPress, WatchedWindow
 from toad.qt.hints import QtCallbackHintTarget, QtHintOverlay, QtHintTargetSource
 from toad.qt.mailbox_view import QtMailboxView
 from toad.qt.opening_view import QtOpeningSessionView
@@ -262,6 +262,37 @@ class ObservedSource(ConversationSource):
     project: Checkout
 
 
+class SidebarStatusText(ABC):
+    """Optional status text to display on or clear from a sidebar StatusSection."""
+
+    @abstractmethod
+    def apply_to_status_section(self, root: QTreeWidgetItem, owner: StatusSection) -> None:
+        ...
+
+    @classmethod
+    def from_optional(cls, value: str | None) -> SidebarStatusText:
+        return AbsentSidebarStatusText() if value is None else HeldSidebarStatusText(value)
+
+
+@dataclass(frozen=True)
+class AbsentSidebarStatusText(SidebarStatusText):
+    """Absent `SidebarStatusText` carrying no value."""
+
+    def apply_to_status_section(self, root: QTreeWidgetItem, owner: StatusSection) -> None:
+        root.takeChild(root.indexOfChild(owner))
+
+
+@dataclass(frozen=True)
+class HeldSidebarStatusText(SidebarStatusText):
+    """Held `SidebarStatusText` carrying its present value."""
+
+    value: str
+
+    def apply_to_status_section(self, root: QTreeWidgetItem, owner: StatusSection) -> None:
+        title, detail = owner.status_rows(self.value)
+        owner.draw('', title, detail, self.value)
+
+
 class SidebarItem(DetailedLine, PaintedRowTone, QTreeWidgetItem):
     """One line of the sidebar tree, the shared `DetailedLine` (Textual's `DetailedRow`):
     its title after its status prefix, its detail indented under it; a tap activates it."""
@@ -363,7 +394,7 @@ class SidebarItem(DetailedLine, PaintedRowTone, QTreeWidgetItem):
         """What `HeldRowMenu` offers for this line: nothing, for most lines."""
         return ()
 
-    def update_status_in(self, root: QTreeWidgetItem, text: str | None) -> bool:
+    def update_status_in(self, root: QTreeWidgetItem, text: SidebarStatusText) -> bool:
         """If this item is the sidebar's status row, update or remove it and return True."""
         return False
 
@@ -439,12 +470,8 @@ class StatusSection(SidebarStatusLine, SidebarSection):
         self.key = SidebarStatusLine.key
         self.draw("", title, detail, text)
 
-    def update_status_in(self, root: QTreeWidgetItem, text: str | None) -> bool:
-        if text is None:
-            root.takeChild(root.indexOfChild(self))
-        else:
-            title, detail = self.status_rows(text)
-            self.draw("", title, detail, text)
+    def update_status_in(self, root: QTreeWidgetItem, text: SidebarStatusText) -> bool:
+        text.apply_to_status_section(root, self)
         return True
 
 
@@ -1514,7 +1541,8 @@ class Sidebar(ChannelTreeSidebar):
         the channel subtrees that a targeted sync just redrew."""
         root = self.invisibleRootItem()
         for index in range(root.childCount()):
-            if root.child(index).update_status_in(root, self._status_text):
+            item: SidebarItem = root.child(index)
+            if item.update_status_in(root, SidebarStatusText.from_optional(self._status_text)):
                 return
         if self._status_text is not None:
             target = StatusSection(self._status_text)
@@ -2115,7 +2143,7 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, HostsNeovim, Hin
             ),
         )
         self.winId()
-        FingerPress.install(QApplication.instance()).watch(self.windowHandle())
+        FingerPress.install(QApplication.instance()).watch(WatchedWindow.from_optional(self.windowHandle()))
         self.windowHandle().safeAreaMarginsChanged.connect(self.fit_safe_area)
         self._safe_area_resync_pending = False
         self._ime_watcher = self._watch_android_ime_inset()

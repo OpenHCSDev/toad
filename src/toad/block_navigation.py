@@ -298,7 +298,7 @@ class ChildBlockCursor(BlockCursor):
         return self._child if self._child in self.block.displayed_children else NO_ENTRY
 
     @property
-    def active(self):
+    def active(self) -> BlockCursor:
         return self.current.block_cursor.active
 
     def accepts(self, owner: Widget) -> bool:

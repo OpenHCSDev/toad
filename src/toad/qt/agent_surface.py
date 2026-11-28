@@ -19,6 +19,7 @@ from agent_comms.nominal.field_codec import FieldCodec, ToolCallId
 from agent_comms.transcript.transcript_events import ToolStartTranscript
 from metaclass_registry.mro_dispatch import handles
 
+from toad.acp.permission_controller import PermissionRequest
 from toad.acp.status import ToolCallStatus
 from toad.client.fragments import GrowsInPlace, Shown
 from toad.client.subscribers import CallbackSubscription
@@ -187,7 +188,9 @@ class QtSurfaceBinding(NonPostingSurfaceBinding, ViewSurfaceBinding):
         view.app.input_attention.notify(title, title="Permissions request", sound="question")
 
     @handles(DialogPermissionPresentation)
-    async def ask_dialog(self, presentation: DialogPermissionPresentation, view, request) -> None:
+    async def ask_dialog(
+        self, presentation: DialogPermissionPresentation, view, request: PermissionRequest
+    ) -> None:
         view.open_dialog(presentation.spec, partial(request.resolve, self))
         view.app.input_attention.notify(
             presentation.spec.message or presentation.spec.title,
@@ -196,7 +199,7 @@ class QtSurfaceBinding(NonPostingSurfaceBinding, ViewSurfaceBinding):
         )
         request.watch(self, partial(view.retract_dialog, presentation.spec))
 
-    def ask(self, view, request, title: str) -> None:
+    def ask(self, view, request: PermissionRequest, title: str) -> None:
         """Every permission asks through the view's shared question (`QtQuestion`, a
         `ChoiceQuestion`), and its answer goes back to the request."""
         ask = view.ask(request.options, title, None, partial(request.answer, self))

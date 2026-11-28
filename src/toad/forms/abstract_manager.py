@@ -81,7 +81,8 @@ class TextualManagerListItem(ListItem):
     """One row inside ``TextualAbstractManagerWidget``'s ``ListView``."""
 
     def __init__(self, label_text: str, data: Any, *, scope_id: str = "") -> None:
-        super().__init__(Label(label_text, markup=False))
+        self._label: Label = Label(label_text, markup=False)
+        super().__init__(self._label)
         self.manager_data = data
         self.scope_id = scope_id
         self._label_text = label_text
@@ -89,7 +90,7 @@ class TextualManagerListItem(ListItem):
     def set_row_text(self, label_text: str) -> None:
         self._label_text = label_text
         if self.is_mounted:
-            self.query_one(Label).update(label_text)
+            self._label.update(label_text)
 
 
 class TextualManagerListSurface(ManagerListSurface):
@@ -203,7 +204,7 @@ class TextualAbstractManagerWidget(
     ) -> None:
         super().__init__(id=id)
         self._title_label = Static(self.TITLE, markup=False)
-        self._status_label = Static("", markup=False)
+        self._status_label: Static = Static("", markup=False)
         self._list_view = ListView()
         self._action_buttons: dict[str, Button] = {
             action_id: Button(label, id=f"manager-action-{action_id}", compact=True)

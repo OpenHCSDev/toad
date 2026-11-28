@@ -33,7 +33,7 @@ class CommandCatalog:
 
     @classmethod
     async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],
-                   context: Awaitable[TargetContext], local: type[LocalCommand]):
+                   context: Awaitable[TargetContext], local: type[LocalCommand]) -> CommandCatalog:
         """Acquire one operation's projection through the shared read worker.
 
         `local` is the family of local commands the reading conversation runs.

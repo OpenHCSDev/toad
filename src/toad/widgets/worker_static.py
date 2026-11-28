@@ -24,8 +24,15 @@ from textual.visual import Visual, VisualType
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import (
-    ContentSource, PreparedPaintSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource,
-    SyntaxPalette, SyntaxSource,
+    CapturedSelection,
+    ContentSource,
+    PreparedPaintSource,
+    PreparedRichContent,
+    RenderableSource,
+    RichPresentation,
+    RichSource,
+    SyntaxPalette,
+    SyntaxSource,
 )
 from textual import on
 
@@ -49,7 +56,7 @@ class WorkerStatic(PreparedPaintSource, Static):
 
     def __init__(self, content: RenderableType | RichSource | Content = "", *, expand: bool = False,
                  shrink: bool = False, markup: bool = False, disabled: bool = False) -> None:
-        self._source = self.source_for(content)
+        self._source: RichSource = self.source_for(content)
         self._generation = 0
         self._wanted: _Preparation | None = None
         self._ready_request: _Preparation | None = None
@@ -61,7 +68,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         super().__init__("Preparing preview…", markup=False, expand=expand, shrink=shrink, disabled=disabled)
 
     @staticmethod
-    def source_for(content):
+    def source_for(content) -> RichSource:
         if isinstance(content, RichSource):
             return content
         return ContentSource(content) if isinstance(content, Content) else RenderableSource(content)
@@ -165,7 +172,7 @@ class WorkerStatic(PreparedPaintSource, Static):
                 request = replace(wanted, task=replace(wanted.task, presentation=presentation))
         else:
             selection = self.text_selection
-            source = self._source.capture_selection(selection,
+            source = self._source.capture_selection(CapturedSelection.from_optional(selection),
                 Visual.selection_style(self) if selection is not None else None)
             native_style = self.visual_style
             presentation = RichPresentation(
