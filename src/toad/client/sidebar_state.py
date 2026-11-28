@@ -212,11 +212,13 @@ class SidebarStateMachine(SidebarSubscriber[Observing, FailedObservation]):
     def bind_observation(self, observed: Observing) -> None:
         if self.model_state.observes(observed):
             return
+        same_root = self.model_state.serves(observed.root)
         self.unsubscribe()
         self.model_state = Behind(observed)
         observed.sidebar.channels.subscribe(self.channels_changed)
         observed.sidebar.threads.subscribe(self.threads_changed)
-        self.model_replaced()
+        if not same_root:
+            self.model_replaced()
         self.present()
 
     def channels_changed(self, changes: Changes[str]) -> None:

@@ -34,6 +34,13 @@ class QtTranscriptHistory(QtConversationHistory, CommittedHistoryBase, ReportsCo
 
     fragment_classes = QT_FRAGMENT_CLASSES
 
+    @property
+    def undrawn(self) -> bool:
+        """Transcript pages carry `TranscriptCursor`, not wire `AfterMessage` cursors;
+        match Textual's `TranscriptHistory` (`HistoryPager.undrawn`) so arrival capture
+        never calls wire-only `.requires_read()` on `NoNativeTranscriptCursor`."""
+        return not self.draws_rows
+
     @classmethod
     def initial_state(cls, view):
         """Start a bound thread unread, so mounting requests its first saved page.
