@@ -41,6 +41,10 @@ class Page:
     def external_transcript_changed(self) -> None:
         """A page showing no thread's transcript has no CLI items to read."""
 
+    def viewport_geometry_changed(self) -> None:
+        """The enclosing window resized or its safe-area margins changed; pages without a
+        composer have nothing to refit."""
+
     def shown(self, window: QtToadApp, visited: Callable[[CommsTab], object]) -> None:
         """Selected: read again; a tab passes its identity to the visit history."""
         self.reload()

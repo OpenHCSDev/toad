@@ -136,7 +136,6 @@ class QtMenu(BlockMenu, QFrame):
         outer.setContentsMargins(1, UiGap.normal, 1, UiGap.normal)  # 1px: inside the border
         outer.setSpacing(0)
         outer.addWidget(self._scroll)
-        window.installEventFilter(self)
         self.hide()
 
     @classmethod

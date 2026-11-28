@@ -401,11 +401,10 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         # The top-level window is the shared layout viewport. Android can keep that native
         # window at the physical screen size while occluding its bottom with the IME, even
         # under ADJUST_RESIZE, so the input method's own rectangle is the authority for the
-        # visible part. Follow both facts: desktop resize and Android keyboard geometry.
+        # visible part. Follow both facts: desktop resize (via QtToadApp.resizeEvent /
+        # fit_safe_area -> viewport_geometry_changed) and Android keyboard geometry.
         self._viewport_window = host.app
-        self._viewport_window.installEventFilter(self)
         self._last_frame_width: int = 0
-        self.frame.installEventFilter(self)
         self._input_method = QGuiApplication.inputMethod()
         self._input_method.keyboardRectangleChanged.connect(
             self._schedule_fit_height, Qt.ConnectionType.QueuedConnection
@@ -625,19 +624,12 @@ class Composer(PromptSettingEffects, PromptComposer, MentionEditor, SubmitsContr
         self._fit_height_pending = False
         self.fit_height()
 
-    def eventFilter(self, watched, event) -> bool:  # type: ignore[override]
-        if watched is self.frame and event.type() == QEvent.Type.Resize:
-            width = self.frame.width()
-            if width != self._last_frame_width:
-                self._last_frame_width = width
-                self._schedule_fit_height()
-        elif watched is self._viewport_window and event.type() in (
-            QEvent.Type.Resize,
-            QEvent.Type.ContentsRectChange,
-        ):
-            # Run after Qt has propagated the new top-level geometry or safe-area margins.
+    def resizeEvent(self, event) -> None:  # type: ignore[override]
+        super().resizeEvent(event)
+        width = self.frame.width()
+        if width != self._last_frame_width:
+            self._last_frame_width = width
             self._schedule_fit_height()
-        return super().eventFilter(watched, event)
 
     _frame_ready: bool = False
 
