@@ -262,7 +262,7 @@ class QtEditingModeBadge(EditingModeBadge, QLabel, metaclass=PyQtWidgetMeta):
 
     def present_editing_mode(self, mode, focused: bool) -> None:
         shown = mode if focused else Standard()
-        if shown.shows_badge:
+        if mode.shows_badge:
             self.show_mode_label(shown.label)
             self.show()
         else:

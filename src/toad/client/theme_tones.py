@@ -10,6 +10,7 @@ copies between frontends.
 
 from __future__ import annotations
 
+import colorsys
 from collections.abc import Callable
 from typing import ClassVar
 
@@ -26,7 +27,6 @@ from ui_theme.scheme import (
     PrimaryColour,
     SelectedTabToneColour,
     SidebarToneColour,
-    SurfaceHoverColour,
     ThemeColour,
     ToneColour,
 )
@@ -73,6 +73,13 @@ class SidebarToggleToneColour(HueToneColour):
     amount = 0.08
 
 
+class SidebarToggleHoverToneColour(HueToneColour):
+    """The sidebar collapse/resize edge bar under pointer hover, tinted toward PrimaryColour."""
+
+    name = "tone-sidebar-toggle-hover"
+    amount = 0.22
+
+
 class TabHoverToneColour(ToneColour):
     """An inactive tab hover fill and tab underline track: HeaderToneColour stepped 10%
     toward ForegroundColour."""
@@ -83,6 +90,46 @@ class TabHoverToneColour(ToneColour):
     @classmethod
     def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
         return HeaderToneColour.resolve_rgb(read).blend(read(ForegroundColour), cls.amount)
+
+
+class ScrollbarTrackToneColour(ToneColour):
+    """Scrollbar track colour matching Textual's `$scrollbar-background` (`background-darken-1`)."""
+
+    name = "tone-scrollbar-track"
+    amount = 0.075
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        bg = read(BackgroundColour)
+        hue, lightness, saturation = colorsys.rgb_to_hls(
+            bg.red / 255.0, bg.green / 255.0, bg.blue / 255.0
+        )
+        red, green, blue = colorsys.hls_to_rgb(
+            hue, max(0.0, min(1.0, lightness - cls.amount)), saturation
+        )
+        return Rgb(round(red * 255), round(green * 255), round(blue * 255))
+
+
+class ScrollbarThumbToneColour(ToneColour):
+    """Scrollbar slider colour matching Textual's `$scrollbar` (track + 40% PrimaryColour)."""
+
+    name = "tone-scrollbar-thumb"
+    amount = 0.4
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        return ScrollbarTrackToneColour.resolve_rgb(read).blend(read(PrimaryColour), cls.amount)
+
+
+class ScrollbarHoverToneColour(ToneColour):
+    """Scrollbar slider hover colour matching Textual's `$scrollbar-hover` (track + 50% PrimaryColour)."""
+
+    name = "tone-scrollbar-hover"
+    amount = 0.5
+
+    @classmethod
+    def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
+        return ScrollbarTrackToneColour.resolve_rgb(read).blend(read(PrimaryColour), cls.amount)
 
 
 class WorkspaceTabTones:
@@ -106,10 +153,12 @@ class WorkspaceTabTones:
 
 
 class ScrollbarTones:
-    """Single colour declaration for scrollbars across frontends."""
+    """Single colour declaration for scrollbars across frontends, matching Textual's
+    `$scrollbar-background` / `$scrollbar` / `$scrollbar-hover` / `$scrollbar-active`."""
 
-    track_colour: ClassVar[type[ThemeColour]] = BackgroundColour
-    thumb_colour: ClassVar[type[ThemeColour]] = SurfaceHoverColour
+    track_colour: ClassVar[type[ThemeColour]] = ScrollbarTrackToneColour
+    thumb_colour: ClassVar[type[ThemeColour]] = ScrollbarThumbToneColour
+    hover_colour: ClassVar[type[ThemeColour]] = ScrollbarHoverToneColour
     active_colour: ClassVar[type[ThemeColour]] = PrimaryColour
 
 

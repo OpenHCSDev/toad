@@ -243,7 +243,7 @@ class QtSideBarToggle(QtGripPointer, SidebarToggleFace, SidebarFoldGrip, QLabel,
         option = QStyleOption()
         option.initFrom(self)
         self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, option, painter, self)
-        painter.setPen(self.palette().color(QPalette.ColorRole.WindowText))
+        painter.setPen(option.palette.color(QPalette.ColorRole.WindowText))
         metrics = self.fontMetrics()
         line = metrics.lineSpacing()
         shown = metrics.elidedText(self._heading, Qt.TextElideMode.ElideRight, max(0, self.height() - 4 * line))
