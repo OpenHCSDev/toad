@@ -25,6 +25,7 @@ from ui_theme.scheme import (
     FloatToneColour,
     ForegroundColour,
     HeaderToneColour,
+    InputToneColour,
     MutedColour,
     PrimaryColour,
     SelectedTabToneColour,
@@ -105,14 +106,15 @@ class InputBorderToneColour(ToneColour):
 
 
 class InputPlaceholderToneColour(ToneColour):
-    """Input placeholder ink matching Textual's `$text-disabled` (38% foreground over surface)."""
+    """Muted input placeholder ink with clear contrast over both `InputToneColour` and
+    `InputSurfaceToneColour`."""
 
     name = "tone-input-placeholder"
-    amount = 0.38
+    amount = 0.45
 
     @classmethod
     def resolve_rgb(cls, read: Callable[[type[ThemeColour]], Rgb]) -> Rgb:
-        return InputSurfaceToneColour.resolve_rgb(read).blend(read(ForegroundColour), cls.amount)
+        return InputToneColour.resolve_rgb(read).blend(read(ForegroundColour), cls.amount)
 
 
 class DisabledHeaderInkToneColour(ToneColour):

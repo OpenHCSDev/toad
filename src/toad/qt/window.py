@@ -1983,6 +1983,11 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         self._keyboard_open: bool = False
         self._base_app_font_pt: float = QApplication.font().pointSizeF()
         self._applied_font_scale: int = 100
+        self._applied_nav_edge: str | None = None
+        self._scale_chrome_timer = QTimer(self)
+        self._scale_chrome_timer.setSingleShot(True)
+        self._scale_chrome_timer.setInterval(120)
+        self._scale_chrome_timer.timeout.connect(self._finish_scaled_chrome)
         self.renderer.themed(self, self.paint_chrome_colours)
         layout = QVBoxLayout(self)
         layout.setSpacing(0)
@@ -2305,25 +2310,28 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
         nav_hover_fg = renderer.theme(WorkspaceTabTones.header_button_hover_fg)
         nav_disabled_fg = renderer.theme(WorkspaceTabTones.header_button_disabled_fg)
         scrollbar_qss = _scrollbar_qss(renderer, scale=scale)
-        self.setStyleSheet(scrollbar_qss)
+        QtLineRenderer.apply_sheet(self, scrollbar_qss)
         for side in self.chrome.sidebars:
             side.paint_theme(renderer, scrollbar_qss=scrollbar_qss, scale=scale)
         self.sidebar_search.paint_theme(renderer, scale=scale)
         self.thread_pane.paint_theme(renderer, scale=scale)
-        self.tab_scrollbar.setStyleSheet(
-            _scrollbar_qss(renderer, selector="#toad-tab-scrollbar", scale=scale, fixed_thickness=False)
+        QtLineRenderer.apply_sheet(
+            self.tab_scrollbar,
+            _scrollbar_qss(renderer, selector="#toad-tab-scrollbar", scale=scale, fixed_thickness=False),
         )
-        self.tab_column.setStyleSheet(f"#toad-tab-column {{ background-color: {bar_bg}; }}")
-        self.tab_strip.setStyleSheet(
+        QtLineRenderer.apply_sheet(self.tab_column, f"#toad-tab-column {{ background-color: {bar_bg}; }}")
+        QtLineRenderer.apply_sheet(
+            self.tab_strip,
             f"#toad-tab-strip, #toad-tab-strip > QWidget {{"
-            f" border: none; padding: 0px; background-color: {bar_bg}; }}"
+            f" border: none; padding: 0px; background-color: {bar_bg}; }}",
         )
         tab_pad_y = scaled_px(4, scale)
         tab_pad_l = scaled_px(5, scale)
         tab_pad_r = scaled_px(1, scale)
         border_w = scaled_px(2, scale)
         tab_gap = self.tabs.scaled_tab_gap()
-        self.tabs.setStyleSheet(
+        QtLineRenderer.apply_sheet(
+            self.tabs,
             f"QTabBar {{ background-color: {bar_bg}; color: {active_ink}; }}"
             f"QTabBar::tab {{ background-color: {inactive_bg}; color: {inactive_ink}; border: none;"
             f" border-bottom: {border_w}px solid {hover_bg};"
@@ -2336,14 +2344,16 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             f" border: none; border-radius: 0px; padding: 0px;"
             f" background: transparent; color: {close_idle}; font-weight: bold; }}"
             f"QToolButton#tab-close-button:hover, QToolButton#tab-close-button:pressed {{"
-            f" background: {hover_bg}; color: {close_hover}; }}"
+            f" background: {hover_bg}; color: {close_hover}; }}",
         )
         self.tabs.set_colours(QColor(underline_hex), QColor(active_ink), QColor(inactive_ink))
         sep_hex = self.palette().color(QPalette.ColorRole.Mid).name()
         nav_edge = self.settings.ui.navigation_bar.qt_separator_edge
+        self._applied_nav_edge = nav_edge
         nav_pad = scaled_px(2, scale)
         sep_margin = scaled_px(4, scale)
-        self.navigation.setStyleSheet(
+        QtLineRenderer.apply_sheet(
+            self.navigation,
             f"QFrame#toad-navigation {{ background-color: {bar_bg}; padding: {nav_pad}px {nav_pad}px;"
             f" border: none; {nav_edge}: 1px solid {sep_hex}; }}"
             f"QFrame#toad-nav-separator {{ border: none; padding: 0px; margin: {sep_margin}px 0px; background: {sep_hex}; }}"
@@ -2352,16 +2362,22 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             f"QFrame#toad-navigation QToolButton:hover {{"
             f" background-color: {nav_hover_bg}; color: {nav_hover_fg}; }}"
             f"QFrame#toad-navigation QToolButton:disabled {{"
-            f" color: {nav_disabled_fg}; }}"
+            f" color: {nav_disabled_fg}; }}",
         )
         self.float_layer.follow_scheme(scheme)
+
+    def _finish_scaled_chrome(self) -> None:
+        """Apply scaled stylesheet chrome once rapid zoom ticks pause (avoids 40ms+ root QSS
+        repolish on every wheel notch or key-repeat step)."""
+        self.paint_chrome_colours()
+        self.sidebar.paint_colours()
 
     def settings_widgets(self, widget_type: type) -> list:
         return capability_widgets(self, widget_type)
 
     def apply_text_scale(self, percent: int) -> None:
-        """Single hoisted UI-scale owner: scales fonts, chrome buttons, tabs, sidebars,
-        search boxes, scrollbars, and row geometry together like terminal zoom."""
+        """Single hoisted UI-scale owner: applies font and layout scaling immediately (<2ms)
+        and coalesces expensive root-window QSS chrome polish so rapid zooming feels instant."""
         clamped = max(50, min(200, int(percent)))
         if clamped == self._applied_font_scale:
             return
@@ -2378,14 +2394,13 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             button.setFont(btn_font)
             button.setMinimumSize(btn_min_w, btn_min_h)
         self.tabs.apply_scale(clamped)
-        self.paint_chrome_colours()
         self.show_current_tab(scroll_to_current=False)
         self.rearrange_sidebars()
-        self.sidebar.paint_colours()
         for index in range(self.sidebar.topLevelItemCount()):
             for item in self.sidebar.topLevelItem(index).subtree():
                 item.fit()
         self.sidebar.doItemsLayout()
+        self._scale_chrome_timer.start()
 
     def apply_layout_preferences(self) -> None:
         """The navigation bar sits above or below the conversation row as `ui.navigation_bar`
@@ -2396,7 +2411,8 @@ class QtToadApp(ClientApplication, LayoutFollower, CorePrewarm, QtWorkspaceFrame
             layout.removeWidget(widget)
             layout.insertWidget(index, widget, 1 if widget is self.chrome else 0)
         self.apply_text_scale(self.settings.ui.message_font_scale)
-        self.paint_chrome_colours()
+        if self._applied_nav_edge != self.settings.ui.navigation_bar.qt_separator_edge:
+            self.paint_chrome_colours()
         self._sync_keyboard_chrome()
 
     def follow_theme(self) -> None:
