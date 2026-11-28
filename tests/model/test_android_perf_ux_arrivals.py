@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from agent_comms.coordination.errors import CoordinationReadUnavailable
 from agent_comms.transport.remote_core import ConnectorObserverClosed
 from PySide6.QtCore import QRect
-from PySide6.QtGui import QTextDocument
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtGui import QBrush, QColor, QTextDocument
+from PySide6.QtWidgets import QApplication, QTreeWidget, QTreeWidgetItem, QWidget
 
+from toad.client.fragments import WireMessage
 from toad.client.history import ObservedViewportRequest, RestyledViewportRequest
 from toad.client.history_state import LatestReplacementViewportRequest
 from toad.key_modes import Standard, VimInsert
@@ -23,6 +25,8 @@ from toad.qt.name_wave import QtSessionTabBar, QtTabWave
 from toad.qt.overlay_scrollbar import OverlayScrollBar
 from toad.qt.prompt_stack import QtInfoBar
 from toad.qt.theme import current_scheme
+from toad.qt.virtual_scroll import VirtualRowCanvas
+from toad.qt.window import ConversationRows, SidebarItem
 from ui_theme.clock import AnimationClock
 from toad.session_observation import GoalObservation, SessionObservation
 from toad.sidebar_placement import BottomSidebarEdge, HeightSidebarEdge
@@ -2772,3 +2776,102 @@ def test_sticky_header_lru_caches_headers_and_opaque_scroll_clip_skips_occluded_
     assert font_spec_calls == 1, f"expected 1 _font_spec call per frame, got {font_spec_calls}"
     host.close()
     canvas.close()
+
+
+def test_sidebar_tone_batching_scroll_cover_cache_and_cached_notification_references(monkeypatch):
+    """ConversationRows.batching_row_tones paints O(N) once and skips unchanged brushes;
+    VirtualRowCanvas.scrollContentsBy caches uncovered/dirty regions for steady covers;
+    WireMessage.notification_references caches per fragment instead of re-minting on every check."""
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    _app = QApplication.instance() or QApplication([])
+
+    # 1. ConversationRows.batching_row_tones coalesces N inserts/reorders into 1 pass and skips unchanged tones.
+    bg_calls = 0
+
+    class _ToneItem(SidebarItem, QTreeWidgetItem):
+        def __init__(self, key: str) -> None:
+            super().__init__()
+            self.key = key
+
+        def setBackground(self, column: int, brush: QBrush) -> None:  # type: ignore[override]
+            nonlocal bg_calls
+            bg_calls += 1
+            super().setBackground(column, brush)
+
+    class _FakeTree(QTreeWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self._tone_brushes: dict[object, QBrush] = {}
+            self._tone_batch_depth = 0
+            self._dirty_tone_parents: dict[int, tuple[QTreeWidgetItem, int]] = {}
+            self.model().rowsInserted.connect(self._paint_row_tones_from)
+            self.model().rowsRemoved.connect(self._paint_row_tones_from)
+
+        def _row_tone_brush(self, tone):
+            brush = self._tone_brushes.get(tone)
+            if brush is None:
+                brush = self._tone_brushes[tone] = QBrush(QColor("#222222" if tone is SidebarItem.row_tones[0] else "#333333"))
+            return brush
+
+    _FakeTree.batching_row_tones = ConversationRows.batching_row_tones
+    _FakeTree._paint_children_tones = ConversationRows._paint_children_tones
+    _FakeTree._paint_row_tones_from = ConversationRows._paint_row_tones_from
+
+    tree = _FakeTree()
+    root = tree.invisibleRootItem()
+    items = [_ToneItem(f"row-{i}") for i in range(20)]
+    with tree.batching_row_tones():
+        for idx, item in enumerate(items):
+            root.insertChild(idx, item)
+    # Exactly 1 setBackground per row (20, not 20*21/2 = 210).
+    assert bg_calls == 20
+    # Re-running with identical parity does 0 setBackground calls.
+    tree._paint_children_tones(root, 0)
+    assert bg_calls == 20
+    # Swapping two even-indexed items leaves every parity unchanged -> 0 setBackground calls.
+    with tree.batching_row_tones():
+        taken = root.takeChild(2)
+        root.insertChild(2, taken)
+    assert bg_calls == 20
+    tree.close()
+
+    # 2. VirtualRowCanvas.scrollContentsBy reuses cached (clear, dirty) when covers don't move.
+    canvas = VirtualRowCanvas(MagicMock())
+    canvas.resize(412, 600)
+    canvas.show()
+    vp_geo = canvas.viewport().geometry()
+    cover = QWidget(canvas)
+    cover.setGeometry(vp_geo.left() + 140, vp_geo.top() + vp_geo.height() - 40, 120, 32)
+    cover.show()
+    uncovered_calls = 0
+    orig_uncovered = VirtualRowCanvas.uncovered
+
+    def counting_uncovered(rect, covers):
+        nonlocal uncovered_calls
+        uncovered_calls += 1
+        return orig_uncovered(rect, covers)
+
+    monkeypatch.setattr(VirtualRowCanvas, "uncovered", staticmethod(counting_uncovered))
+    for _ in range(5):
+        canvas.scrollContentsBy(0, -40)
+    assert uncovered_calls == 1, f"expected 1 uncovered() call for steady covers, got {uncovered_calls}"
+    # Moving the cover invalidates the cache and recomputes once.
+    cover.setGeometry(vp_geo.left() + 100, vp_geo.top() + vp_geo.height() - 40, 120, 32)
+    canvas.scrollContentsBy(0, -40)
+    assert uncovered_calls == 2
+    canvas.close()
+
+    # 3. WireMessage.notification_references caches per fragment.
+    ref_calls = 0
+
+    class _FakeRole:
+        def notification_references(self, _message):
+            nonlocal ref_calls
+            ref_calls += 1
+            return ("ref-1",)
+
+    frag = object.__new__(WireMessage)
+    frag.events = (SimpleNamespace(message=SimpleNamespace(role=_FakeRole())),)
+    assert frag.notification_references == ("ref-1",)
+    assert frag.notification_references == ("ref-1",)
+    assert ref_calls == 1

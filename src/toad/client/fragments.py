@@ -515,7 +515,7 @@ class BusMessageHistoryFragment(MessageLines):
     def has_details(self) -> bool:
         return self.part_position.has_details
 
-    @property
+    @cached_property
     def notification_references(self) -> tuple[MessageReference, ...]:
         return self.part_position.notification_references(self.events[0])
 
@@ -676,7 +676,7 @@ class WireMessage(BusMessageHistoryFragment, EvidencedFragment):
             **fields,
         )
 
-    @property
+    @cached_property
     def notification_references(self):
         return self.message.role.notification_references(self.message)
 

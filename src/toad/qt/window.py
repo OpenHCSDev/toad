@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import os
 import shiboken6
+from contextlib import contextmanager
 from time import time
 from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass
@@ -197,6 +198,7 @@ class SidebarItem(DetailedLine, QTreeWidgetItem):
 
     key: str
     drawn: tuple[str, str, str, str] = ("", "", "", "")
+    _painted_tone: QBrush | None = None
     row_tones: ClassVar[tuple[type[ThemeColour], type[ThemeColour]]] = (
         SidebarToneColour,
         AlternateRowToneColour,
@@ -689,8 +691,24 @@ class TreeItemRows[KeyT](KeyedRows[KeyT]):
         for row in rows:
             row.placed()
 
+    def reconcile_keys(self, wanted: Iterable[KeyT], *, changed: frozenset[KeyT] = frozenset()) -> None:
+        tree = self.parent.treeWidget()
+        if tree is None:
+            super().reconcile_keys(wanted, changed=changed)
+            return
+        with tree.batching_row_tones():
+            super().reconcile_keys(wanted, changed=changed)
+
     def order_rows(self, position) -> None:
         """Move only the lines out of place, each where it belongs, reopening its groups."""
+        tree = self.parent.treeWidget()
+        if tree is None:
+            self._order_rows_immediate(position)
+            return
+        with tree.batching_row_tones():
+            self._order_rows_immediate(position)
+
+    def _order_rows_immediate(self, position) -> None:
         for index, row in enumerate(sorted(self.member_order(), key=position)):
             if self.parent.child(index) is not row:
                 states = [(group, group.isExpanded(), group.isSelected()) for group in row.subtree()]
@@ -777,6 +795,8 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         # and thread rows stuck highlighted green until another row was tapped.
         self.setSelectionMode(QTreeWidget.SelectionMode.NoSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._tone_batch_depth = 0
+        self._dirty_tone_parents: dict[int, tuple[QTreeWidgetItem, int]] = {}
         self.itemClicked.connect(self.activate)
         self.model().rowsInserted.connect(self._paint_row_tones_from)
         self.model().rowsRemoved.connect(self._paint_row_tones_from)
@@ -838,10 +858,29 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
             brush = self._tone_brushes[tone] = QBrush(QColor(self.window.renderer.theme(tone)))
         return brush
 
+    @contextmanager
+    def batching_row_tones(self) -> Iterator[None]:
+        """Coalesce per-insert/remove row-tone repaints across a bulk tree update or reorder
+        so painting N rows costs O(N) instead of O(N^2) and skips unchanged brushes."""
+        self._tone_batch_depth += 1
+        try:
+            yield
+        finally:
+            self._tone_batch_depth -= 1
+            if self._tone_batch_depth == 0 and self._dirty_tone_parents:
+                dirty = tuple(self._dirty_tone_parents.values())
+                self._dirty_tone_parents.clear()
+                for parent, start in dirty:
+                    if shiboken6.isValid(parent) and parent.treeWidget() is self:
+                        self._paint_children_tones(parent, start)
+
     def _paint_children_tones(self, parent: QTreeWidgetItem, start: int = 0) -> None:
         for row in range(start, parent.childCount()):
             child = parent.child(row)
-            child.setBackground(0, self._row_tone_brush(child.row_tones[row % 2]))
+            brush = self._row_tone_brush(child.row_tones[row % 2])
+            if child._painted_tone is not brush:
+                child._painted_tone = brush
+                child.setBackground(0, brush)
 
     def _paint_subtree_row_tones(self, parent: QTreeWidgetItem) -> None:
         self._paint_children_tones(parent)
@@ -852,8 +891,15 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
 
     def _paint_row_tones_from(self, parent_index, first: int, _last: int) -> None:
         parent = self.itemFromIndex(parent_index) if parent_index.isValid() else self.invisibleRootItem()
-        if parent is not None:
-            self._paint_children_tones(parent, first)
+        if parent is None:
+            return
+        if self._tone_batch_depth > 0:
+            key = id(parent)
+            prev = self._dirty_tone_parents.get(key)
+            if prev is None or first < prev[1]:
+                self._dirty_tone_parents[key] = (parent, first)
+            return
+        self._paint_children_tones(parent, first)
 
     def drawBranches(self, painter: QPainter, rect: QRect, index) -> None:  # type: ignore[override]
         """Paint the left disclosure gutter in the item's prepared shared row tone."""
@@ -913,8 +959,9 @@ class ConversationRows(LineMenuTree, RowTree, QTreeWidget):
         """Draw every line again in place, by kind and key: a line still wanted keeps its
         item, so a finger on it still lands and a group keeps its open or closed state; a
         line no longer wanted goes. Rows change in place; nothing is cleared and rebuilt."""
-        with KeptLines(self.invisibleRootItem()) as top:
-            draw(top)
+        with self.batching_row_tones():
+            with KeptLines(self.invisibleRootItem()) as top:
+                draw(top)
 
 
 class NoopNavigation(NavigationRefresh):
